@@ -48,7 +48,7 @@ export function HireTalentSection() {
               We work as the technical lead when there is no internal CTO, turning product goals into a real system design and carrying the build through production.
             </p>
             <div className="mt-8">
-              <BeamButton theme="light">Start a Project</BeamButton>
+              <BeamButton theme="light" className="min-h-[48px] px-6">Start a Project</BeamButton>
             </div>
           </FadeIn>
 
@@ -66,7 +66,7 @@ export function HireTalentSection() {
               We take ownership of delivery, integration, cloud and on-premise systems, security posture, and operational support without building an oversized internal team.
             </p>
             <div className="mt-8">
-              <BeamButton theme="light">Discuss Delivery</BeamButton>
+              <BeamButton theme="light" className="min-h-[48px] px-6">Discuss Delivery</BeamButton>
             </div>
           </FadeIn>
         </div>

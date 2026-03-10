@@ -236,10 +236,10 @@ function HeroAndSections() {
                 </div>
 
                 <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                  <BeamButton theme="light" onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}>
+                  <BeamButton theme="light" className="min-h-[48px] px-6" onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}>
                     Start a Project
                   </BeamButton>
-                  <BeamButton onClick={() => lenis?.scrollTo("#capabilities", { duration: 1.3 })}>
+                  <BeamButton className="min-h-[48px] px-6" onClick={() => lenis?.scrollTo("#capabilities", { duration: 1.3 })}>
                     Review Capabilities
                   </BeamButton>
                 </div>

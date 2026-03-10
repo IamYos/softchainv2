@@ -26,8 +26,8 @@ export function DotGridCTA() {
               Software engineering, AI-integrated systems, and IT operations under one execution model.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <BeamButton theme="light">Book a Strategy Call</BeamButton>
-              <BeamButton>Review Capabilities</BeamButton>
+              <BeamButton theme="light" className="min-h-[48px] px-6">Book a Strategy Call</BeamButton>
+              <BeamButton className="min-h-[48px] px-6">Review Capabilities</BeamButton>
             </div>
           </div>
         </FadeIn>

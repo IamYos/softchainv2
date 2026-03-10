@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { CSSProperties, ReactNode } from "react";
 
+const BEAM_MASK =
+  "linear-gradient(#fff,#fff) 0 0/100% 2px no-repeat," +
+  "linear-gradient(#fff,#fff) 0 100%/100% 2px no-repeat," +
+  "linear-gradient(#fff,#fff) 0 0/2px 100% no-repeat," +
+  "linear-gradient(#fff,#fff) 100% 0/2px 100% no-repeat";
+
 type BeamButtonProps = {
   children: ReactNode;
   className?: string;
@@ -24,52 +30,66 @@ export function BeamButton({
     theme === "light"
       ? {
           backgroundColor: "#ffffff",
-          color: "#000000",
-          borderColor: "rgba(0, 0, 0, 0.2)",
-          ["--beam-overlay" as string]: "rgba(0, 0, 0, 0.05)",
+          color: "#171717",
+          borderColor: "rgba(23, 23, 23, 0.28)",
           ["--btn-active-bg" as string]: "#171717",
           ["--btn-active-text" as string]: "#ffffff",
           ["--btn-active-border" as string]: "rgba(255, 255, 255, 0.28)",
         }
       : {
-          backgroundColor: "var(--mf-bg-base)",
+          backgroundColor: "transparent",
           color: "#ffffff",
-          borderColor: "rgba(255, 255, 255, 0.2)",
-          ["--beam-overlay" as string]: "rgba(255, 255, 255, 0.06)",
+          borderColor: "rgba(255, 255, 255, 0.28)",
           ["--btn-active-bg" as string]: "#ffffff",
           ["--btn-active-text" as string]: "#171717",
           ["--btn-active-border" as string]: "rgba(0, 0, 0, 0.28)",
         };
 
-  const sharedStyle = {
-    ...defaultStyle,
-    ...style,
-  };
+  const overlayBg =
+    theme === "light" ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.06)";
+
+  const mergedStyle = { ...defaultStyle, ...style };
 
   const content = (
     <>
-      <span className="beam-button__overlay absolute inset-0 rounded-[inherit]" />
+      {/* Hover overlay */}
+      <span
+        className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-active:opacity-100"
+        style={{ backgroundColor: overlayBg }}
+      />
+
+      {/* Text */}
       <span className="relative z-10">{children}</span>
+
+      {/* Beam border — visible on hover */}
       <span
         aria-hidden="true"
-        className="beam-button__beam absolute inset-[-1px] overflow-hidden rounded-[inherit]"
-        style={{
-          WebkitMask:
-            "linear-gradient(#fff,#fff) 0 0/100% 1px no-repeat,linear-gradient(#fff,#fff) 0 100%/100% 1px no-repeat,linear-gradient(#fff,#fff) 0 0/1px 100% no-repeat,linear-gradient(#fff,#fff) 100% 0/1px 100% no-repeat",
-          mask: "linear-gradient(#fff,#fff) 0 0/100% 1px no-repeat,linear-gradient(#fff,#fff) 0 100%/100% 1px no-repeat,linear-gradient(#fff,#fff) 0 0/1px 100% no-repeat,linear-gradient(#fff,#fff) 100% 0/1px 100% no-repeat",
-        }}
+        className="pointer-events-none absolute inset-[-1px] overflow-hidden rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100"
+        style={{ WebkitMask: BEAM_MASK, mask: BEAM_MASK }}
       >
-        <span className="beam-button__beam-core absolute left-1/2 top-1/2 h-[1000px] w-[1000px]" />
+        <span
+          className="beam-beam-core absolute left-1/2 top-1/2 h-[1000px] w-[1000px]"
+          style={{
+            background:
+              "conic-gradient(from 0deg, transparent 0deg 200deg, var(--mf-brand-blue) 260deg, var(--mf-brand-red) 320deg, transparent 360deg)",
+            translate: "-50% -50%",
+            animation: "beam-spin 4s linear infinite",
+          }}
+        />
       </span>
     </>
   );
 
-  const sharedClassName =
-    `beam-button relative inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-[4px] border px-6 text-sm font-medium tracking-tight ${className}`;
+  const sharedClassName = `beam-button group relative inline-flex cursor-pointer items-center justify-center rounded border px-4 py-2 text-sm font-medium ${className}`;
 
   if (href) {
     return (
-      <Link href={href} className={sharedClassName} style={sharedStyle} data-theme={theme}>
+      <Link
+        href={href}
+        className={sharedClassName}
+        style={mergedStyle}
+        data-theme={theme}
+      >
         {content}
       </Link>
     );
@@ -80,7 +100,7 @@ export function BeamButton({
       type="button"
       onClick={onClick}
       className={sharedClassName}
-      style={sharedStyle}
+      style={mergedStyle}
       data-theme={theme}
     >
       {content}

@@ -18,9 +18,13 @@ export function HeaderDesktopActions({
     <div className={`items-center gap-4 ${className}`}>
       <BeamButton
         onClick={onSecondaryClick}
-        className="min-h-0 rounded px-4 py-2 text-sm font-medium border transition-colors duration-300"
+        className="text-sm font-medium transition-colors duration-300"
         theme="dark"
         style={{
+          minHeight: "auto",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          letterSpacing: "normal",
           borderColor: "var(--header-secondary-border)",
           backgroundColor: "var(--header-secondary-bg)",
           color: "var(--header-text)",
@@ -34,8 +38,12 @@ export function HeaderDesktopActions({
       </BeamButton>
       <BeamButton
         onClick={onPrimaryClick}
-        className="min-h-0 rounded px-4 py-2 text-sm font-medium border transition-colors duration-300 whitespace-nowrap"
+        className="text-sm font-medium transition-colors duration-300 whitespace-nowrap"
         style={{
+          minHeight: "auto",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          letterSpacing: "normal",
           borderColor: "var(--header-secondary-border)",
           backgroundColor: "var(--header-primary-bg)",
           color: "var(--header-primary-text)",

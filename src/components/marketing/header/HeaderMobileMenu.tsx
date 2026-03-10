@@ -122,7 +122,8 @@ export function HeaderMobileMenu({
         <BeamButton
           onClick={onPrimaryClick}
           theme="light"
-          className="w-full rounded border border-transparent py-3 text-base font-medium"
+          className="w-full rounded py-3 text-base font-medium"
+          style={{ borderColor: "transparent" }}
         >
           Book a Call
         </BeamButton>
