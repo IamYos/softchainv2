@@ -51,9 +51,19 @@ function interpolate(value: number, input: number[], output: number[]) {
 }
 
 const HERO_DEFAULTS = {
-  ["--hero-scale" as string]: "1",
   ["--hero-layer-opacity" as string]: "1",
   ["--hero-content-opacity" as string]: "1",
+  ["--hero-shatter-opacity" as string]: "0",
+  ["--hero-shatter-blur" as string]: "0px",
+  ["--hero-fragment-left-x" as string]: "0px",
+  ["--hero-fragment-left-y" as string]: "0px",
+  ["--hero-fragment-left-rotate" as string]: "0deg",
+  ["--hero-fragment-right-x" as string]: "0px",
+  ["--hero-fragment-right-y" as string]: "0px",
+  ["--hero-fragment-right-rotate" as string]: "0deg",
+  ["--hero-fragment-bottom-x" as string]: "0px",
+  ["--hero-fragment-bottom-y" as string]: "0px",
+  ["--hero-fragment-bottom-rotate" as string]: "0deg",
   ["--grid-opacity" as string]: "0.55",
   ["--grid-scale" as string]: "1",
   ["--problem-y-top" as string]: "0px",
@@ -68,6 +78,52 @@ const HERO_DEFAULTS = {
   ["--fix-panel-y" as string]: "90px",
   ["--fix-panel-scale" as string]: "0.92",
 } as CSSProperties;
+
+function HeroShatterOverlay() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-30 overflow-hidden"
+      style={{
+        opacity: "var(--hero-shatter-opacity, 0)",
+        willChange: "opacity",
+      }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0),rgba(255,255,255,0)_54%,rgba(255,255,255,0.2)_100%)]" />
+      <div
+        className="absolute left-[-5%] top-[-3%] h-[58%] w-[44%] border border-black/10 bg-white/12 shadow-[0_22px_50px_rgba(0,0,0,0.08)]"
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 74% 64%, 20% 100%, 0 84%)",
+          transform:
+            "translate3d(var(--hero-fragment-left-x, 0px), var(--hero-fragment-left-y, 0px), 0) rotate(var(--hero-fragment-left-rotate, 0deg))",
+          willChange: "transform",
+        }}
+      />
+      <div
+        className="absolute right-[-8%] top-[6%] h-[54%] w-[50%] border border-black/10 bg-white/10 shadow-[0_20px_46px_rgba(0,0,0,0.08)]"
+        style={{
+          clipPath: "polygon(16% 0, 100% 12%, 100% 86%, 28% 100%, 0 46%)",
+          transform:
+            "translate3d(var(--hero-fragment-right-x, 0px), var(--hero-fragment-right-y, 0px), 0) rotate(var(--hero-fragment-right-rotate, 0deg))",
+          willChange: "transform",
+        }}
+      />
+      <div
+        className="absolute bottom-[-12%] left-[14%] h-[38%] w-[58%] border border-black/10 bg-white/8 shadow-[0_18px_40px_rgba(0,0,0,0.06)]"
+        style={{
+          clipPath: "polygon(10% 0, 100% 0, 84% 100%, 0 74%)",
+          transform:
+            "translate3d(var(--hero-fragment-bottom-x, 0px), var(--hero-fragment-bottom-y, 0px), 0) rotate(var(--hero-fragment-bottom-rotate, 0deg))",
+          willChange: "transform",
+        }}
+      />
+      <div className="absolute left-[8%] top-[48%] h-px w-[40%] rotate-[-20deg] bg-[linear-gradient(90deg,rgba(23,23,23,0),rgba(23,23,23,0.22),rgba(23,23,23,0))]" />
+      <div className="absolute left-[42%] top-[16%] h-[42%] w-px rotate-[18deg] bg-[linear-gradient(180deg,rgba(23,23,23,0),rgba(23,23,23,0.18),rgba(23,23,23,0))]" />
+      <div className="absolute right-[10%] top-[34%] h-px w-[34%] rotate-[26deg] bg-[linear-gradient(90deg,rgba(23,23,23,0),rgba(23,23,23,0.18),rgba(23,23,23,0))]" />
+      <div className="absolute left-[26%] top-[62%] h-px w-[28%] rotate-[14deg] bg-[linear-gradient(90deg,rgba(23,23,23,0),rgba(23,23,23,0.14),rgba(23,23,23,0))]" />
+    </div>
+  );
+}
 
 function HeroAndSections() {
   const heroRevealRef = useRef<HTMLDivElement>(null);
@@ -115,16 +171,54 @@ function HeroAndSections() {
       const scrollOffset = clamp(-rect.top, 0, scrollRange);
       const scrollProgress = scrollOffset / scrollRange;
       const splitProgress = interpolate(scrollProgress, [0.28, 1], [0, 1]);
-      const heroLayerOpacity = interpolate(scrollProgress, [0.18, 0.32], [1, 0]);
+      const heroLayerOpacity = interpolate(scrollProgress, [0.14, 0.32], [1, 0]);
+      const shatterProgress = clamp((scrollProgress - 0.06) / 0.22, 0, 1);
+      const shatterStrength = interpolate(scrollProgress, [0.06, 0.16, 0.24, 0.32], [0, 0.35, 1, 0.22]);
+      const shatterOpacity = interpolate(scrollProgress, [0.08, 0.18, 0.3], [0, 1, 0.18]);
+      const shatterBlur = interpolate(scrollProgress, [0.1, 0.2, 0.32], [0, 0.35, 1]);
 
-      heroReveal.style.setProperty(
-        "--hero-scale",
-        interpolate(scrollProgress, [0, 0.15, 0.28, 0.38], [1, 0.4, 0.1, 0.01]).toString(),
-      );
       heroReveal.style.setProperty("--hero-layer-opacity", heroLayerOpacity.toString());
       heroReveal.style.setProperty(
         "--hero-content-opacity",
         interpolate(scrollProgress, [0.02, 0.1], [1, 0]).toString(),
+      );
+      heroReveal.style.setProperty("--hero-shatter-opacity", shatterOpacity.toString());
+      heroReveal.style.setProperty("--hero-shatter-blur", `${shatterBlur}px`);
+      heroReveal.style.setProperty(
+        "--hero-fragment-left-x",
+        `${-56 * shatterProgress}px`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-left-y",
+        `${-20 * shatterProgress - 10 * shatterStrength}px`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-left-rotate",
+        `${-4 * shatterProgress}deg`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-right-x",
+        `${62 * shatterProgress}px`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-right-y",
+        `${-18 * shatterProgress - 8 * shatterStrength}px`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-right-rotate",
+        `${4.5 * shatterProgress}deg`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-bottom-x",
+        `${10 * shatterProgress}px`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-bottom-y",
+        `${42 * shatterProgress + 10 * shatterStrength}px`,
+      );
+      heroReveal.style.setProperty(
+        "--hero-fragment-bottom-rotate",
+        `${3.2 * shatterProgress}deg`,
       );
       heroReveal.style.setProperty(
         "--grid-opacity",
@@ -221,15 +315,17 @@ function HeroAndSections() {
 
             <div
               ref={heroLayerRef}
-              className="absolute inset-0 z-20"
+              className="absolute inset-0 z-20 bg-white"
               style={{
                 opacity: "var(--hero-layer-opacity, 1)",
-                transform: "translate3d(0, 0, 0) scale(var(--hero-scale, 1))",
+                transform: "translate3d(0, 0, 0)",
                 transformOrigin: "center center",
-                willChange: "transform, opacity",
+                filter: "blur(var(--hero-shatter-blur, 0px))",
+                willChange: "transform, opacity, filter",
               }}
             >
               <GridBackground />
+              <HeroShatterOverlay />
 
               <PageContainer className="relative flex h-full flex-col items-center justify-center">
                 <div
