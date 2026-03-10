@@ -1,7 +1,6 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef, useState } from "react";
-import { BeamButton } from "@/components/marketing/BeamButton";
+import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
 import { Capabilities } from "@/components/marketing/Capabilities";
 import { DotGridCTA } from "@/components/marketing/DotGridCTA";
 import { FadeIn } from "@/components/marketing/FadeIn";
@@ -16,7 +15,6 @@ import {
   useScrollShell,
   useSlowZone,
 } from "@/components/marketing/SmoothScroll";
-import { SwipeTextCycle } from "@/components/marketing/SwipeTextCycle";
 import { TheProblem } from "@/components/marketing/TheProblem";
 
 function clamp(value: number, min: number, max: number) {
@@ -77,6 +75,215 @@ const HERO_DEFAULTS = {
   ["--fix-panel-y" as string]: "90px",
   ["--fix-panel-scale" as string]: "0.92",
 } as CSSProperties;
+
+const HERO_HEADLINE_LINES = [
+  ["Opportunity Promised.", "Outcomes Earned."],
+  ["Competition", "Takes Courage."],
+  ["Safe Hiring Builds", "Mediocre T~eams."],
+] as const;
+
+const HERO_SCRAMBLE_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+const HERO_SCRAMBLE_COLORS = [
+  "var(--mf-brand-red)",
+  "var(--mf-brand-blue)",
+] as const;
+
+type ScrambleGlyph = {
+  char: string;
+  color: string;
+  resolved: boolean;
+};
+
+function HeroHeadlineScrambleLine({
+  text,
+  delay,
+}: {
+  text: string;
+  delay: number;
+}) {
+  const cleanText = text.replace(/~/g, "");
+  const [glyphs, setGlyphs] = useState<ScrambleGlyph[]>(
+    cleanText.split("").map(() => ({
+      char: " ",
+      color: "transparent",
+      resolved: false,
+    })),
+  );
+  const rafRef = useRef<number | undefined>(undefined);
+  const tickRef = useRef(0);
+
+  useEffect(() => {
+    tickRef.current = 0;
+
+    const timer = window.setTimeout(() => {
+      const step = () => {
+        const nextGlyphs: ScrambleGlyph[] = [];
+
+        for (let index = 0; index < cleanText.length; index += 1) {
+          const targetChar = cleanText[index];
+
+          if (targetChar === " ") {
+            nextGlyphs.push({
+              char: " ",
+              color: "transparent",
+              resolved: true,
+            });
+            continue;
+          }
+
+          if (tickRef.current > 2.5 * index + 25) {
+            nextGlyphs.push({
+              char: targetChar,
+              color: "var(--mf-text-foreground)",
+              resolved: true,
+            });
+            continue;
+          }
+
+          const randomChar =
+            HERO_SCRAMBLE_CHARSET[
+              Math.floor(Math.random() * HERO_SCRAMBLE_CHARSET.length)
+            ];
+          const randomColor =
+            HERO_SCRAMBLE_COLORS[
+              Math.floor(Math.random() * HERO_SCRAMBLE_COLORS.length)
+            ];
+
+          nextGlyphs.push({
+            char: randomChar,
+            color: randomColor,
+            resolved: false,
+          });
+        }
+
+        setGlyphs(nextGlyphs);
+
+        if (tickRef.current < 2.5 * cleanText.length + 40) {
+          tickRef.current += 1;
+          rafRef.current = window.requestAnimationFrame(step);
+        }
+      };
+
+      step();
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timer);
+
+      if (rafRef.current) {
+        window.cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [cleanText, delay]);
+
+  return (
+    <div
+      className="flex flex-nowrap items-center justify-center leading-[0.9]"
+      style={{ letterSpacing: "var(--mf-tracking-hero)" }}
+    >
+      {(() => {
+        const words: ReactNode[] = [];
+        let currentWord: ReactNode[] = [];
+        let wordIndex = 0;
+        let glyphIndex = 0;
+        let tightenNextCharacter = false;
+
+        const renderGlyph = (
+          index: number,
+          fallbackChar: string,
+          tighten: boolean = false,
+        ) => {
+          const glyph = glyphs[index] ?? {
+            char: fallbackChar,
+            color: "transparent",
+            resolved: false,
+          };
+
+          return (
+            <div
+              key={index}
+              className="relative inline-flex justify-center"
+              style={tighten ? { marginLeft: "-0.03em" } : undefined}
+            >
+              <span className="invisible opacity-0 select-none" aria-hidden="true">
+                {fallbackChar === " " ? "\u00A0" : fallbackChar}
+              </span>
+              <span
+                className="absolute bottom-0 left-0 right-0 top-0 text-center"
+                style={{ color: glyph.color }}
+              >
+                {glyph.char === " " ? "\u00A0" : glyph.char}
+              </span>
+            </div>
+          );
+        };
+
+        for (let sourceIndex = 0; sourceIndex <= text.length; sourceIndex += 1) {
+          const character = text[sourceIndex];
+
+          if (sourceIndex === text.length || character === " ") {
+            if (currentWord.length > 0) {
+              words.push(
+                <span key={`word-${wordIndex}`} className="inline-flex">
+                  {currentWord}
+                </span>,
+              );
+              currentWord = [];
+              wordIndex += 1;
+            }
+
+            if (character === " ") {
+              words.push(
+                <span
+                  key={`space-${sourceIndex}`}
+                  className="inline-flex w-[0.25em] shrink-0"
+                />,
+              );
+              glyphIndex += 1;
+            }
+
+            continue;
+          }
+
+          if (character === "~") {
+            tightenNextCharacter = true;
+            continue;
+          }
+
+          currentWord.push(renderGlyph(glyphIndex, character, tightenNextCharacter));
+          glyphIndex += 1;
+          tightenNextCharacter = false;
+        }
+
+        return words;
+      })()}
+    </div>
+  );
+}
+
+function HeroHeadlineLoop() {
+  const [lineSetIndex, setLineSetIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setLineSetIndex((current) => (current + 1) % HERO_HEADLINE_LINES.length);
+    }, 4000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex w-full flex-col items-center justify-center gap-4">
+      {HERO_HEADLINE_LINES[lineSetIndex].map((line, lineIndex) => (
+        <HeroHeadlineScrambleLine
+          key={`${lineSetIndex}-${lineIndex}`}
+          text={line}
+          delay={100 * lineIndex}
+        />
+      ))}
+    </div>
+  );
+}
 
 function HeroShatterOverlay() {
   return (
@@ -334,42 +541,83 @@ function HeroAndSections() {
                     opacity: "var(--hero-content-opacity, 1)",
                     willChange: "opacity",
                   }}
-                  className="relative z-10 flex w-full max-w-[940px] flex-col items-center text-center"
+                  className="relative z-10 flex w-full flex-1 flex-col items-center justify-center px-4 text-center"
                 >
-                  <p
-                    className="mb-5 text-sm uppercase text-[var(--mf-text-muted)]"
-                    style={{ letterSpacing: "0.18em" }}
-                  >
-                    Software Engineering And Infrastructure
-                  </p>
                   <h1
-                    className="text-balance text-[var(--mf-text-page-heading)] font-medium text-white"
-                    style={{ letterSpacing: "var(--mf-tracking-hero)" }}
+                    className="pointer-events-auto w-full font-medium leading-[0.9] tracking-[-0.07em]"
+                    style={{ fontSize: "clamp(24px, 8vw, 112px)" }}
                   >
-                    Senior technical execution for software, AI, and operational systems.
+                    <span className="sr-only">
+                      Skills-based hiring assessments — hire on merit, not history
+                    </span>
+                    <HeroHeadlineLoop />
                   </h1>
-                  <p className="mt-6 max-w-[58ch] text-balance text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
-                    Softchain scopes, builds, deploys, and supports the systems companies actually run on.
-                  </p>
-
-                  <div className="mt-10">
-                    <SwipeTextCycle />
-                  </div>
-
-                  <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                    <BeamButton
-                      theme="light"
-                      className="min-h-[48px] px-6"
+                  <div className="relative pointer-events-auto mt-8 md:mt-10">
+                    <div
+                      className="absolute inset-0 z-0 m-auto h-full w-full rounded-full pointer-events-none"
+                      aria-hidden="true"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, var(--mf-brand-blue), var(--mf-brand-red))",
+                        filter: "blur(24px)",
+                        opacity: 0.4,
+                        transform: "scale(1.03)",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="group relative z-10 h-[56px] min-w-[200px] cursor-pointer overflow-hidden rounded-[5px] border border-transparent px-8 text-base font-medium tracking-tight"
                       onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}
                     >
-                      Start a Project
-                    </BeamButton>
-                    <BeamButton
-                      className="min-h-[48px] px-6"
-                      onClick={() => lenis?.scrollTo("#capabilities", { duration: 1.3 })}
-                    >
-                      Review Capabilities
-                    </BeamButton>
+                      <span
+                        className="absolute inset-0 rounded-[inherit] transition-opacity duration-300"
+                        style={{
+                          backgroundColor: "var(--mf-text-heading)",
+                          opacity: 1,
+                        }}
+                      />
+                      <span className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
+                        <span
+                          className="absolute inset-0 translate-y-full transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-active:translate-y-0"
+                          style={{
+                            backgroundColor: "var(--mf-bg-base)",
+                          }}
+                        />
+                      </span>
+                      <span className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
+                        <span
+                          className="absolute inset-0 overflow-hidden rounded-[inherit]"
+                          style={{
+                            mask: "linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0)",
+                            padding: "1px",
+                          }}
+                        >
+                          <span
+                            className="absolute left-1/2 top-1/2 block h-[600px] w-[600px] animate-[beam-spin_4s_linear_infinite]"
+                            style={{
+                              background:
+                                "conic-gradient(from 0deg, var(--mf-brand-blue), var(--mf-brand-red), var(--mf-brand-blue))",
+                              transform: "translateX(-50%) translateY(-50%)",
+                            }}
+                          />
+                        </span>
+                      </span>
+                      <span className="relative z-10 flex items-center gap-2 transition-colors duration-300 group-hover:text-white group-active:text-white text-[var(--mf-text-foreground)]">
+                        <svg viewBox="0 0 33.2 32.6" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+                          <path d="M26.8885 19.9289L32.0565 22.9126L25.0693 24.7848L19.9014 21.8011L26.8885 19.9289Z" />
+                          <path d="M13.0956 28.084L16.0794 22.9161L9.09221 24.7883L6.10849 29.9562L13.0956 28.084Z" />
+                          <path d="M27.2119 14.0909L33.1926 14.0909L28.0663 19.38L22.0855 19.38L27.2119 14.0909Z" />
+                          <path d="M19.67 5.16795L22.6537 0L24.5259 6.98715L21.5422 12.1551L19.67 5.16795Z" />
+                          <path d="M24.3306 8.75446L29.4985 5.77075L27.6263 12.7579L22.4584 15.7416L24.3306 8.75446Z" />
+                          <path d="M5.12636 19.3789L11.1071 19.3789L5.98075 14.0898L0 14.0898L5.12636 19.3789Z" />
+                          <path d="M8.66803 6.98849L11.6518 12.1564L13.524 5.16929L10.5402 0.0013407L8.66803 6.98849Z" />
+                          <path d="M5.5672 12.7567L10.7352 15.7404L8.86295 8.75325L3.695 5.76953L5.5672 12.7567Z" />
+                          <path d="M24.0976 24.7893L27.0813 29.9573L20.0941 28.0851L17.1104 22.9171L24.0976 24.7893Z" />
+                          <path d="M8.12226 24.7841L13.2902 21.8004L6.30307 19.9282L1.13511 22.9119L8.12226 24.7841Z" />
+                        </svg>
+                        Try An Assessment
+                      </span>
+                    </button>
                   </div>
                 </div>
               </PageContainer>
