@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { BeamButton } from "@/components/marketing/BeamButton";
 import { Capabilities } from "@/components/marketing/Capabilities";
 import { DotGridCTA } from "@/components/marketing/DotGridCTA";
@@ -11,7 +11,12 @@ import { GridBackground } from "@/components/marketing/GridBackground";
 import { Header } from "@/components/marketing/Header";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
-import { SmoothScroll, useLenis, useSlowZone } from "@/components/marketing/SmoothScroll";
+import {
+  SmoothScroll,
+  useLenis,
+  useScrollShell,
+  useSlowZone,
+} from "@/components/marketing/SmoothScroll";
 import { SwipeTextCycle } from "@/components/marketing/SwipeTextCycle";
 import { TheProblem } from "@/components/marketing/TheProblem";
 
@@ -68,14 +73,34 @@ function HeroAndSections() {
   const heroRevealRef = useRef<HTMLDivElement>(null);
   const heroLayerRef = useRef<HTMLDivElement>(null);
   const lenis = useLenis();
+  const { scrollWrapperRef } = useScrollShell();
+  const [slowZoneEnd, setSlowZoneEnd] = useState(0);
 
-  useSlowZone(typeof window !== "undefined" ? window.innerHeight * 0.6 : 0);
+  useSlowZone(slowZoneEnd);
+
+  useEffect(() => {
+    const scrollRoot = scrollWrapperRef.current;
+
+    if (!scrollRoot) {
+      return;
+    }
+
+    const updateSlowZone = () => {
+      setSlowZoneEnd(scrollRoot.clientHeight * 0.6);
+    };
+
+    updateSlowZone();
+    window.addEventListener("resize", updateSlowZone);
+
+    return () => window.removeEventListener("resize", updateSlowZone);
+  }, [scrollWrapperRef]);
 
   useEffect(() => {
     const heroReveal = heroRevealRef.current;
     const heroLayer = heroLayerRef.current;
+    const scrollRoot = scrollWrapperRef.current;
 
-    if (!heroReveal || !heroLayer) {
+    if (!heroReveal || !heroLayer || !scrollRoot) {
       return;
     }
 
@@ -85,7 +110,7 @@ function HeroAndSections() {
       frame = 0;
 
       const rect = heroReveal.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
+      const viewportHeight = scrollRoot.clientHeight || window.innerHeight;
       const scrollRange = Math.max(heroReveal.offsetHeight - viewportHeight, 1);
       const scrollOffset = clamp(-rect.top, 0, scrollRange);
       const scrollProgress = scrollOffset / scrollRange;
@@ -164,7 +189,7 @@ function HeroAndSections() {
 
     update();
 
-    window.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
 
     return () => {
@@ -172,104 +197,111 @@ function HeroAndSections() {
         window.cancelAnimationFrame(frame);
       }
 
-      window.removeEventListener("scroll", schedule);
+      scrollRoot.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, []);
+  }, [scrollWrapperRef]);
 
   return (
-    <div className="marketing-v2" data-header-theme="dark">
-      <Header />
+    <>
+      <main className="marketing-v2" data-header-theme="dark">
+        <div
+          ref={heroRevealRef}
+          className="relative z-30 h-[160vh] bg-[var(--mf-bg-base)] md:h-[180vh]"
+          style={HERO_DEFAULTS}
+        >
+          <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[var(--mf-bg-base)]">
+            <div className="absolute inset-0 z-0 pointer-events-none">
+              <TheProblem />
+            </div>
 
-      <div
-        ref={heroRevealRef}
-        className="relative z-30 h-[160vh] bg-[var(--mf-bg-base)] md:h-[180vh]"
-        style={HERO_DEFAULTS}
-      >
-        <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[var(--mf-bg-base)]">
-          <div className="absolute inset-0 z-0 pointer-events-none">
-            <TheProblem />
-          </div>
+            <div className="absolute inset-0 z-10 pointer-events-none">
+              <FixItReveal />
+            </div>
 
-          <div className="absolute inset-0 z-10 pointer-events-none">
-            <FixItReveal />
-          </div>
+            <div
+              ref={heroLayerRef}
+              className="absolute inset-0 z-20"
+              style={{
+                opacity: "var(--hero-layer-opacity, 1)",
+                transform: "translate3d(0, 0, 0) scale(var(--hero-scale, 1))",
+                transformOrigin: "center center",
+                willChange: "transform, opacity",
+              }}
+            >
+              <GridBackground />
 
-          <div
-            ref={heroLayerRef}
-            className="absolute inset-0 z-20"
-            style={{
-              opacity: "var(--hero-layer-opacity, 1)",
-              transform: "translate3d(0, 0, 0) scale(var(--hero-scale, 1))",
-              transformOrigin: "center center",
-              willChange: "transform, opacity",
-            }}
-          >
-            <GridBackground />
-
-            <PageContainer className="relative flex h-full flex-col items-center justify-center">
-              <div
-                style={{
-                  opacity: "var(--hero-content-opacity, 1)",
-                  willChange: "opacity",
-                }}
-                className="relative z-10 flex w-full max-w-[940px] flex-col items-center text-center"
-              >
-                <p
-                  className="mb-5 text-sm uppercase text-[var(--mf-text-muted)]"
-                  style={{ letterSpacing: "0.18em" }}
+              <PageContainer className="relative flex h-full flex-col items-center justify-center">
+                <div
+                  style={{
+                    opacity: "var(--hero-content-opacity, 1)",
+                    willChange: "opacity",
+                  }}
+                  className="relative z-10 flex w-full max-w-[940px] flex-col items-center text-center"
                 >
-                  Software Engineering And Infrastructure
-                </p>
-                <h1
-                  className="text-balance text-[var(--mf-text-page-heading)] font-medium text-white"
-                  style={{ letterSpacing: "var(--mf-tracking-hero)" }}
-                >
-                  Senior technical execution for software, AI, and operational systems.
-                </h1>
-                <p className="mt-6 max-w-[58ch] text-balance text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
-                  Softchain scopes, builds, deploys, and supports the systems companies actually run on.
-                </p>
+                  <p
+                    className="mb-5 text-sm uppercase text-[var(--mf-text-muted)]"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    Software Engineering And Infrastructure
+                  </p>
+                  <h1
+                    className="text-balance text-[var(--mf-text-page-heading)] font-medium text-white"
+                    style={{ letterSpacing: "var(--mf-tracking-hero)" }}
+                  >
+                    Senior technical execution for software, AI, and operational systems.
+                  </h1>
+                  <p className="mt-6 max-w-[58ch] text-balance text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
+                    Softchain scopes, builds, deploys, and supports the systems companies actually run on.
+                  </p>
 
-                <div className="mt-10">
-                  <SwipeTextCycle />
-                </div>
+                  <div className="mt-10">
+                    <SwipeTextCycle />
+                  </div>
 
-                <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                  <BeamButton theme="light" className="min-h-[48px] px-6" onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}>
-                    Start a Project
-                  </BeamButton>
-                  <BeamButton className="min-h-[48px] px-6" onClick={() => lenis?.scrollTo("#capabilities", { duration: 1.3 })}>
-                    Review Capabilities
-                  </BeamButton>
+                  <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+                    <BeamButton
+                      theme="light"
+                      className="min-h-[48px] px-6"
+                      onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}
+                    >
+                      Start a Project
+                    </BeamButton>
+                    <BeamButton
+                      className="min-h-[48px] px-6"
+                      onClick={() => lenis?.scrollTo("#capabilities", { duration: 1.3 })}
+                    >
+                      Review Capabilities
+                    </BeamButton>
+                  </div>
                 </div>
-              </div>
-            </PageContainer>
+              </PageContainer>
+            </div>
           </div>
         </div>
-      </div>
 
-      <section className="relative z-30 border-t border-white/8 py-24">
-        <PageContainer>
-          <FadeIn className="mx-auto max-w-[900px] text-center">
-            <p className="text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
-              We do not sell products. We take ownership of technical scope, architecture, implementation, integration, deployment, and long-term support.
-            </p>
-          </FadeIn>
-        </PageContainer>
-      </section>
+        <section className="relative z-30 border-t border-white/8 py-24">
+          <PageContainer>
+            <FadeIn className="mx-auto max-w-[900px] text-center">
+              <p className="text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
+                We do not sell products. We take ownership of technical scope, architecture, implementation, integration, deployment, and long-term support.
+              </p>
+            </FadeIn>
+          </PageContainer>
+        </section>
 
-      <Capabilities />
-      <HireTalentSection />
-      <DotGridCTA />
+        <Capabilities />
+        <HireTalentSection />
+        <DotGridCTA />
+      </main>
       <Footer />
-    </div>
+    </>
   );
 }
 
 export function LandingPage() {
   return (
-    <SmoothScroll>
+    <SmoothScroll overlay={<Header />}>
       <HeroAndSections />
     </SmoothScroll>
   );

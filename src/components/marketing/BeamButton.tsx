@@ -32,6 +32,7 @@ export function BeamButton({
           backgroundColor: "#ffffff",
           color: "#171717",
           borderColor: "rgba(23, 23, 23, 0.28)",
+          ["--beam-overlay" as string]: "rgba(0, 0, 0, 0.05)",
           ["--btn-active-bg" as string]: "#171717",
           ["--btn-active-text" as string]: "#ffffff",
           ["--btn-active-border" as string]: "rgba(255, 255, 255, 0.28)",
@@ -40,13 +41,11 @@ export function BeamButton({
           backgroundColor: "transparent",
           color: "#ffffff",
           borderColor: "rgba(255, 255, 255, 0.28)",
+          ["--beam-overlay" as string]: "rgba(255, 255, 255, 0.06)",
           ["--btn-active-bg" as string]: "#ffffff",
           ["--btn-active-text" as string]: "#171717",
           ["--btn-active-border" as string]: "rgba(0, 0, 0, 0.28)",
         };
-
-  const overlayBg =
-    theme === "light" ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.06)";
 
   const mergedStyle = { ...defaultStyle, ...style };
 
@@ -55,7 +54,7 @@ export function BeamButton({
       {/* Hover overlay */}
       <span
         className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-active:opacity-100"
-        style={{ backgroundColor: overlayBg }}
+        style={{ backgroundColor: "var(--beam-overlay)" }}
       />
 
       {/* Text */}

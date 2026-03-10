@@ -1,9 +1,8 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { PageContainer } from "@/components/marketing/PageContainer";
-import { useLenis } from "@/components/marketing/SmoothScroll";
+import { useLenis, useScrollShell } from "@/components/marketing/SmoothScroll";
 import { HeaderDesktopActions } from "@/components/marketing/header/HeaderDesktopActions";
 import { HeaderDesktopNav } from "@/components/marketing/header/HeaderDesktopNav";
 import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
@@ -11,15 +10,15 @@ import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu
 import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
 import { type HeaderNavItem } from "@/components/marketing/header/navigation";
 
-function getHeaderBackdropOpacity(scrollTop: number) {
-  const heroScrollRange = window.innerHeight * 1.2;
+function getHeaderBackdropOpacity(scrollTop: number, viewportHeight: number) {
+  const heroScrollRange = viewportHeight * 1.2;
 
   if (scrollTop >= heroScrollRange) {
     return 1;
   }
 
-  const fadeStart = window.innerHeight * 0.08;
-  const fadeEnd = window.innerHeight * 0.3;
+  const fadeStart = viewportHeight * 0.08;
+  const fadeEnd = viewportHeight * 0.3;
 
   if (scrollTop <= fadeStart) {
     return 0;
@@ -32,13 +31,11 @@ function getHeaderBackdropOpacity(scrollTop: number) {
   return (scrollTop - fadeStart) / (fadeEnd - fadeStart);
 }
 
-const EMPTY_SUBSCRIBE = () => () => {};
-
 export function Header() {
   const lenis = useLenis();
+  const { scrollWrapperRef } = useScrollShell();
   const backdropRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isClient = useSyncExternalStore(EMPTY_SUBSCRIBE, () => true, () => false);
 
   useEffect(() => {
     const closeMenuOnDesktop = () => {
@@ -54,15 +51,12 @@ export function Header() {
 
   useEffect(() => {
     if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
       lenis?.stop();
     } else {
-      document.body.style.removeProperty("overflow");
       lenis?.start();
     }
 
     return () => {
-      document.body.style.removeProperty("overflow");
       lenis?.start();
     };
   }, [lenis, mobileMenuOpen]);
@@ -80,13 +74,14 @@ export function Header() {
 
     window.addEventListener("keydown", handleKeyDown);
 
-      return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileMenuOpen]);
 
   useEffect(() => {
     const backdrop = backdropRef.current;
+    const scrollRoot = scrollWrapperRef.current;
 
-    if (!backdrop) {
+    if (!backdrop || !scrollRoot) {
       return;
     }
 
@@ -94,7 +89,10 @@ export function Header() {
 
     const update = () => {
       frame = 0;
-      backdrop.style.opacity = `${getHeaderBackdropOpacity(window.scrollY)}`;
+      backdrop.style.opacity = `${getHeaderBackdropOpacity(
+        scrollRoot.scrollTop,
+        scrollRoot.clientHeight || window.innerHeight,
+      )}`;
     };
 
     const schedule = () => {
@@ -105,7 +103,7 @@ export function Header() {
 
     update();
 
-    window.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
 
     return () => {
@@ -113,14 +111,15 @@ export function Header() {
         window.cancelAnimationFrame(frame);
       }
 
-      window.removeEventListener("scroll", schedule);
+      scrollRoot.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, []);
+  }, [scrollWrapperRef]);
 
   const scrollToTop = () => {
     setMobileMenuOpen(false);
-    lenis?.scrollTo(0, { duration: 1 });
+    lenis?.start();
+    lenis?.scrollTo(0, { duration: 1, force: true });
   };
 
   const scrollToTarget = (target: string) => {
@@ -132,19 +131,18 @@ export function Header() {
       return;
     }
 
-    lenis?.scrollTo(element, { duration: 1.2 });
+    lenis?.start();
+    lenis?.scrollTo(element, { duration: 1.2, force: true });
   };
 
   const handleNavItemClick = (item: HeaderNavItem) => {
     scrollToTarget(item.target);
   };
 
-  if (!isClient) return null;
-
-  return createPortal(
+  return (
     <>
       <header
-        className="fixed left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
+        className="absolute left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
         data-contrast="dark"
         style={{
           ["--header-text" as string]: "#ffffff",
@@ -200,7 +198,6 @@ export function Header() {
         onSecondaryClick={() => scrollToTarget("footer")}
         onPrimaryClick={() => scrollToTarget("closing-cta")}
       />
-    </>,
-    document.body,
+    </>
   );
 }

@@ -55,7 +55,7 @@ export function HeaderMobileMenu({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[var(--mf-z-modal)] flex flex-col p-6 min-[1100px]:hidden"
+      className="absolute inset-0 z-[var(--mf-z-modal)] flex flex-col overflow-y-auto p-6 min-[1100px]:hidden"
       style={{
         backgroundColor: "#000000",
         transform: "translate3d(100%, 0, 0)",
