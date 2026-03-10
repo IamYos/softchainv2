@@ -1,8 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --mf-bg-base: #0a0a0a;
+  --mf-surface: #111111;
+  --mf-surface-hover: #1a1a1a;
+  --mf-border: #262626;
+  --mf-border-subtle: #404040;
+  --mf-border-light: #e5e5e5;
+  --mf-text-heading: #ffffff;
+  --mf-text-foreground: #171717;
+  --mf-text-body: #d4d4d4;
+  --mf-text-muted: #a3a3a3;
+  --mf-text-dim: #737373;
+  --mf-text-scramble-dim: #333333;
+  --mf-brand-red: #dc2626;
+  --mf-brand-blue: #3b82f6;
+  --mf-accent-indigo: #6366f1;
+  --mf-content-width: 1400px;
+  --mf-content-narrow: 1265px;
+  --mf-content-compact: 1100px;
+  --mf-content-prose: 800px;
+  --mf-z-header: 50;
+  --mf-z-modal: 60;
+  --mf-text-page-heading: clamp(28px, 5vw + 1rem, 72px);
+  --mf-text-section-heading: clamp(24px, 4vw + 0.5rem, 56px);
+  --mf-tracking-hero: -0.02em;
+  --mf-tracking-section-heading: -0.025em;
+  --mf-tracking-subheading: -0.02em;
+  --radius: 0.625rem;
+  --border-angle: 0deg;
 }
 
 @theme inline {
@@ -12,15 +40,158 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100vw;
+  background: var(--mf-bg-base);
+  color: var(--mf-text-heading);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  overflow-x: clip;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+}
+
+.marketing-v2 {
+  min-height: 100vh;
+  background: var(--mf-bg-base);
+  color: var(--mf-text-heading);
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
+
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 0;
+  background: currentColor;
+  content: "";
+  transition: width 0.3s ease;
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.softchain-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+.softchain-dots {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.18) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+
+.headline-ghost {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 250% 0;
+  }
+
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes gradient-flash {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes beam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes marquee-infinite {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulse-fade {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes spin-border {
+  to {
+    --border-angle: 360deg;
+  }
 }
