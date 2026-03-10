@@ -299,6 +299,7 @@ function HeroAndSections() {
     <>
       <main className="marketing-v2" data-header-theme="dark">
         <div
+          id="hero-reveal"
           ref={heroRevealRef}
           className="relative z-30 h-[160vh] bg-[var(--mf-bg-base)] md:h-[180vh]"
           style={HERO_DEFAULTS}

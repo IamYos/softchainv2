@@ -10,6 +10,53 @@ import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu
 import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
 import { type HeaderNavItem } from "@/components/marketing/header/navigation";
 
+const FRAME_ONE_FADE_THRESHOLD = 0.1;
+
+const LIGHT_FRAME_HEADER_PALETTE = {
+  ["--header-text" as string]: "#171717",
+  ["--header-logo-filter" as string]: "none",
+  ["--header-secondary-border" as string]: "rgba(23, 23, 23, 0.28)",
+  ["--header-secondary-bg" as string]: "rgba(255, 255, 255, 0)",
+  ["--header-secondary-overlay" as string]: "rgba(0, 0, 0, 0.05)",
+  ["--header-secondary-active-bg" as string]: "#171717",
+  ["--header-secondary-active-text" as string]: "#ffffff",
+  ["--header-secondary-active-border" as string]: "rgba(255, 255, 255, 0.3)",
+  ["--header-primary-bg" as string]: "#171717",
+  ["--header-primary-text" as string]: "#ffffff",
+  ["--header-primary-border" as string]: "rgba(23, 23, 23, 0.28)",
+  ["--header-primary-overlay" as string]: "rgba(255, 255, 255, 0.08)",
+  ["--header-primary-active-bg" as string]: "#ffffff",
+  ["--header-primary-active-text" as string]: "#171717",
+  ["--header-primary-active-border" as string]: "rgba(23, 23, 23, 0.28)",
+} satisfies Record<string, string>;
+
+const DARK_FRAME_HEADER_PALETTE = {
+  ["--header-text" as string]: "#ffffff",
+  ["--header-logo-filter" as string]: "brightness(0) invert(1)",
+  ["--header-secondary-border" as string]: "rgba(255, 255, 255, 0.28)",
+  ["--header-secondary-bg" as string]: "rgba(0, 0, 0, 0)",
+  ["--header-secondary-overlay" as string]: "rgba(255, 255, 255, 0.06)",
+  ["--header-secondary-active-bg" as string]: "#ffffff",
+  ["--header-secondary-active-text" as string]: "#171717",
+  ["--header-secondary-active-border" as string]: "rgba(0, 0, 0, 0.28)",
+  ["--header-primary-bg" as string]: "#ffffff",
+  ["--header-primary-text" as string]: "#171717",
+  ["--header-primary-border" as string]: "rgba(255, 255, 255, 0.28)",
+  ["--header-primary-overlay" as string]: "rgba(0, 0, 0, 0.05)",
+  ["--header-primary-active-bg" as string]: "#171717",
+  ["--header-primary-active-text" as string]: "#ffffff",
+  ["--header-primary-active-border" as string]: "rgba(255, 255, 255, 0.28)",
+} satisfies Record<string, string>;
+
+function applyHeaderPalette(
+  header: HTMLElement,
+  palette: Record<string, string>,
+) {
+  Object.entries(palette).forEach(([name, value]) => {
+    header.style.setProperty(name, value);
+  });
+}
+
 function getHeaderBackdropOpacity(scrollTop: number, viewportHeight: number) {
   const heroScrollRange = viewportHeight * 1.2;
 
@@ -34,7 +81,9 @@ function getHeaderBackdropOpacity(scrollTop: number, viewportHeight: number) {
 export function Header() {
   const lenis = useLenis();
   const { scrollWrapperRef } = useScrollShell();
+  const headerRef = useRef<HTMLElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const isFrameOnePaletteRef = useRef(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -78,14 +127,16 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   useEffect(() => {
+    const header = headerRef.current;
     const backdrop = backdropRef.current;
     const scrollRoot = scrollWrapperRef.current;
 
-    if (!backdrop || !scrollRoot) {
+    if (!header || !backdrop || !scrollRoot) {
       return;
     }
 
     let frame = 0;
+    let heroReveal: HTMLElement | null = null;
 
     const update = () => {
       frame = 0;
@@ -93,6 +144,30 @@ export function Header() {
         scrollRoot.scrollTop,
         scrollRoot.clientHeight || window.innerHeight,
       )}`;
+
+      if (!heroReveal) {
+        heroReveal = document.getElementById("hero-reveal");
+      }
+
+      if (!heroReveal) {
+        return;
+      }
+
+      const heroLayerOpacity = Number.parseFloat(
+        getComputedStyle(heroReveal).getPropertyValue("--hero-layer-opacity"),
+      );
+      const showFrameOnePalette =
+        !Number.isNaN(heroLayerOpacity) && heroLayerOpacity > FRAME_ONE_FADE_THRESHOLD;
+
+      if (showFrameOnePalette === isFrameOnePaletteRef.current) {
+        return;
+      }
+
+      isFrameOnePaletteRef.current = showFrameOnePalette;
+      applyHeaderPalette(
+        header,
+        showFrameOnePalette ? LIGHT_FRAME_HEADER_PALETTE : DARK_FRAME_HEADER_PALETTE,
+      );
     };
 
     const schedule = () => {
@@ -142,16 +217,10 @@ export function Header() {
   return (
     <>
       <header
+        ref={headerRef}
         className="absolute left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
-        data-contrast="dark"
-        style={{
-          ["--header-text" as string]: "#ffffff",
-          ["--header-logo-filter" as string]: "brightness(0) invert(1)",
-          ["--header-secondary-border" as string]: "rgba(255, 255, 255, 0.28)",
-          ["--header-secondary-bg" as string]: "rgba(0, 0, 0, 0)",
-          ["--header-primary-bg" as string]: "#ffffff",
-          ["--header-primary-text" as string]: "#171717",
-        } as CSSProperties}
+        data-contrast="light"
+        style={LIGHT_FRAME_HEADER_PALETTE as CSSProperties}
       >
         <div
           ref={backdropRef}
