@@ -7,7 +7,6 @@ import { DotGridCTA } from "@/components/marketing/DotGridCTA";
 import { FadeIn } from "@/components/marketing/FadeIn";
 import { FixItReveal } from "@/components/marketing/FixItReveal";
 import { Footer } from "@/components/marketing/Footer";
-import { GridBackground } from "@/components/marketing/GridBackground";
 import { Header } from "@/components/marketing/Header";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
@@ -222,7 +221,7 @@ function HeroAndSections() {
       );
       heroReveal.style.setProperty(
         "--grid-opacity",
-        interpolate(scrollProgress, [0, 0.18, 0.32], [0.55, 0.32, 0]).toString(),
+        interpolate(scrollProgress, [0, 0.18, 0.32], [1, 0.55, 0]).toString(),
       );
       heroReveal.style.setProperty(
         "--grid-scale",
@@ -315,8 +314,10 @@ function HeroAndSections() {
 
             <div
               ref={heroLayerRef}
-              className="absolute inset-0 z-20 bg-white"
+              className="absolute inset-0 z-20 bg-white softchain-grid softchain-grid--light"
               style={{
+                ["--softchain-grid-size" as string]: "102px",
+                ["--softchain-grid-bg" as string]: "#ffffff",
                 opacity: "var(--hero-layer-opacity, 1)",
                 transform: "translate3d(0, 0, 0)",
                 transformOrigin: "center center",
@@ -324,7 +325,6 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
-              <GridBackground />
               <HeroShatterOverlay />
 
               <PageContainer className="relative flex h-full flex-col items-center justify-center">

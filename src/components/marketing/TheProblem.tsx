@@ -90,7 +90,17 @@ export function TheProblem() {
       ref={sectionRef}
       className="absolute inset-0 flex items-center justify-center overflow-hidden"
     >
-      <div className="flex w-full flex-col gap-0">
+      <div className="absolute inset-0 bg-[var(--mf-bg-base)]">
+        <div
+          className="absolute inset-0 softchain-grid softchain-grid--dark"
+          style={{
+            ["--softchain-grid-size" as string]: "102px",
+            ["--softchain-grid-bg" as string]: "var(--mf-bg-base)",
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 flex w-full flex-col gap-0">
         <div
           className="flex flex-col gap-0"
           style={{
