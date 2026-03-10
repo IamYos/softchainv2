@@ -36,7 +36,7 @@ function HeroAndSections() {
   );
 
   return (
-    <div className="marketing-v2 overflow-x-clip">
+    <div className="marketing-v2">
       <Header />
 
       <div ref={heroRevealRef} className="relative z-30 h-[160vh] bg-[var(--mf-bg-base)] md:h-[180vh]">

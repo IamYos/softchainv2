@@ -9,6 +9,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { useLenis } from "@/components/marketing/SmoothScroll";
 import { HeaderDesktopActions } from "@/components/marketing/header/HeaderDesktopActions";
@@ -59,7 +60,10 @@ export function Header() {
     "dark",
   );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const contrastRef = useRef<"light" | "dark">("dark");
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const closeMenuOnDesktop = () => {
@@ -236,14 +240,16 @@ export function Header() {
     scrollToTarget(item.target);
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       <motion.header
-        className="fixed left-0 right-0 top-0 z-50 h-24"
+        className="fixed left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
         data-contrast={currentContrast}
       >
         <motion.div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 h-24 pointer-events-none"
           style={{
             backgroundColor: headerBg,
             opacity: headerBgOpacity,
@@ -292,6 +298,7 @@ export function Header() {
         onSecondaryClick={() => scrollToTarget("footer")}
         onPrimaryClick={() => scrollToTarget("closing-cta")}
       />
-    </>
+    </>,
+    document.body,
   );
 }

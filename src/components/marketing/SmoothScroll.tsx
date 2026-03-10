@@ -53,16 +53,15 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
   );
 
   useEffect(() => {
-    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
-
     const instance = new Lenis({
       autoRaf: false,
-      syncTouch: isTouchDevice,
+      // Disabled: syncTouch hijacks native touch scrolling, causing
+      // sluggish feel and blocking tap events on fixed-position elements.
+      syncTouch: false,
       virtualScroll: (event) => {
         const threshold = slowZoneEndRef.current;
-        const isTouch = event.event instanceof TouchEvent;
 
-        if (isTouch && threshold > 0 && instance.scroll < threshold) {
+        if (threshold > 0 && instance.scroll < threshold) {
           event.deltaY *= SLOW_ZONE_MULTIPLIER;
         }
 
