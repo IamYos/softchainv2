@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { BeamButton } from "@/components/marketing/BeamButton";
 import { FadeIn } from "@/components/marketing/FadeIn";
 import { PageContainer } from "@/components/marketing/PageContainer";
@@ -36,11 +35,7 @@ export function HireTalentSection() {
         </FadeIn>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          <FadeIn
             className="rounded-[28px] border border-white/8 bg-white/[0.03] p-7"
           >
             <p className="text-sm uppercase text-[var(--mf-text-muted)]">
@@ -55,17 +50,10 @@ export function HireTalentSection() {
             <div className="mt-8">
               <BeamButton theme="light">Start a Project</BeamButton>
             </div>
-          </motion.div>
+          </FadeIn>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              duration: 0.8,
-              delay: 0.08,
-              ease: [0.16, 1, 0.3, 1],
-            }}
+          <FadeIn
+            delayMs={80}
             className="rounded-[28px] border border-white/8 bg-white/[0.03] p-7"
           >
             <p className="text-sm uppercase text-[var(--mf-text-muted)]">
@@ -80,16 +68,10 @@ export function HireTalentSection() {
             <div className="mt-8">
               <BeamButton theme="light">Discuss Delivery</BeamButton>
             </div>
-          </motion.div>
+          </FadeIn>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-14 overflow-hidden border-y border-white/8 py-5"
-        >
+        <FadeIn className="mt-14 overflow-hidden border-y border-white/8 py-5">
           <div className="flex w-max animate-[marquee-infinite_28s_linear_infinite] gap-8">
             {Array.from({ length: 2 }).flatMap((_, block) =>
               MARQUEE_ITEMS.map((item) => (
@@ -103,7 +85,7 @@ export function HireTalentSection() {
               )),
             )}
           </div>
-        </motion.div>
+        </FadeIn>
       </PageContainer>
     </section>
   );

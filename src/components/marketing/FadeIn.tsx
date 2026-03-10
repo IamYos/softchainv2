@@ -1,23 +1,32 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
+import { useInView } from "@/components/marketing/useInView";
 
 type FadeInProps = {
   children: ReactNode;
   className?: string;
+  delayMs?: number;
 };
 
-export function FadeIn({ children, className = "" }: FadeInProps) {
+export function FadeIn({
+  children,
+  className = "",
+  delayMs = 0,
+}: FadeInProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, {
+    once: true,
+    rootMargin: "-10% 0px",
+  });
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10% 0px" }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className={className}
+    <div
+      ref={ref}
+      className={`native-fade${isInView ? " is-visible" : ""} ${className}`}
+      style={{ transitionDelay: `${delayMs}ms` }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

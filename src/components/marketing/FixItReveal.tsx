@@ -1,47 +1,30 @@
-"use client";
-
-import { motion, MotionValue, useTransform } from "framer-motion";
-
-type FixItRevealProps = {
-  splitProgress: MotionValue<number>;
-};
-
 const LINES = [
   "Scope the architecture before delivery begins.",
   "Build the system cleanly, with senior execution.",
   "Operate it long after launch without drift.",
 ];
 
-export function FixItReveal({ splitProgress }: FixItRevealProps) {
-  const textTop = useTransform(splitProgress, [0.2, 0.5], ["50%", "10%"]);
-  const textOffsetY = useTransform(splitProgress, [0.2, 0.5], [80, 0]);
-  const textOpacity = useTransform(splitProgress, [0.2, 0.35], [0, 1]);
-  const textScale = useTransform(splitProgress, [0.2, 0.5], [1.05, 1]);
-  const burstScale = useTransform(splitProgress, [0.2, 0.45], [0.4, 1.8]);
-  const burstOpacity = useTransform(splitProgress, [0.2, 0.25, 0.45], [0, 0.42, 0]);
-  const panelOpacity = useTransform(splitProgress, [0.3, 0.4, 0.65], [0, 1, 1]);
-  const panelY = useTransform(splitProgress, [0.28, 0.5], [90, 0]);
-  const panelScale = useTransform(splitProgress, [0.28, 0.5], [0.92, 1]);
-
+export function FixItReveal() {
   return (
     <section className="absolute inset-0">
-      <motion.div
+      <div
         className="absolute left-1/2 top-1/2 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),rgba(220,38,38,0.18),transparent_68%)] blur-3xl"
         style={{
-          opacity: burstOpacity,
-          scale: burstScale,
-          x: "-50%",
-          y: "-50%",
+          opacity: "var(--fix-burst-opacity, 0)",
+          transform:
+            "translate3d(-50%, -50%, 0) scale(var(--fix-burst-scale, 0.4))",
+          willChange: "transform, opacity",
         }}
       />
 
-      <motion.div
-        className="absolute left-1/2 z-10 flex w-full max-w-[760px] -translate-x-1/2 flex-col items-center px-6 text-center"
+      <div
+        className="absolute left-1/2 z-10 flex w-full max-w-[760px] flex-col items-center px-6 text-center"
         style={{
-          top: textTop,
-          y: textOffsetY,
-          opacity: textOpacity,
-          scale: textScale,
+          top: "var(--fix-text-top, 50%)",
+          opacity: "var(--fix-text-opacity, 0)",
+          transform:
+            "translate3d(-50%, var(--fix-text-offset-y, 80px), 0) scale(var(--fix-text-scale, 1.05))",
+          willChange: "transform, opacity",
         }}
       >
         <p
@@ -56,14 +39,15 @@ export function FixItReveal({ splitProgress }: FixItRevealProps) {
         >
           Senior engineering for software, infrastructure, and AI operations.
         </h2>
-      </motion.div>
+      </div>
 
-      <motion.div
-        className="absolute left-1/2 top-1/2 z-20 w-[min(92vw,820px)] -translate-x-1/2 rounded-[28px] border border-white/10 bg-[rgba(17,17,17,0.92)] p-5 backdrop-blur-xl md:p-7"
+      <div
+        className="absolute left-1/2 top-1/2 z-20 w-[min(92vw,820px)] rounded-[28px] border border-white/10 bg-[rgba(17,17,17,0.92)] p-5 backdrop-blur-xl md:p-7"
         style={{
-          opacity: panelOpacity,
-          y: panelY,
-          scale: panelScale,
+          opacity: "var(--fix-panel-opacity, 0)",
+          transform:
+            "translate3d(-50%, var(--fix-panel-y, 90px), 0) scale(var(--fix-panel-scale, 0.92))",
+          willChange: "transform, opacity",
         }}
       >
         <div className="mb-5 flex items-center justify-between">
@@ -87,16 +71,13 @@ export function FixItReveal({ splitProgress }: FixItRevealProps) {
 
         <div className="grid gap-3 md:grid-cols-3">
           {LINES.map((line, index) => (
-            <motion.div
+            <div
               key={line}
               className="rounded-2xl border border-white/8 bg-white/[0.02] p-4"
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.6,
-                delay: 0.08 * index,
-                ease: [0.16, 1, 0.3, 1],
+              style={{
+                opacity: "var(--fix-panel-opacity, 0)",
+                transform: "translate3d(0, 0, 0)",
+                transitionDelay: `${index * 80}ms`,
               }}
             >
               <span className="text-xs text-[var(--mf-text-muted)]">
@@ -105,10 +86,10 @@ export function FixItReveal({ splitProgress }: FixItRevealProps) {
               <p className="mt-3 text-sm leading-6 text-[var(--mf-text-body)]">
                 {line}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

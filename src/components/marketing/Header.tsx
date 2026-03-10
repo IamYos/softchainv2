@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { useLenis } from "@/components/marketing/SmoothScroll";
@@ -40,30 +32,13 @@ function getHeaderBackdropOpacity(scrollTop: number) {
   return (scrollTop - fadeStart) / (fadeEnd - fadeStart);
 }
 
+const EMPTY_SUBSCRIBE = () => () => {};
+
 export function Header() {
   const lenis = useLenis();
-  const { scrollY } = useScroll();
-  const darknessRaw = useMotionValue(1);
-  const headerBgOpacityRaw = useMotionValue(0);
-  const darkness = useSpring(darknessRaw, {
-    stiffness: 100,
-    damping: 20,
-    mass: 1,
-  });
-  const headerBgOpacity = useSpring(headerBgOpacityRaw, {
-    stiffness: 200,
-    damping: 30,
-    mass: 1,
-  });
-
-  const [currentContrast, setCurrentContrast] = useState<"light" | "dark">(
-    "dark",
-  );
+  const backdropRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const contrastRef = useRef<"light" | "dark">("dark");
-
-  useEffect(() => setMounted(true), []);
+  const isClient = useSyncExternalStore(EMPTY_SUBSCRIBE, () => true, () => false);
 
   useEffect(() => {
     const closeMenuOnDesktop = () => {
@@ -105,119 +80,43 @@ export function Header() {
 
     window.addEventListener("keydown", handleKeyDown);
 
-    return () => window.removeEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileMenuOpen]);
 
   useEffect(() => {
-    contrastRef.current = currentContrast;
-  }, [currentContrast]);
+    const backdrop = backdropRef.current;
 
-  const updateDarkness = useCallback((latest: number) => {
-    const headerSampleY = 40;
-    const centerX = window.innerWidth / 2;
-    let isLightBehind = false;
-    let foundTheme = false;
-
-    try {
-      const elements = document.elementsFromPoint(centerX, headerSampleY);
-      const headerEl = document.querySelector("[data-contrast]");
-
-      for (const element of elements) {
-        if (headerEl instanceof HTMLElement && headerEl.contains(element)) {
-          continue;
-        }
-
-        const themed = (element as HTMLElement).closest?.("[data-header-theme]");
-        if (!(themed instanceof HTMLElement)) {
-          continue;
-        }
-
-        const theme = themed.getAttribute("data-header-theme");
-        const style = window.getComputedStyle(themed);
-        const opacity = Number.parseFloat(style.opacity || "1");
-
-        if (opacity < 0.1 || style.display === "none" || style.visibility === "hidden") {
-          continue;
-        }
-
-        isLightBehind = theme === "light";
-        foundTheme = true;
-        break;
-      }
-
-      if (!foundTheme) {
-        for (const element of elements) {
-          if (headerEl instanceof HTMLElement && headerEl.contains(element)) {
-            continue;
-          }
-
-          const bg = window.getComputedStyle(element).backgroundColor;
-          if (!bg || bg === "rgba(0, 0, 0, 0)" || bg === "transparent") {
-            continue;
-          }
-
-          const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-          if (match) {
-            const r = Number.parseInt(match[1], 10);
-            const g = Number.parseInt(match[2], 10);
-            const b = Number.parseInt(match[3], 10);
-            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-            isLightBehind = luminance > 0.5;
-          }
-
-          break;
-        }
-      }
-    } catch {
-      isLightBehind = false;
+    if (!backdrop) {
+      return;
     }
 
-    const targetDarkness = isLightBehind ? 0 : 1;
-    darknessRaw.set(targetDarkness);
-    headerBgOpacityRaw.set(getHeaderBackdropOpacity(latest));
+    let frame = 0;
 
-    const contrast = targetDarkness > 0.5 ? "dark" : "light";
-    if (contrast !== contrastRef.current) {
-      contrastRef.current = contrast;
-      setCurrentContrast(contrast);
-    }
-  }, [darknessRaw, headerBgOpacityRaw]);
+    const update = () => {
+      frame = 0;
+      backdrop.style.opacity = `${getHeaderBackdropOpacity(window.scrollY)}`;
+    };
 
-  useMotionValueEvent(scrollY, "change", updateDarkness);
+    const schedule = () => {
+      if (!frame) {
+        frame = window.requestAnimationFrame(update);
+      }
+    };
 
-  useEffect(() => {
-    const targetDarkness = 1;
-    const initialBackdropOpacity =
-      typeof window === "undefined" ? 0 : getHeaderBackdropOpacity(window.scrollY);
+    update();
 
-    darkness.jump(targetDarkness);
-    darknessRaw.set(targetDarkness);
-    headerBgOpacity.jump(initialBackdropOpacity);
-    headerBgOpacityRaw.set(initialBackdropOpacity);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
 
-    const timeout = window.setTimeout(() => updateDarkness(window.scrollY), 50);
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
 
-    return () => window.clearTimeout(timeout);
-  }, [darkness, darknessRaw, headerBgOpacity, headerBgOpacityRaw, updateDarkness]);
-
-  const textColor = useTransform(darkness, [0, 1], ["#171717", "#ffffff"]);
-  const logoFilter = useTransform(
-    darkness,
-    [0, 1],
-    ["brightness(0) invert(0)", "brightness(0) invert(1)"],
-  );
-  const secondaryBorder = useTransform(darkness, [0, 1], [
-    "rgba(23, 23, 23, 0.28)",
-    "rgba(255, 255, 255, 0.28)",
-  ]);
-  const secondaryBg = useTransform(darkness, [0, 1], ["#ffffff", "rgba(0, 0, 0, 0)"]);
-  const primaryBg = useTransform(darkness, [0, 1], ["#171717", "#ffffff"]);
-  const primaryText = useTransform(darkness, [0, 1], ["#ffffff", "#171717"]);
-  const headerBg = useTransform(darkness, [0, 1], [
-    "rgba(255, 255, 255, 0.85)",
-    "rgba(10, 10, 10, 1)",
-  ]);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
 
   const scrollToTop = () => {
     setMobileMenuOpen(false);
@@ -240,30 +139,39 @@ export function Header() {
     scrollToTarget(item.target);
   };
 
-  if (!mounted) return null;
+  if (!isClient) return null;
 
   return createPortal(
     <>
-      <motion.header
+      <header
         className="fixed left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
-        data-contrast={currentContrast}
+        data-contrast="dark"
+        style={{
+          ["--header-text" as string]: "#ffffff",
+          ["--header-logo-filter" as string]: "brightness(0) invert(1)",
+          ["--header-secondary-border" as string]: "rgba(255, 255, 255, 0.28)",
+          ["--header-secondary-bg" as string]: "rgba(0, 0, 0, 0)",
+          ["--header-primary-bg" as string]: "#ffffff",
+          ["--header-primary-text" as string]: "#171717",
+        } as CSSProperties}
       >
-        <motion.div
+        <div
+          ref={backdropRef}
           className="absolute inset-0 h-24 pointer-events-none"
           style={{
-            backgroundColor: headerBg,
-            opacity: headerBgOpacity,
+            backgroundColor: "rgba(10, 10, 10, 1)",
+            opacity: 0,
             maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
             WebkitMaskImage:
               "linear-gradient(to bottom, black 0%, transparent 100%)",
+            willChange: "opacity",
           }}
         />
 
         <PageContainer className="relative z-10 mt-2 grid h-16 grid-cols-[auto_1fr_auto] items-center">
-          <HeaderLogoButton filter={logoFilter} onClick={scrollToTop} />
+          <HeaderLogoButton onClick={scrollToTop} />
 
           <HeaderDesktopNav
-            textColor={textColor}
             onItemClick={handleNavItemClick}
             className="hidden min-[1100px]:flex"
           />
@@ -271,24 +179,18 @@ export function Header() {
 
           <div className="flex items-center justify-end gap-4">
             <HeaderDesktopActions
-              textColor={textColor}
-              primaryBg={primaryBg}
-              primaryText={primaryText}
-              secondaryBorder={secondaryBorder}
-              secondaryBg={secondaryBg}
               onSecondaryClick={() => scrollToTarget("footer")}
               onPrimaryClick={() => scrollToTarget("closing-cta")}
               className="hidden min-[1100px]:flex"
             />
             <HeaderMobileMenuButton
-              textColor={textColor}
               onClick={() => setMobileMenuOpen(true)}
               isOpen={mobileMenuOpen}
               className="min-[1100px]:hidden"
             />
           </div>
         </PageContainer>
-      </motion.header>
+      </header>
 
       <HeaderMobileMenu
         isOpen={mobileMenuOpen}

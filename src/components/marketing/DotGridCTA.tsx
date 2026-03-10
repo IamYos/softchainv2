@@ -1,18 +1,14 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { BeamButton } from "@/components/marketing/BeamButton";
+import { FadeIn } from "@/components/marketing/FadeIn";
 import { PageContainer } from "@/components/marketing/PageContainer";
 
 export function DotGridCTA() {
   return (
     <section id="closing-cta" className="relative border-t border-white/8 py-24">
       <PageContainer>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        <FadeIn
           className="softchain-dots relative overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,17,0.92),rgba(10,10,10,0.98))] px-6 py-14 md:px-14"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.16),transparent_28%),radial-gradient(circle_at_80%_60%,rgba(220,38,38,0.12),transparent_28%)]" />
@@ -34,7 +30,7 @@ export function DotGridCTA() {
               <BeamButton>Review Capabilities</BeamButton>
             </div>
           </div>
-        </motion.div>
+        </FadeIn>
       </PageContainer>
     </section>
   );

@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  motion,
-  MotionValue,
-  useInView,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
 import { useRef } from "react";
+import { useInView } from "@/components/marketing/useInView";
 
 type MarqueeRowProps = {
   text: string;
@@ -30,11 +24,11 @@ function MarqueeRow({
 
   return (
     <div className="flex overflow-hidden whitespace-nowrap py-1 select-none">
-      <motion.div
+      <div
         className="flex gap-10"
-        animate={paused ? { x: 0 } : undefined}
         style={{
-          animation: paused ? "none" : animation,
+          animation,
+          animationPlayState: paused ? "paused" : "running",
           opacity,
           backgroundImage: gradient
             ? "linear-gradient(90deg, var(--mf-brand-blue), var(--mf-brand-red), var(--mf-text-heading))"
@@ -42,6 +36,7 @@ function MarqueeRow({
           WebkitBackgroundClip: gradient ? "text" : undefined,
           backgroundClip: gradient ? "text" : undefined,
           color: gradient ? "transparent" : undefined,
+          willChange: "transform",
         }}
       >
         {Array.from({ length: 8 }).map((_, index) => (
@@ -53,12 +48,12 @@ function MarqueeRow({
             {text}
           </span>
         ))}
-      </motion.div>
-      <motion.div
+      </div>
+      <div
         className="flex gap-10"
-        animate={paused ? { x: 0 } : undefined}
         style={{
-          animation: paused ? "none" : animation,
+          animation,
+          animationPlayState: paused ? "paused" : "running",
           opacity,
           backgroundImage: gradient
             ? "linear-gradient(90deg, var(--mf-brand-blue), var(--mf-brand-red), var(--mf-text-heading))"
@@ -66,6 +61,7 @@ function MarqueeRow({
           WebkitBackgroundClip: gradient ? "text" : undefined,
           backgroundClip: gradient ? "text" : undefined,
           color: gradient ? "transparent" : undefined,
+          willChange: "transform",
         }}
       >
         {Array.from({ length: 8 }).map((_, index) => (
@@ -77,22 +73,17 @@ function MarqueeRow({
             {text}
           </span>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }
 
-type TheProblemProps = {
-  splitProgress: MotionValue<number>;
-};
-
-export function TheProblem({ splitProgress }: TheProblemProps) {
+export function TheProblem() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const fallback = useMotionValue(0);
-  const progress = splitProgress ?? fallback;
-  const isInView = useInView(sectionRef, { margin: "200px" });
-  const yTop = useTransform(progress, [0, 0.8], ["0%", "-100vh"]);
-  const yBottom = useTransform(progress, [0, 0.8], ["0%", "100vh"]);
+  const isInView = useInView(sectionRef, {
+    once: false,
+    rootMargin: "200px 0px",
+  });
 
   return (
     <section
@@ -100,19 +91,31 @@ export function TheProblem({ splitProgress }: TheProblemProps) {
       className="absolute inset-0 flex items-center justify-center overflow-hidden"
     >
       <div className="flex w-full flex-col gap-0">
-        <motion.div style={{ y: yTop }} className="flex flex-col gap-0">
+        <div
+          className="flex flex-col gap-0"
+          style={{
+            transform: "translate3d(0, var(--problem-y-top, 0px), 0)",
+            willChange: "transform",
+          }}
+        >
           <MarqueeRow text="SOFTWARE CREAKS." speed={15} opacity={0.03} direction={1} paused={!isInView} />
           <MarqueeRow text="SYSTEMS DRIFT." speed={20} opacity={0.05} direction={-1} paused={!isInView} />
           <MarqueeRow text="TEAMS STALL." speed={25} opacity={0.1} direction={1} paused={!isInView} />
           <MarqueeRow text="DELIVERY BREAKS." speed={30} opacity={1} direction={-1} paused={!isInView} />
-        </motion.div>
+        </div>
 
-        <motion.div style={{ y: yBottom }} className="flex flex-col gap-0">
+        <div
+          className="flex flex-col gap-0"
+          style={{
+            transform: "translate3d(0, var(--problem-y-bottom, 0px), 0)",
+            willChange: "transform",
+          }}
+        >
           <MarqueeRow text="BUILD IT OR FAIL." speed={30} opacity={1} direction={1} gradient paused={!isInView} />
           <MarqueeRow text="OPERATE IT OR FAIL." speed={25} opacity={0.1} direction={-1} gradient paused={!isInView} />
           <MarqueeRow text="SECURE IT OR FAIL." speed={20} opacity={0.05} direction={1} gradient paused={!isInView} />
           <MarqueeRow text="SCALE IT OR FAIL." speed={15} opacity={0.03} direction={-1} gradient paused={!isInView} />
-        </motion.div>
+        </div>
       </div>
     </section>
   );

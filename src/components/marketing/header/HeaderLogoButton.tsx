@@ -1,10 +1,9 @@
 "use client";
 
-import { type MotionValue } from "framer-motion";
 import { SoftchainMark } from "@/components/marketing/SoftchainMark";
 
 type HeaderLogoButtonProps = {
-  filter: MotionValue<string> | string;
+  filter?: string;
   onClick: () => void;
   ariaLabel?: string;
 };

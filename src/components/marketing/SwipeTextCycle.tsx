@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const WORDS = [
@@ -12,13 +11,37 @@ const WORDS = [
 
 export function SwipeTextCycle() {
   const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<"visible" | "exit" | "pre-enter">("visible");
 
   useEffect(() => {
+    let frame = 0;
+    let swap = 0;
+
     const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % WORDS.length);
+      setPhase("exit");
+
+      swap = window.setTimeout(() => {
+        setIndex((current) => (current + 1) % WORDS.length);
+        setPhase("pre-enter");
+        frame = window.requestAnimationFrame(() => {
+          setPhase("visible");
+        });
+      }, 220);
+
+      return () => {
+        window.clearTimeout(swap);
+      };
     }, 2400);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      if (swap) {
+        window.clearTimeout(swap);
+      }
+      window.clearInterval(timer);
+    };
   }, []);
 
   return (
@@ -29,19 +52,12 @@ export function SwipeTextCycle() {
       >
         engineered across
       </span>
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={WORDS[index]}
-          initial={{ y: 36, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -36, opacity: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="text-xl font-medium text-white md:text-2xl"
-          style={{ letterSpacing: "var(--mf-tracking-subheading)" }}
-        >
-          {WORDS[index]}
-        </motion.span>
-      </AnimatePresence>
+      <span
+        className={`swipe-word swipe-word--${phase} text-xl font-medium text-white md:text-2xl`}
+        style={{ letterSpacing: "var(--mf-tracking-subheading)" }}
+      >
+        {WORDS[index]}
+      </span>
     </div>
   );
 }

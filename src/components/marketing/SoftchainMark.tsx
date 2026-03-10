@@ -1,18 +1,17 @@
 "use client";
 
-import { motion, type MotionValue } from "framer-motion";
 import Image from "next/image";
 
 type SoftchainMarkProps = {
-  filter: MotionValue<string> | string;
+  filter?: string;
   className?: string;
 };
 
 export function SoftchainMark({ filter, className = "" }: SoftchainMarkProps) {
   return (
-    <motion.div
+    <div
       className={`relative h-full w-full shrink-0 ${className}`}
-      style={{ filter }}
+      style={{ filter: filter ?? "var(--header-logo-filter, brightness(0) invert(1))" }}
     >
       <Image
         src="/softchain-logo.png"
@@ -21,6 +20,6 @@ export function SoftchainMark({ filter, className = "" }: SoftchainMarkProps) {
         sizes="130px"
         className="object-contain object-left"
       />
-    </motion.div>
+    </div>
   );
 }
