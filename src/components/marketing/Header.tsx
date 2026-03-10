@@ -1,105 +1,86 @@
 "use client";
 
 import {
-  AnimatePresence,
   motion,
-  type MotionValue,
+  useMotionValue,
   useMotionValueEvent,
   useScroll,
   useSpring,
   useTransform,
 } from "framer-motion";
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { BeamButton } from "@/components/marketing/BeamButton";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PageContainer } from "@/components/marketing/PageContainer";
-import { SoftchainMark } from "@/components/marketing/SoftchainMark";
 import { useLenis } from "@/components/marketing/SmoothScroll";
+import { HeaderDesktopActions } from "@/components/marketing/header/HeaderDesktopActions";
+import { HeaderDesktopNav } from "@/components/marketing/header/HeaderDesktopNav";
+import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
+import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu";
+import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
+import { type HeaderNavItem } from "@/components/marketing/header/navigation";
 
-const NAV_ITEMS = [
-  { label: "Software", target: "capabilities" },
-  { label: "Infrastructure", target: "delivery" },
-  { label: "AI Systems", target: "closing-cta" },
-];
+function getHeaderBackdropOpacity(scrollTop: number) {
+  const heroScrollRange = window.innerHeight * 1.2;
 
-function NavLink({
-  children,
-  onClick,
-  textColor,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  textColor: MotionValue<string>;
-}) {
-  const [isHovered, setIsHovered] = useState(false);
+  if (scrollTop >= heroScrollRange) {
+    return 1;
+  }
 
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      className="relative flex cursor-pointer flex-col items-center justify-center transition-opacity duration-300"
-      style={{ color: textColor, opacity: isHovered ? 1 : 0.5 }}
-    >
-      <div className="relative">
-        <span className="relative z-10 font-medium">{children}</span>
-        {isHovered ? (
-          <>
-            <motion.span
-              className="pointer-events-none absolute inset-0 z-20 select-none bg-clip-text font-medium text-transparent"
-              style={{
-                backgroundImage:
-                  "linear-gradient(90deg, transparent 0%, var(--mf-brand-blue) 45%, var(--mf-brand-red) 55%, transparent 100%)",
-                backgroundSize: "200% 100%",
-              }}
-              initial={{ backgroundPosition: "150% 0" }}
-              animate={{ backgroundPosition: "-50% 0" }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              {children}
-            </motion.span>
-            <motion.div
-              className="absolute -bottom-1.5 left-0 right-0 h-px"
-              style={{ backgroundColor: "currentColor" }}
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            />
-          </>
-        ) : null}
-      </div>
-    </motion.button>
-  );
+  const fadeStart = window.innerHeight * 0.08;
+  const fadeEnd = window.innerHeight * 0.3;
+
+  if (scrollTop <= fadeStart) {
+    return 0;
+  }
+
+  if (scrollTop >= fadeEnd) {
+    return 1;
+  }
+
+  return (scrollTop - fadeStart) / (fadeEnd - fadeStart);
 }
 
 export function Header() {
   const lenis = useLenis();
   const { scrollY } = useScroll();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const darkness = useSpring(1, { stiffness: 120, damping: 24, mass: 1 });
-  const headerBgOpacity = useSpring(0, { stiffness: 180, damping: 30, mass: 1 });
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const heroRange = typeof window !== "undefined" ? window.innerHeight * 1.2 : 900;
-    const fadeStart = heroRange * 0.08;
-    const fadeEnd = heroRange * 0.6;
-    const nextOpacity =
-      latest <= fadeStart ? 0 : latest >= fadeEnd ? 1 : (latest - fadeStart) / (fadeEnd - fadeStart);
-
-    headerBgOpacity.set(nextOpacity);
-    darkness.set(1);
+  const darknessRaw = useMotionValue(1);
+  const headerBgOpacityRaw = useMotionValue(0);
+  const darkness = useSpring(darknessRaw, {
+    stiffness: 100,
+    damping: 20,
+    mass: 1,
+  });
+  const headerBgOpacity = useSpring(headerBgOpacityRaw, {
+    stiffness: 200,
+    damping: 30,
+    mass: 1,
   });
 
+  const [currentContrast, setCurrentContrast] = useState<"light" | "dark">(
+    "dark",
+  );
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const contrastRef = useRef<"light" | "dark">("dark");
+
   useEffect(() => {
-    if (!mobileMenuOpen) {
+    const closeMenuOnDesktop = () => {
+      if (window.innerWidth >= 1100) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", closeMenuOnDesktop);
+
+    return () => window.removeEventListener("resize", closeMenuOnDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      lenis?.stop();
+    } else {
       document.body.style.removeProperty("overflow");
       lenis?.start();
-      return;
     }
-
-    document.body.style.overflow = "hidden";
-    lenis?.stop();
 
     return () => {
       document.body.style.removeProperty("overflow");
@@ -107,31 +88,159 @@ export function Header() {
     };
   }, [lenis, mobileMenuOpen]);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    contrastRef.current = currentContrast;
+  }, [currentContrast]);
+
+  const updateDarkness = useCallback((latest: number) => {
+    const headerSampleY = 40;
+    const centerX = window.innerWidth / 2;
+    let isLightBehind = false;
+    let foundTheme = false;
+
+    try {
+      const elements = document.elementsFromPoint(centerX, headerSampleY);
+      const headerEl = document.querySelector("[data-contrast]");
+
+      for (const element of elements) {
+        if (headerEl instanceof HTMLElement && headerEl.contains(element)) {
+          continue;
+        }
+
+        const themed = (element as HTMLElement).closest?.("[data-header-theme]");
+        if (!(themed instanceof HTMLElement)) {
+          continue;
+        }
+
+        const theme = themed.getAttribute("data-header-theme");
+        const style = window.getComputedStyle(themed);
+        const opacity = Number.parseFloat(style.opacity || "1");
+
+        if (opacity < 0.1 || style.display === "none" || style.visibility === "hidden") {
+          continue;
+        }
+
+        isLightBehind = theme === "light";
+        foundTheme = true;
+        break;
+      }
+
+      if (!foundTheme) {
+        for (const element of elements) {
+          if (headerEl instanceof HTMLElement && headerEl.contains(element)) {
+            continue;
+          }
+
+          const bg = window.getComputedStyle(element).backgroundColor;
+          if (!bg || bg === "rgba(0, 0, 0, 0)" || bg === "transparent") {
+            continue;
+          }
+
+          const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+          if (match) {
+            const r = Number.parseInt(match[1], 10);
+            const g = Number.parseInt(match[2], 10);
+            const b = Number.parseInt(match[3], 10);
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+            isLightBehind = luminance > 0.5;
+          }
+
+          break;
+        }
+      }
+    } catch {
+      isLightBehind = false;
+    }
+
+    const targetDarkness = isLightBehind ? 0 : 1;
+    darknessRaw.set(targetDarkness);
+    headerBgOpacityRaw.set(getHeaderBackdropOpacity(latest));
+
+    const contrast = targetDarkness > 0.5 ? "dark" : "light";
+    if (contrast !== contrastRef.current) {
+      contrastRef.current = contrast;
+      setCurrentContrast(contrast);
+    }
+  }, [darknessRaw, headerBgOpacityRaw]);
+
+  useMotionValueEvent(scrollY, "change", updateDarkness);
+
+  useEffect(() => {
+    const targetDarkness = 1;
+    const initialBackdropOpacity =
+      typeof window === "undefined" ? 0 : getHeaderBackdropOpacity(window.scrollY);
+
+    darkness.jump(targetDarkness);
+    darknessRaw.set(targetDarkness);
+    headerBgOpacity.jump(initialBackdropOpacity);
+    headerBgOpacityRaw.set(initialBackdropOpacity);
+
+    const timeout = window.setTimeout(() => updateDarkness(window.scrollY), 50);
+
+    return () => window.clearTimeout(timeout);
+  }, [darkness, darknessRaw, headerBgOpacity, headerBgOpacityRaw, updateDarkness]);
+
   const textColor = useTransform(darkness, [0, 1], ["#171717", "#ffffff"]);
+  const logoFilter = useTransform(
+    darkness,
+    [0, 1],
+    ["brightness(0) invert(0)", "brightness(0) invert(1)"],
+  );
+  const secondaryBorder = useTransform(darkness, [0, 1], [
+    "rgba(23, 23, 23, 0.28)",
+    "rgba(255, 255, 255, 0.28)",
+  ]);
+  const secondaryBg = useTransform(darkness, [0, 1], ["#ffffff", "rgba(0, 0, 0, 0)"]);
   const primaryBg = useTransform(darkness, [0, 1], ["#171717", "#ffffff"]);
   const primaryText = useTransform(darkness, [0, 1], ["#ffffff", "#171717"]);
-  const secondaryBorder = useTransform(darkness, [0, 1], [
-    "rgba(23,23,23,0.18)",
-    "rgba(255,255,255,0.28)",
-  ]);
-  const secondaryBg = useTransform(darkness, [0, 1], ["#ffffff", "transparent"]);
   const headerBg = useTransform(darkness, [0, 1], [
-    "rgba(255,255,255,0.85)",
-    "rgba(10,10,10,1)",
+    "rgba(255, 255, 255, 0.85)",
+    "rgba(10, 10, 10, 1)",
   ]);
+
+  const scrollToTop = () => {
+    setMobileMenuOpen(false);
+    lenis?.scrollTo(0, { duration: 1 });
+  };
 
   const scrollToTarget = (target: string) => {
     const element = document.getElementById(target);
-    if (!element) return;
-    lenis?.scrollTo(element, { duration: 1.2 });
+
     setMobileMenuOpen(false);
+
+    if (!element) {
+      return;
+    }
+
+    lenis?.scrollTo(element, { duration: 1.2 });
+  };
+
+  const handleNavItemClick = (item: HeaderNavItem) => {
+    scrollToTarget(item.target);
   };
 
   return (
     <>
       <motion.header
-        className="fixed left-0 right-0 top-0 z-50 h-24 pointer-events-none"
-        data-contrast="light"
+        className="fixed left-0 right-0 top-0 z-50 h-24"
+        data-contrast={currentContrast}
       >
         <motion.div
           className="absolute inset-0 pointer-events-none"
@@ -143,183 +252,46 @@ export function Header() {
               "linear-gradient(to bottom, black 0%, transparent 100%)",
           }}
         />
-        <PageContainer className="relative z-10 mt-2 grid h-16 grid-cols-[auto_1fr_auto] items-center pointer-events-auto">
-          <motion.button
-            type="button"
-            className="relative h-[28px] w-[130px] cursor-pointer shrink-0"
-            onClick={() => lenis?.scrollTo(0, { duration: 1 })}
-            aria-label="Scroll to top"
-          >
-            <SoftchainMark brightness={darkness} />
-          </motion.button>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.nav
-              key="desktop-nav"
-              className="hidden min-[1100px]:flex items-center justify-center gap-6 min-w-0 whitespace-nowrap pl-6 text-[16px]"
-              aria-label="Main navigation"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              {NAV_ITEMS.map((item) => (
-                <NavLink
-                  key={item.label}
-                  onClick={() => scrollToTarget(item.target)}
-                  textColor={textColor}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </motion.nav>
-          </AnimatePresence>
+        <PageContainer className="relative z-10 mt-2 grid h-16 grid-cols-[auto_1fr_auto] items-center">
+          <HeaderLogoButton filter={logoFilter} onClick={scrollToTop} />
+
+          <HeaderDesktopNav
+            textColor={textColor}
+            onItemClick={handleNavItemClick}
+            className="hidden min-[1100px]:flex"
+          />
+          <div className="min-[1100px]:hidden" />
 
           <div className="flex items-center justify-end gap-4">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key="desktop-buttons"
-                className="hidden min-[1100px]:flex items-center gap-4"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
-                <BeamButton
-                  onClick={() => scrollToTarget("footer")}
-                  className="rounded px-4 py-2 text-sm font-medium border transition-colors duration-300"
-                  theme="light"
-                  style={{
-                    borderColor: secondaryBorder,
-                    backgroundColor: secondaryBg,
-                    color: textColor,
-                  } as never}
-                >
-                  Contact
-                </BeamButton>
-                <BeamButton
-                  onClick={() => scrollToTarget("closing-cta")}
-                  className="rounded px-4 py-2 text-sm font-medium border transition-colors duration-300 whitespace-nowrap"
-                  style={{
-                    borderColor: secondaryBorder,
-                    backgroundColor: primaryBg,
-                    color: primaryText,
-                  } as never}
-                >
-                  Book a Call
-                </BeamButton>
-              </motion.div>
-            </AnimatePresence>
-
-            <motion.button
-              type="button"
-              key="mobile-menu-toggle"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            <HeaderDesktopActions
+              textColor={textColor}
+              primaryBg={primaryBg}
+              primaryText={primaryText}
+              secondaryBorder={secondaryBorder}
+              secondaryBg={secondaryBg}
+              onSecondaryClick={() => scrollToTarget("footer")}
+              onPrimaryClick={() => scrollToTarget("closing-cta")}
+              className="hidden min-[1100px]:flex"
+            />
+            <HeaderMobileMenuButton
+              textColor={textColor}
               onClick={() => setMobileMenuOpen(true)}
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center cursor-pointer p-2 min-[1100px]:hidden"
-              style={{ color: textColor }}
-              aria-label="Open menu"
-              whileHover="hover"
-            >
-              <motion.span
-                className="flex flex-col gap-[5px]"
-                variants={{
-                  hover: {
-                    transition: { staggerChildren: 0.05 },
-                  },
-                }}
-              >
-                {[0, 1, 2].map((index) => (
-                  <motion.span
-                    key={index}
-                    className="block h-[2px] w-5 rounded-full"
-                    style={{ backgroundColor: "currentColor" }}
-                    variants={{
-                      hover: {
-                        y: [0, -2, 0],
-                        transition: {
-                          duration: 0.3,
-                          ease: [0.25, 0.1, 0.25, 1],
-                        },
-                      },
-                    }}
-                  />
-                ))}
-              </motion.span>
-            </motion.button>
+              isOpen={mobileMenuOpen}
+              className="min-[1100px]:hidden"
+            />
           </div>
         </PageContainer>
       </motion.header>
 
-      <AnimatePresence>
-        {mobileMenuOpen ? (
-          <motion.div
-            className="fixed inset-0 z-[var(--mf-z-modal)] flex flex-col p-6 min-[1100px]:hidden"
-            style={{ backgroundColor: "#000000" }}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          >
-            <div className="mb-8 flex items-center justify-between">
-              <button
-                type="button"
-                className="relative h-[28px] w-[130px] cursor-pointer"
-                onClick={() => {
-                  lenis?.scrollTo(0, { duration: 1 });
-                  setMobileMenuOpen(false);
-                }}
-                aria-label="Scroll to top"
-              >
-                <SoftchainMark brightness={darkness} />
-              </button>
-              <motion.button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex min-h-[44px] min-w-[44px] items-center justify-center p-2 text-white cursor-pointer"
-                whileHover={{ rotate: 90 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                aria-label="Close menu"
-              >
-                <X size={24} />
-              </motion.button>
-            </div>
-
-            <nav
-              className="flex flex-col gap-2 text-xl font-medium text-white"
-              aria-label="Mobile navigation"
-            >
-              {NAV_ITEMS.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  className="link-underline min-h-[44px] w-fit cursor-pointer py-3 text-left text-white"
-                  onClick={() => scrollToTarget(item.target)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-
-            <div className="mt-auto flex flex-col gap-4">
-              <BeamButton
-                onClick={() => scrollToTarget("footer")}
-                className="w-full rounded bg-transparent py-3 text-base font-medium text-white border border-white/20 hover:bg-white/[0.06]"
-              >
-                Contact
-              </BeamButton>
-              <BeamButton
-                onClick={() => scrollToTarget("closing-cta")}
-                className="w-full rounded border border-transparent bg-white py-3 text-base font-medium text-black"
-              >
-                Book a Call
-              </BeamButton>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <HeaderMobileMenu
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        onLogoClick={scrollToTop}
+        onItemClick={handleNavItemClick}
+        onSecondaryClick={() => scrollToTarget("footer")}
+        onPrimaryClick={() => scrollToTarget("closing-cta")}
+      />
     </>
   );
 }

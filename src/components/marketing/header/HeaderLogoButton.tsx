@@ -1,0 +1,27 @@
+"use client";
+
+import { motion, type MotionValue } from "framer-motion";
+import { SoftchainMark } from "@/components/marketing/SoftchainMark";
+
+type HeaderLogoButtonProps = {
+  filter: MotionValue<string> | string;
+  onClick: () => void;
+  ariaLabel?: string;
+};
+
+export function HeaderLogoButton({
+  filter,
+  onClick,
+  ariaLabel = "Scroll to top",
+}: HeaderLogoButtonProps) {
+  return (
+    <motion.button
+      type="button"
+      className="relative h-[28px] w-[130px] shrink-0 cursor-pointer"
+      onClick={onClick}
+      aria-label={ariaLabel}
+    >
+      <SoftchainMark filter={filter} />
+    </motion.button>
+  );
+}
