@@ -31,7 +31,7 @@ type RenderPoint = {
 const TAU = Math.PI * 2;
 const PARTICLE_FONT_FALLBACK =
   '"Hack", "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace';
-const PARTICLE_FONT_SCALE = 3.25;
+const PARTICLE_FONT_SCALE = 3.6;
 const BUBBLE_SCALE = 1.15;
 const MIN_GLYPH_FLIP_DELAY = 0.35;
 const MAX_GLYPH_FLIP_DELAY = 1.75;
@@ -342,7 +342,7 @@ export function HeroParticleBubble() {
 
         if (point.fontSize !== activeFontSize) {
           activeFontSize = point.fontSize;
-          context.font = `400 ${point.fontSize}px ${particleFontFamily}`;
+          context.font = `700 ${point.fontSize}px ${particleFontFamily}`;
         }
 
         context.fillStyle = `rgba(${point.r}, ${point.g}, ${point.b}, ${point.alpha})`;
