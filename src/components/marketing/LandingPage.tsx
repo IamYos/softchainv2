@@ -6,6 +6,8 @@ import { DotGridCTA } from "@/components/marketing/DotGridCTA";
 import { FadeIn } from "@/components/marketing/FadeIn";
 import { FixItReveal } from "@/components/marketing/FixItReveal";
 import { Footer } from "@/components/marketing/Footer";
+import { CustomCursor } from "@/components/marketing/CustomCursor";
+import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { Header } from "@/components/marketing/Header";
 import { HeroParticleBubble } from "@/components/marketing/HeroParticleBubble";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
@@ -355,6 +357,7 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
+              <GridHoverEffect cellSize={102} segmentInset={10} maxAlpha={0.46} spread={2} />
               <HeroShatterOverlay />
               <HeroParticleBubble />
 
@@ -481,7 +484,14 @@ function HeroAndSections() {
 
 export function LandingPage() {
   return (
-    <SmoothScroll overlay={<Header />}>
+    <SmoothScroll
+      overlay={
+        <>
+          <Header />
+          <CustomCursor rgb="255, 88, 65" />
+        </>
+      }
+    >
       <HeroAndSections />
     </SmoothScroll>
   );
