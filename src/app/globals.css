@@ -205,8 +205,20 @@ button {
 
 .header-nav-link {
   color: var(--header-text, #ffffff);
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: "AuxMono", monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.24px;
+  line-height: 1.33;
+  opacity: 0.72;
+  padding: 0 0 2px;
+  text-transform: uppercase;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .header-nav-link:hover,
@@ -214,45 +226,34 @@ button {
   opacity: 1;
 }
 
-.header-nav-link__shine {
-  background-image:
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--mf-brand-blue) 45%,
-      var(--mf-brand-red) 55%,
-      transparent 100%
-    );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  opacity: 0;
-}
-
-.header-nav-link:hover .header-nav-link__shine {
-  opacity: 1;
-  animation: text-shimmer 0.6s ease-out both;
+.header-nav-link__label {
+  display: block;
+  pointer-events: none;
 }
 
 .header-nav-link__underline {
   background-color: currentColor;
-  opacity: 0;
+  opacity: 0.45;
   transform: scaleX(0);
   transform-origin: left center;
   transition:
     transform 0.3s ease,
-    opacity 0.3s ease;
+    opacity 0.2s ease;
 }
 
 .header-nav-link:hover .header-nav-link__underline,
 .header-nav-link.is-active .header-nav-link__underline {
-  opacity: 1;
+  opacity: 0.8;
   transform: scaleX(1);
 }
 
 .header-nav-link.is-active .header-nav-link__underline {
-  background:
-    linear-gradient(90deg, var(--mf-brand-blue), var(--mf-brand-red));
+  opacity: 1;
+}
+
+.frame1-scramble-copy {
+  font-family: "AuxMono", monospace;
+  font-weight: 400;
 }
 
 .capabilities-panel {

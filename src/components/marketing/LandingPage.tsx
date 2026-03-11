@@ -388,7 +388,7 @@ function HeroAndSections() {
                     }}
                   >
                     <h1
-                      className="pointer-events-auto w-full font-medium leading-[0.9] tracking-[-0.07em]"
+                      className="frame1-scramble-copy pointer-events-auto w-full leading-[0.9] tracking-[-0.07em]"
                       style={{ fontSize: "clamp(24px, 8vw, 112px)" }}
                     >
                       <span className="sr-only">
@@ -397,6 +397,8 @@ function HeroAndSections() {
                       <ScrambleHeadlineLoop
                         lineSets={HERO_HEADLINE_LINES}
                         scrambleColors={HERO_SCRAMBLE_COLORS}
+                        className="flex w-full max-w-full flex-col items-center justify-center gap-4"
+                        lineClassName="flex max-w-full flex-wrap items-center justify-center leading-[0.9]"
                       />
                     </h1>
                   </div>

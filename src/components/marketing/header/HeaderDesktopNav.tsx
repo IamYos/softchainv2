@@ -17,7 +17,7 @@ export function HeaderDesktopNav({
 }: HeaderDesktopNavProps) {
   return (
     <nav
-      className={`min-w-0 items-center justify-center gap-6 whitespace-nowrap pl-6 text-[16px] ${className}`}
+      className={`min-w-0 items-center justify-center gap-6 whitespace-nowrap pl-6 text-[12px] ${className}`}
       aria-label="Main navigation"
     >
       {HEADER_NAV_ITEMS.map((item) => (

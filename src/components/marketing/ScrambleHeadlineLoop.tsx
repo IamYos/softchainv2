@@ -66,7 +66,7 @@ function ScrambleHeadlineLine({
           if (tickRef.current > 2.5 * index + 25) {
             nextGlyphs.push({
               char: targetChar,
-              color: "var(--mf-text-foreground)",
+              color: "#202020",
               resolved: true,
             });
             continue;
