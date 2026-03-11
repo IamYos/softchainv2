@@ -341,10 +341,11 @@ function HeroAndSections() {
 
             <div
               ref={heroLayerRef}
-              className="absolute inset-0 z-20 bg-white softchain-grid softchain-grid--light"
+              className="absolute inset-0 z-20 softchain-grid softchain-grid--light"
               style={{
                 ["--softchain-grid-size" as string]: "102px",
-                ["--softchain-grid-bg" as string]: "#ffffff",
+                ["--softchain-grid-bg" as string]: "#b9b9b9",
+                backgroundColor: "#b9b9b9",
                 opacity: "var(--hero-layer-opacity, 1)",
                 transform: "translate3d(0, 0, 0)",
                 transformOrigin: "center center",
