@@ -27,6 +27,10 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function lerp(from: number, to: number, amount: number) {
+  return from + (to - from) * amount;
+}
+
 function createSpherePoints(count: number): SpherePoint[] {
   const points: SpherePoint[] = [];
   const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -137,7 +141,7 @@ export function HeroParticleBubble() {
 
       const centerX = width * 0.5;
       const centerY = height * 0.46;
-      const sphereRadius = Math.min(width, height) * (width < 768 ? 0.18 : 0.22);
+      const sphereRadius = Math.min(width, height) * (width < 768 ? 0.21 : 0.255);
       const cameraDepth = 3.3;
       const rotateY = time * 0.55 + mouse.x * 0.5;
       const rotateX = time * 0.3 - mouse.y * 0.35;
@@ -154,7 +158,8 @@ export function HeroParticleBubble() {
         centerY,
         sphereRadius * 1.75,
       );
-      aura.addColorStop(0, "rgba(0, 105, 62, 0.12)");
+      aura.addColorStop(0, "rgba(0, 105, 62, 0.16)");
+      aura.addColorStop(0.55, "rgba(56, 66, 78, 0.1)");
       aura.addColorStop(1, "rgba(0, 105, 62, 0)");
       context.fillStyle = aura;
       context.beginPath();
@@ -189,19 +194,30 @@ export function HeroParticleBubble() {
         const perspective = cameraDepth / depth;
         const screenX = centerX + x * sphereRadius * perspective;
         const screenY = centerY + y * sphereRadius * perspective;
-        const mix = clamp((z + 1) * 0.5, 0, 1);
-        const shimmer = 0.88 + Math.sin(time * 3 + point.phase * TAU) * 0.1;
+        const depthMix = clamp((z + 1) * 0.5, 0, 1);
+        const phaseMix =
+          (Math.sin(time * 1.9 + point.phase * TAU + x * 2.2 - y * 1.6) + 1) * 0.5;
+        const metalMix = clamp(depthMix * 0.72 + phaseMix * 0.28, 0, 1);
+        const shade = 0.8 + Math.sin(time * 2.5 + point.phase * TAU) * 0.12;
 
-        const red = Math.round((0 * (1 - mix) + 185 * mix) * shimmer);
-        const green = Math.round((105 * (1 - mix) + 193 * mix) * shimmer);
-        const blue = Math.round((62 * (1 - mix) + 201 * mix) * shimmer);
+        const forestR = lerp(0, 6, phaseMix);
+        const forestG = lerp(64, 122, phaseMix);
+        const forestB = lerp(38, 72, phaseMix);
+
+        const steelR = lerp(56, 186, phaseMix);
+        const steelG = lerp(64, 194, phaseMix);
+        const steelB = lerp(72, 202, phaseMix);
+
+        const red = Math.round(lerp(forestR, steelR, metalMix) * shade);
+        const green = Math.round(lerp(forestG, steelG, metalMix) * shade);
+        const blue = Math.round(lerp(forestB, steelB, metalMix) * shade);
 
         drawPoints.push({
           x: screenX,
           y: screenY,
           z,
-          size: (0.6 + mix * 2.1) * perspective,
-          alpha: clamp(0.12 + mix * 0.7, 0.05, 0.85),
+          size: (0.6 + depthMix * 2.1) * perspective,
+          alpha: clamp(0.12 + depthMix * 0.7, 0.05, 0.85),
           r: clamp(red, 0, 255),
           g: clamp(green, 0, 255),
           b: clamp(blue, 0, 255),
