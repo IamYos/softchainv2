@@ -48,6 +48,18 @@ function interpolate(value: number, input: number[], output: number[]) {
   return output[index] + (output[index + 1] - output[index]) * progress;
 }
 
+function normalize(value: number, min: number, max: number) {
+  if (max <= min) {
+    return 0;
+  }
+
+  return clamp((value - min) / (max - min), 0, 1);
+}
+
+function easeInCubic(value: number) {
+  return value * value * value;
+}
+
 const HERO_DEFAULTS = {
   ["--hero-layer-opacity" as string]: "1",
   ["--hero-content-opacity" as string]: "1",
@@ -179,17 +191,20 @@ function HeroAndSections() {
       const scrollRange = Math.max(heroReveal.offsetHeight - viewportHeight, 1);
       const scrollOffset = clamp(-rect.top, 0, scrollRange);
       const scrollProgress = scrollOffset / scrollRange;
-      const splitProgress = interpolate(scrollProgress, [0.28, 1], [0, 1]);
-      const heroLayerOpacity = interpolate(scrollProgress, [0.14, 0.32], [1, 0]);
-      const shatterProgress = clamp((scrollProgress - 0.06) / 0.22, 0, 1);
-      const shatterStrength = interpolate(scrollProgress, [0.06, 0.16, 0.24, 0.32], [0, 0.35, 1, 0.22]);
-      const shatterOpacity = interpolate(scrollProgress, [0.08, 0.18, 0.3], [0, 1, 0.18]);
-      const shatterBlur = interpolate(scrollProgress, [0.1, 0.2, 0.32], [0, 0.35, 1]);
+      const splitProgress = easeInCubic(interpolate(scrollProgress, [0.28, 1], [0, 1]));
+      const heroFadeProgress = easeInCubic(normalize(scrollProgress, 0.14, 0.32));
+      const heroLayerOpacity = 1 - heroFadeProgress;
+      const contentFadeProgress = easeInCubic(normalize(scrollProgress, 0.02, 0.1));
+      const shatterTimeline = easeInCubic(normalize(scrollProgress, 0.06, 0.32));
+      const shatterProgress = interpolate(shatterTimeline, [0, 1], [0, 1]);
+      const shatterStrength = interpolate(shatterTimeline, [0, 0.45, 0.75, 1], [0, 0.35, 1, 0.22]);
+      const shatterOpacity = interpolate(shatterTimeline, [0.2, 0.55, 0.9], [0, 1, 0.18]);
+      const shatterBlur = interpolate(shatterTimeline, [0.3, 0.65, 1], [0, 0.35, 1]);
 
       heroReveal.style.setProperty("--hero-layer-opacity", heroLayerOpacity.toString());
       heroReveal.style.setProperty(
         "--hero-content-opacity",
-        interpolate(scrollProgress, [0.02, 0.1], [1, 0]).toString(),
+        (1 - contentFadeProgress).toString(),
       );
       heroReveal.style.setProperty("--hero-shatter-opacity", shatterOpacity.toString());
       heroReveal.style.setProperty("--hero-shatter-blur", `${shatterBlur}px`);
