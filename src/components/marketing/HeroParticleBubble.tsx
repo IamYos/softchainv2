@@ -35,6 +35,7 @@ const PARTICLE_FONT_SCALE = 3.25;
 const BUBBLE_SCALE = 1.15;
 const MIN_GLYPH_FLIP_DELAY = 0.35;
 const MAX_GLYPH_FLIP_DELAY = 1.75;
+export const HERO_BUBBLE_CENTER_Y_RATIO = 0.46;
 const PARTICLE_PALETTE = [
   { r: 255, g: 88, b: 65 }, // #ff5841
   { r: 80, g: 200, b: 120 }, // #50C878
@@ -213,7 +214,7 @@ export function HeroParticleBubble() {
       context.clearRect(0, 0, width, height);
 
       const centerX = width * 0.5;
-      const centerY = height * 0.46;
+      const centerY = height * HERO_BUBBLE_CENTER_Y_RATIO;
       const minAxis = Math.min(width, height);
       const mobileWidthProgress = clamp((width - 320) / (768 - 320), 0, 1);
       const mobileRadiusFactor = lerp(0.32, 0.275, mobileWidthProgress);

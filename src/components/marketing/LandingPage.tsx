@@ -9,7 +9,10 @@ import { Footer } from "@/components/marketing/Footer";
 import { CustomCursor } from "@/components/marketing/CustomCursor";
 import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { Header } from "@/components/marketing/Header";
-import { HeroParticleBubble } from "@/components/marketing/HeroParticleBubble";
+import {
+  HERO_BUBBLE_CENTER_Y_RATIO,
+  HeroParticleBubble,
+} from "@/components/marketing/HeroParticleBubble";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { ScrambleHeadlineLoop } from "@/components/marketing/ScrambleHeadlineLoop";
@@ -377,7 +380,13 @@ function HeroAndSections() {
                   }}
                   className="relative z-10 h-full w-full px-4 text-center"
                 >
-                  <div className="flex h-full items-center justify-center">
+                  <div
+                    className="absolute inset-x-0 flex justify-center"
+                    style={{
+                      top: `${HERO_BUBBLE_CENTER_Y_RATIO * 100}%`,
+                      transform: "translateY(-50%)",
+                    }}
+                  >
                     <h1
                       className="pointer-events-auto w-full font-medium leading-[0.9] tracking-[-0.07em]"
                       style={{ fontSize: "clamp(24px, 8vw, 112px)" }}
