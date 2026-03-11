@@ -162,7 +162,11 @@ export function HeroParticleBubble() {
 
       const centerX = width * 0.5;
       const centerY = height * 0.46;
-      const sphereRadius = Math.min(width, height) * (width < 768 ? 0.21 : 0.255);
+      const minAxis = Math.min(width, height);
+      const mobileWidthProgress = clamp((width - 320) / (768 - 320), 0, 1);
+      const mobileRadiusFactor = lerp(0.32, 0.275, mobileWidthProgress);
+      const sphereRadius = minAxis * (width < 768 ? mobileRadiusFactor : 0.255);
+      const pointSizeScale = clamp(sphereRadius / 180, 0.65, 1);
       const cameraDepth = 3.3;
       const rotateY = time * 0.55 + mouse.x * 0.5;
       const rotateX = time * 0.3 - mouse.y * 0.35;
@@ -235,7 +239,7 @@ export function HeroParticleBubble() {
           x: screenX,
           y: screenY,
           z,
-          size: (0.6 + depthMix * 2.1) * perspective,
+          size: (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
           alpha: clamp(0.12 + depthMix * 0.7, 0.05, 0.85),
           r: clamp(red, 0, 255),
           g: clamp(green, 0, 255),
