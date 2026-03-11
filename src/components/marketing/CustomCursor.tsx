@@ -6,7 +6,92 @@ type CustomCursorProps = {
   rgb?: string;
 };
 
+type ResolvedColor = {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+};
+
+const CURSOR_CONTRAST_RGB = "32, 32, 32";
+const BRAND_ORANGE = { r: 255, g: 88, b: 65 };
+
+function parseResolvedColor(value: string) {
+  const match = value.match(/rgba?\(([^)]+)\)/i);
+
+  if (!match) {
+    return null;
+  }
+
+  const [r, g, b, a = 1] = match[1]
+    .split(",")
+    .map((part) => Number.parseFloat(part.trim()));
+
+  if ([r, g, b, a].some((channel) => Number.isNaN(channel))) {
+    return null;
+  }
+
+  return { r, g, b, a } satisfies ResolvedColor;
+}
+
+function getColorDistance(color: ResolvedColor, target: Omit<ResolvedColor, "a">) {
+  return Math.hypot(color.r - target.r, color.g - target.g, color.b - target.b);
+}
+
+function getColorCandidates(element: Element) {
+  const style = window.getComputedStyle(element);
+
+  return [
+    style.color,
+    style.backgroundColor,
+    style.borderTopColor,
+    style.borderRightColor,
+    style.borderBottomColor,
+    style.borderLeftColor,
+    style.outlineColor,
+    style.textDecorationColor,
+    style.getPropertyValue("fill"),
+    style.getPropertyValue("stroke"),
+    style.backgroundImage,
+  ];
+}
+
+function isBrandOrangeValue(value: string) {
+  const normalized = value.replace(/\s+/g, "").toLowerCase();
+
+  if (
+    normalized.includes("#ff5841") ||
+    normalized.includes("rgb(255,88,65)") ||
+    normalized.includes("rgba(255,88,65")
+  ) {
+    return true;
+  }
+
+  const color = parseResolvedColor(value);
+
+  if (!color || color.a < 0.18) {
+    return false;
+  }
+
+  return getColorDistance(color, BRAND_ORANGE) <= 96;
+}
+
+function elementUsesBrandOrange(element: Element | null) {
+  let current = element;
+
+  while (current && current !== document.documentElement) {
+    if (getColorCandidates(current).some(isBrandOrangeValue)) {
+      return true;
+    }
+
+    current = current.parentElement;
+  }
+
+  return false;
+}
+
 export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLSpanElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
 
@@ -15,16 +100,19 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       return;
     }
 
+    const layer = layerRef.current;
     const ring = ringRef.current;
     const dot = dotRef.current;
 
-    if (!ring || !dot) {
+    if (!layer || !ring || !dot) {
       return;
     }
 
     document.body.dataset.softchainCursor = "on";
+    layer.style.setProperty("--softchain-cursor-rgb", rgb);
 
     let frameId = 0;
+    let activeCursorRgb = rgb;
     const state = {
       x: window.innerWidth * 0.5,
       y: window.innerHeight * 0.5,
@@ -37,15 +125,35 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       targetScale: 1,
     };
 
+    const setCursorRgb = (nextRgb: string) => {
+      if (nextRgb === activeCursorRgb) {
+        return;
+      }
+
+      activeCursorRgb = nextRgb;
+      layer.style.setProperty("--softchain-cursor-rgb", nextRgb);
+    };
+
+    const syncCursorTone = (clientX: number, clientY: number) => {
+      const hoveredElements = document.elementsFromPoint(clientX, clientY);
+      const shouldUseContrast =
+        hoveredElements.length > 0 &&
+        hoveredElements.some((element) => elementUsesBrandOrange(element));
+
+      setCursorRgb(shouldUseContrast ? CURSOR_CONTRAST_RGB : rgb);
+    };
+
     const onPointerMove = (event: PointerEvent) => {
       state.targetX = event.clientX;
       state.targetY = event.clientY;
       state.visible = true;
+      syncCursorTone(event.clientX, event.clientY);
     };
 
     const onPointerLeave = () => {
       state.visible = false;
       state.targetScale = 1;
+      setCursorRgb(rgb);
     };
 
     const onPointerDown = () => {
@@ -62,11 +170,20 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       }
     };
 
+    const onScroll = () => {
+      if (!state.visible) {
+        return;
+      }
+
+      syncCursorTone(state.targetX, state.targetY);
+    };
+
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
     window.addEventListener("pointerup", onPointerUp, { passive: true });
     window.addEventListener("blur", onPointerLeave);
     window.addEventListener("mouseout", onMouseOut);
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
 
     const render = () => {
       frameId = window.requestAnimationFrame(render);
@@ -94,12 +211,14 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("blur", onPointerLeave);
       window.removeEventListener("mouseout", onMouseOut);
+      window.removeEventListener("scroll", onScroll, true);
       delete document.body.dataset.softchainCursor;
     };
-  }, []);
+  }, [rgb]);
 
   return (
     <div
+      ref={layerRef}
       aria-hidden="true"
       className="softchain-cursor-layer"
       style={{ ["--softchain-cursor-rgb" as string]: rgb } as CSSProperties}
@@ -109,4 +228,3 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
     </div>
   );
 }
-
