@@ -166,10 +166,10 @@ button {
 }
 
 .frame1-cm-btn {
-  background: #b9b9b9;
-  border: 1px solid #202020;
+  background: var(--frame1-cm-bg, #b9b9b9);
+  border: 1px solid var(--frame1-cm-border, #202020);
   border-radius: 0.2rem;
-  color: #202020;
+  color: var(--frame1-cm-text, #202020);
   cursor: pointer;
   font-family: "AuxMono", monospace;
   font-size: 12px;
@@ -193,13 +193,13 @@ button {
 
 .frame1-cm-btn:hover,
 .frame1-cm-btn:active {
-  background: #202020;
-  border-color: #b9b9b9;
-  color: #b9b9b9;
+  background: var(--frame1-cm-hover-bg, #202020);
+  border-color: var(--frame1-cm-hover-border, #b9b9b9);
+  color: var(--frame1-cm-hover-text, #b9b9b9);
 }
 
 .frame1-cm-btn:focus-visible {
-  outline: 2px solid #202020;
+  outline: 2px solid var(--frame1-cm-focus, #202020);
   outline-offset: 2px;
 }
 

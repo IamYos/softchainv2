@@ -1,7 +1,5 @@
 "use client";
 
-import { BeamButton } from "@/components/marketing/BeamButton";
-
 type HeaderDesktopActionsProps = {
   onSecondaryClick: () => void;
   onPrimaryClick: () => void;
@@ -15,36 +13,46 @@ export function HeaderDesktopActions({
 }: HeaderDesktopActionsProps) {
   return (
     <div className={`items-center gap-4 ${className}`}>
-      <BeamButton
+      <button
+        type="button"
         onClick={onSecondaryClick}
-        theme="dark"
+        className="frame1-cm-btn"
         style={{
-          backgroundColor: "var(--header-secondary-bg)",
-          color: "var(--header-text)",
-          borderColor: "var(--header-secondary-border)",
-          ["--beam-overlay" as string]: "var(--header-secondary-overlay)",
-          ["--btn-active-bg" as string]: "var(--header-secondary-active-bg)",
-          ["--btn-active-text" as string]: "var(--header-secondary-active-text)",
-          ["--btn-active-border" as string]: "var(--header-secondary-active-border)",
+          minHeight: "42px",
+          minWidth: "auto",
+          padding: "0.5em 1em",
+          ["--frame1-cm-bg" as string]: "var(--header-cta-contact-bg)",
+          ["--frame1-cm-border" as string]: "var(--header-cta-contact-border)",
+          ["--frame1-cm-text" as string]: "var(--header-cta-contact-text)",
+          ["--frame1-cm-hover-bg" as string]: "var(--header-cta-contact-hover-bg)",
+          ["--frame1-cm-hover-border" as string]:
+            "var(--header-cta-contact-hover-border)",
+          ["--frame1-cm-hover-text" as string]:
+            "var(--header-cta-contact-hover-text)",
+          ["--frame1-cm-focus" as string]: "var(--header-cta-contact-focus)",
         }}
       >
-        Contact
-      </BeamButton>
-      <BeamButton
+        <span>Contact</span>
+      </button>
+      <button
+        type="button"
         onClick={onPrimaryClick}
-        theme="light"
+        className="frame1-cm-btn"
         style={{
-          backgroundColor: "var(--header-primary-bg)",
-          color: "var(--header-primary-text)",
-          borderColor: "var(--header-primary-border)",
-          ["--beam-overlay" as string]: "var(--header-primary-overlay)",
-          ["--btn-active-bg" as string]: "var(--header-primary-active-bg)",
-          ["--btn-active-text" as string]: "var(--header-primary-active-text)",
-          ["--btn-active-border" as string]: "var(--header-primary-active-border)",
+          minHeight: "42px",
+          minWidth: "auto",
+          padding: "0.5em 1em",
+          ["--frame1-cm-bg" as string]: "var(--header-cta-book-bg)",
+          ["--frame1-cm-border" as string]: "var(--header-cta-book-border)",
+          ["--frame1-cm-text" as string]: "var(--header-cta-book-text)",
+          ["--frame1-cm-hover-bg" as string]: "var(--header-cta-book-hover-bg)",
+          ["--frame1-cm-hover-border" as string]: "var(--header-cta-book-hover-border)",
+          ["--frame1-cm-hover-text" as string]: "var(--header-cta-book-hover-text)",
+          ["--frame1-cm-focus" as string]: "var(--header-cta-book-focus)",
         }}
       >
-        Book a Call
-      </BeamButton>
+        <span>Book a Call</span>
+      </button>
     </div>
   );
 }
