@@ -357,7 +357,15 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
-              <GridHoverEffect cellSize={102} segmentInset={10} maxAlpha={0.46} spread={2} />
+              <GridHoverEffect
+                cellSize={102}
+                segmentInset={10}
+                maxAlpha={0.62}
+                spread={3}
+                glow={10}
+                lineWidth={1.35}
+                fadeOutMs={280}
+              />
               <HeroShatterOverlay />
               <HeroParticleBubble />
 

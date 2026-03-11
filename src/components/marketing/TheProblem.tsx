@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { useInView } from "@/components/marketing/useInView";
 
 type MarqueeRowProps = {
@@ -99,6 +100,15 @@ export function TheProblem() {
           }}
         />
       </div>
+      <GridHoverEffect
+        cellSize={102}
+        segmentInset={10}
+        maxAlpha={0.58}
+        spread={3}
+        glow={9}
+        lineWidth={1.3}
+        fadeOutMs={280}
+      />
 
       <div className="relative z-10 flex w-full flex-col gap-0">
         <div

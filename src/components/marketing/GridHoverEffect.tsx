@@ -7,6 +7,9 @@ type GridHoverEffectProps = {
   segmentInset?: number;
   maxAlpha?: number;
   spread?: number;
+  glow?: number;
+  lineWidth?: number;
+  fadeOutMs?: number;
 };
 
 const FOREST_GREEN = [0, 105, 62] as const;
@@ -25,6 +28,9 @@ export function GridHoverEffect({
   segmentInset = 10,
   maxAlpha = 0.46,
   spread = 2,
+  glow = 8,
+  lineWidth = 1.2,
+  fadeOutMs = 240,
 }: GridHoverEffectProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,7 +39,7 @@ export function GridHoverEffect({
     const wrapper = wrapperRef.current;
     const canvas = canvasRef.current;
 
-    if (!wrapper || !canvas || !window.matchMedia("(pointer: fine)").matches) {
+    if (!wrapper || !canvas) {
       return;
     }
 
@@ -47,6 +53,7 @@ export function GridHoverEffect({
     let width = 1;
     let height = 1;
     let dpr = 1;
+    let hideTimeout = 0;
 
     const pointer = {
       x: 0,
@@ -55,6 +62,13 @@ export function GridHoverEffect({
       targetY: 0,
       visible: false,
       intensity: 0,
+    };
+
+    const clearHideTimeout = () => {
+      if (hideTimeout) {
+        window.clearTimeout(hideTimeout);
+        hideTimeout = 0;
+      }
     };
 
     const resize = () => {
@@ -68,13 +82,13 @@ export function GridHoverEffect({
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      context.lineWidth = 1;
+      context.lineWidth = lineWidth;
     };
 
-    const onPointerMove = (event: PointerEvent) => {
+    const setPointerFromClientPoint = (clientX: number, clientY: number) => {
       const bounds = wrapper.getBoundingClientRect();
-      const localX = event.clientX - bounds.left;
-      const localY = event.clientY - bounds.top;
+      const localX = clientX - bounds.left;
+      const localY = clientY - bounds.top;
       const inside =
         localX >= 0 &&
         localY >= 0 &&
@@ -86,13 +100,47 @@ export function GridHoverEffect({
         return;
       }
 
+      clearHideTimeout();
       pointer.visible = true;
       pointer.targetX = clamp(localX, 0, bounds.width);
       pointer.targetY = clamp(localY, 0, bounds.height);
     };
 
+    const onPointerMove = (event: PointerEvent) => {
+      setPointerFromClientPoint(event.clientX, event.clientY);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      setPointerFromClientPoint(event.clientX, event.clientY);
+    };
+
     const onPointerLeave = () => {
-      pointer.visible = false;
+      clearHideTimeout();
+      hideTimeout = window.setTimeout(() => {
+        pointer.visible = false;
+      }, fadeOutMs);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      setPointerFromClientPoint(touch.clientX, touch.clientY);
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      setPointerFromClientPoint(touch.clientX, touch.clientY);
+    };
+
+    const onTouchEnd = () => {
+      onPointerLeave();
     };
 
     resize();
@@ -107,10 +155,20 @@ export function GridHoverEffect({
 
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
     wrapper.addEventListener("pointerleave", onPointerLeave);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     window.addEventListener("blur", onPointerLeave);
 
-    const drawCellEdges = (cellX: number, cellY: number, alpha: number, time: number) => {
+    const drawCellEdges = (
+      cellX: number,
+      cellY: number,
+      alpha: number,
+      time: number,
+    ) => {
       const top = cellY + 0.5;
       const left = cellX + 0.5;
       const start = cellX + segmentInset;
@@ -129,11 +187,15 @@ export function GridHoverEffect({
       const bEnd = Math.round(mixChannel(ORANGE[2], FOREST_GREEN[2], phase));
 
       const horizontalGradient = context.createLinearGradient(start, top, end, top);
-      horizontalGradient.addColorStop(0, `rgba(${rStart}, ${gStart}, ${bStart}, ${alpha})`);
+      horizontalGradient.addColorStop(
+        0,
+        `rgba(${rStart}, ${gStart}, ${bStart}, ${alpha})`,
+      );
       horizontalGradient.addColorStop(
         1,
         `rgba(${rEnd}, ${gEnd}, ${bEnd}, ${alpha * 0.92})`,
       );
+      context.shadowColor = `rgba(${rStart}, ${gStart}, ${bStart}, ${alpha * 0.95})`;
       context.strokeStyle = horizontalGradient;
       context.beginPath();
       context.moveTo(start, top);
@@ -151,6 +213,7 @@ export function GridHoverEffect({
         1,
         `rgba(${rStart}, ${gStart}, ${bStart}, ${alpha * 0.9})`,
       );
+      context.shadowColor = `rgba(${rEnd}, ${gEnd}, ${bEnd}, ${alpha * 0.95})`;
       context.strokeStyle = verticalGradient;
       context.beginPath();
       context.moveTo(left, verticalStart);
@@ -161,6 +224,7 @@ export function GridHoverEffect({
     const render = (time: number) => {
       frameId = window.requestAnimationFrame(render);
       context.clearRect(0, 0, width, height);
+      context.shadowBlur = glow;
 
       pointer.x += (pointer.targetX - pointer.x) * 0.16;
       pointer.y += (pointer.targetY - pointer.y) * 0.16;
@@ -208,13 +272,19 @@ export function GridHoverEffect({
 
     return () => {
       window.cancelAnimationFrame(frameId);
+      clearHideTimeout();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
       wrapper.removeEventListener("pointerleave", onPointerLeave);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("blur", onPointerLeave);
       resizeObserver?.disconnect();
     };
-  }, [cellSize, maxAlpha, segmentInset, spread]);
+  }, [cellSize, fadeOutMs, glow, lineWidth, maxAlpha, segmentInset, spread]);
 
   return (
     <div ref={wrapperRef} className="pointer-events-none absolute inset-0 z-[5]">
