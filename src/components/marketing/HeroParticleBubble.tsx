@@ -8,6 +8,10 @@ type SpherePoint = {
   z: number;
   phase: number;
   wobble: number;
+  scatterX: number;
+  scatterY: number;
+  scatterZ: number;
+  settleDelay: number;
 };
 
 type RenderPoint = {
@@ -67,6 +71,15 @@ function createSpherePoints(count: number): SpherePoint[] {
       z: Math.sin(theta) * radius,
       phase: Math.random(),
       wobble: 0.8 + Math.random() * 1.6,
+      scatterX:
+        Math.cos(theta) * radius * (2.2 + Math.random() * 3.2) +
+        (Math.random() - 0.5) * 1.2,
+      scatterY:
+        y * (2.2 + Math.random() * 3.2) + (Math.random() - 0.5) * 1.2,
+      scatterZ:
+        Math.sin(theta) * radius * (2.2 + Math.random() * 3.2) +
+        (Math.random() - 0.5) * 1.2,
+      settleDelay: Math.random() * 0.28,
     });
   }
 
@@ -96,6 +109,8 @@ export function HeroParticleBubble() {
     let dpr = 1;
     let frameId = 0;
     let time = 0;
+    let elapsed = 0;
+    let lastTimestamp = 0;
     let points = createSpherePoints(window.innerWidth < 768 ? 1300 : 2200);
 
     const mouse = {
@@ -151,9 +166,18 @@ export function HeroParticleBubble() {
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("blur", resetPointer);
 
-    const render = () => {
+    const render = (timestamp: number) => {
       frameId = window.requestAnimationFrame(render);
-      time += prefersReducedMotion ? 0.0025 : 0.006;
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+      }
+
+      const delta = Math.min(timestamp - lastTimestamp, 64);
+      lastTimestamp = timestamp;
+      elapsed += delta / 1000;
+
+      const normalizedDelta = delta / (1000 / 60);
+      time += (prefersReducedMotion ? 0.0025 : 0.006) * normalizedDelta;
 
       mouse.x += (mouse.targetX - mouse.x) * 0.06;
       mouse.y += (mouse.targetY - mouse.y) * 0.06;
@@ -174,6 +198,8 @@ export function HeroParticleBubble() {
       const cosY = Math.cos(rotateY);
       const sinX = Math.sin(rotateX);
       const cosX = Math.cos(rotateX);
+      const introProgress = prefersReducedMotion ? 1 : clamp(elapsed / 1.3, 0, 1);
+      const introOpacity = prefersReducedMotion ? 1 : clamp(elapsed / 0.85, 0, 1);
 
       const aura = context.createRadialGradient(
         centerX,
@@ -200,6 +226,16 @@ export function HeroParticleBubble() {
         let x = point.x * (1 + pulse);
         let y = point.y * (1 + pulse);
         let z = point.z * (1 + pulse);
+        const settleProgress = clamp(
+          (introProgress - point.settleDelay) / (1 - point.settleDelay),
+          0,
+          1,
+        );
+        const settleEase = 1 - Math.pow(1 - settleProgress, 3);
+        const scatterFactor = 1 - settleEase;
+        x += point.scatterX * scatterFactor;
+        y += point.scatterY * scatterFactor;
+        z += point.scatterZ * scatterFactor;
 
         const xzX = x * cosY - z * sinY;
         const xzZ = x * sinY + z * cosY;
@@ -216,6 +252,9 @@ export function HeroParticleBubble() {
         y += mouse.y * 0.16 * mouseFactor;
 
         const depth = z + cameraDepth;
+        if (depth <= 0.05) {
+          continue;
+        }
         const perspective = cameraDepth / depth;
         const screenX = centerX + x * sphereRadius * perspective;
         const screenY = centerY + y * sphereRadius * perspective;
@@ -235,12 +274,17 @@ export function HeroParticleBubble() {
         const green = Math.round(clamp(color.g * shade, 0, 255));
         const blue = Math.round(clamp(color.b * shade, 0, 255));
 
+        const dotSize = Math.max(
+          (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
+          0.01,
+        );
+
         drawPoints.push({
           x: screenX,
           y: screenY,
           z,
-          size: (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
-          alpha: clamp(0.12 + depthMix * 0.7, 0.05, 0.85),
+          size: dotSize,
+          alpha: clamp((0.12 + depthMix * 0.7) * lerp(0.35, 1, introOpacity), 0.05, 0.85),
           r: clamp(red, 0, 255),
           g: clamp(green, 0, 255),
           b: clamp(blue, 0, 255),
@@ -259,7 +303,7 @@ export function HeroParticleBubble() {
       }
     };
 
-    render();
+    frameId = window.requestAnimationFrame(render);
 
     return () => {
       window.cancelAnimationFrame(frameId);
