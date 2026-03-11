@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { Capabilities } from "@/components/marketing/Capabilities";
 import { DotGridCTA } from "@/components/marketing/DotGridCTA";
 import { FadeIn } from "@/components/marketing/FadeIn";
@@ -9,6 +9,7 @@ import { Footer } from "@/components/marketing/Footer";
 import { Header } from "@/components/marketing/Header";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
+import { ScrambleHeadlineLoop } from "@/components/marketing/ScrambleHeadlineLoop";
 import {
   SmoothScroll,
   useLenis,
@@ -82,208 +83,10 @@ const HERO_HEADLINE_LINES = [
   ["Safe Hiring Builds", "Mediocre T~eams."],
 ] as const;
 
-const HERO_SCRAMBLE_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
 const HERO_SCRAMBLE_COLORS = [
-  "var(--mf-brand-red)",
-  "var(--mf-brand-blue)",
+  "var(--mf-brand-green-soft)",
+  "var(--mf-brand-sky)",
 ] as const;
-
-type ScrambleGlyph = {
-  char: string;
-  color: string;
-  resolved: boolean;
-};
-
-function HeroHeadlineScrambleLine({
-  text,
-  delay,
-}: {
-  text: string;
-  delay: number;
-}) {
-  const cleanText = text.replace(/~/g, "");
-  const [glyphs, setGlyphs] = useState<ScrambleGlyph[]>(
-    cleanText.split("").map(() => ({
-      char: " ",
-      color: "transparent",
-      resolved: false,
-    })),
-  );
-  const rafRef = useRef<number | undefined>(undefined);
-  const tickRef = useRef(0);
-
-  useEffect(() => {
-    tickRef.current = 0;
-
-    const timer = window.setTimeout(() => {
-      const step = () => {
-        const nextGlyphs: ScrambleGlyph[] = [];
-
-        for (let index = 0; index < cleanText.length; index += 1) {
-          const targetChar = cleanText[index];
-
-          if (targetChar === " ") {
-            nextGlyphs.push({
-              char: " ",
-              color: "transparent",
-              resolved: true,
-            });
-            continue;
-          }
-
-          if (tickRef.current > 2.5 * index + 25) {
-            nextGlyphs.push({
-              char: targetChar,
-              color: "var(--mf-text-foreground)",
-              resolved: true,
-            });
-            continue;
-          }
-
-          const randomChar =
-            HERO_SCRAMBLE_CHARSET[
-              Math.floor(Math.random() * HERO_SCRAMBLE_CHARSET.length)
-            ];
-          const randomColor =
-            HERO_SCRAMBLE_COLORS[
-              Math.floor(Math.random() * HERO_SCRAMBLE_COLORS.length)
-            ];
-
-          nextGlyphs.push({
-            char: randomChar,
-            color: randomColor,
-            resolved: false,
-          });
-        }
-
-        setGlyphs(nextGlyphs);
-
-        if (tickRef.current < 2.5 * cleanText.length + 40) {
-          tickRef.current += 1;
-          rafRef.current = window.requestAnimationFrame(step);
-        }
-      };
-
-      step();
-    }, delay);
-
-    return () => {
-      window.clearTimeout(timer);
-
-      if (rafRef.current) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, [cleanText, delay]);
-
-  return (
-    <div
-      className="flex flex-nowrap items-center justify-center leading-[0.9]"
-      style={{ letterSpacing: "var(--mf-tracking-hero)" }}
-    >
-      {(() => {
-        const words: ReactNode[] = [];
-        let currentWord: ReactNode[] = [];
-        let wordIndex = 0;
-        let glyphIndex = 0;
-        let tightenNextCharacter = false;
-
-        const renderGlyph = (
-          index: number,
-          fallbackChar: string,
-          tighten: boolean = false,
-        ) => {
-          const glyph = glyphs[index] ?? {
-            char: fallbackChar,
-            color: "transparent",
-            resolved: false,
-          };
-
-          return (
-            <div
-              key={index}
-              className="relative inline-flex justify-center"
-              style={tighten ? { marginLeft: "-0.03em" } : undefined}
-            >
-              <span className="invisible opacity-0 select-none" aria-hidden="true">
-                {fallbackChar === " " ? "\u00A0" : fallbackChar}
-              </span>
-              <span
-                className="absolute bottom-0 left-0 right-0 top-0 text-center"
-                style={{ color: glyph.color }}
-              >
-                {glyph.char === " " ? "\u00A0" : glyph.char}
-              </span>
-            </div>
-          );
-        };
-
-        for (let sourceIndex = 0; sourceIndex <= text.length; sourceIndex += 1) {
-          const character = text[sourceIndex];
-
-          if (sourceIndex === text.length || character === " ") {
-            if (currentWord.length > 0) {
-              words.push(
-                <span key={`word-${wordIndex}`} className="inline-flex">
-                  {currentWord}
-                </span>,
-              );
-              currentWord = [];
-              wordIndex += 1;
-            }
-
-            if (character === " ") {
-              words.push(
-                <span
-                  key={`space-${sourceIndex}`}
-                  className="inline-flex w-[0.25em] shrink-0"
-                />,
-              );
-              glyphIndex += 1;
-            }
-
-            continue;
-          }
-
-          if (character === "~") {
-            tightenNextCharacter = true;
-            continue;
-          }
-
-          currentWord.push(renderGlyph(glyphIndex, character, tightenNextCharacter));
-          glyphIndex += 1;
-          tightenNextCharacter = false;
-        }
-
-        return words;
-      })()}
-    </div>
-  );
-}
-
-function HeroHeadlineLoop() {
-  const [lineSetIndex, setLineSetIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setLineSetIndex((current) => (current + 1) % HERO_HEADLINE_LINES.length);
-    }, 4000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="flex w-full flex-col items-center justify-center gap-4">
-      {HERO_HEADLINE_LINES[lineSetIndex].map((line, lineIndex) => (
-        <HeroHeadlineScrambleLine
-          key={`${lineSetIndex}-${lineIndex}`}
-          text={line}
-          delay={100 * lineIndex}
-        />
-      ))}
-    </div>
-  );
-}
 
 function HeroShatterOverlay() {
   return (
@@ -550,7 +353,10 @@ function HeroAndSections() {
                     <span className="sr-only">
                       Skills-based hiring assessments — hire on merit, not history
                     </span>
-                    <HeroHeadlineLoop />
+                    <ScrambleHeadlineLoop
+                      lineSets={HERO_HEADLINE_LINES}
+                      scrambleColors={HERO_SCRAMBLE_COLORS}
+                    />
                   </h1>
                   <div className="relative pointer-events-auto mt-8 md:mt-10">
                     <div
