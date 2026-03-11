@@ -22,6 +22,11 @@ type RenderPoint = {
 };
 
 const TAU = Math.PI * 2;
+const PARTICLE_PALETTE = [
+  { r: 255, g: 88, b: 65 }, // #ff5841
+  { r: 80, g: 200, b: 120 }, // #50C878
+  { r: 0, g: 0, b: 0 }, // black
+] as const;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -29,6 +34,22 @@ function clamp(value: number, min: number, max: number) {
 
 function lerp(from: number, to: number, amount: number) {
   return from + (to - from) * amount;
+}
+
+function samplePalette(cycle: number) {
+  const wrapped = ((cycle % 1) + 1) % 1;
+  const scaled = wrapped * PARTICLE_PALETTE.length;
+  const startIndex = Math.floor(scaled) % PARTICLE_PALETTE.length;
+  const endIndex = (startIndex + 1) % PARTICLE_PALETTE.length;
+  const mix = scaled - Math.floor(scaled);
+  const start = PARTICLE_PALETTE[startIndex];
+  const end = PARTICLE_PALETTE[endIndex];
+
+  return {
+    r: lerp(start.r, end.r, mix),
+    g: lerp(start.g, end.g, mix),
+    b: lerp(start.b, end.b, mix),
+  };
 }
 
 function createSpherePoints(count: number): SpherePoint[] {
@@ -197,20 +218,18 @@ export function HeroParticleBubble() {
         const depthMix = clamp((z + 1) * 0.5, 0, 1);
         const phaseMix =
           (Math.sin(time * 1.9 + point.phase * TAU + x * 2.2 - y * 1.6) + 1) * 0.5;
-        const metalMix = clamp(depthMix * 0.72 + phaseMix * 0.28, 0, 1);
-        const shade = 0.8 + Math.sin(time * 2.5 + point.phase * TAU) * 0.12;
+        const colorCycle =
+          time * 0.1 + point.phase * 0.8 + depthMix * 0.28 + phaseMix * 0.22;
+        const color = samplePalette(colorCycle);
+        const shade = clamp(
+          0.74 + depthMix * 0.22 + Math.sin(time * 2.5 + point.phase * TAU) * 0.18,
+          0.32,
+          1.2,
+        );
 
-        const forestR = lerp(0, 6, phaseMix);
-        const forestG = lerp(64, 122, phaseMix);
-        const forestB = lerp(38, 72, phaseMix);
-
-        const steelR = lerp(56, 186, phaseMix);
-        const steelG = lerp(64, 194, phaseMix);
-        const steelB = lerp(72, 202, phaseMix);
-
-        const red = Math.round(lerp(forestR, steelR, metalMix) * shade);
-        const green = Math.round(lerp(forestG, steelG, metalMix) * shade);
-        const blue = Math.round(lerp(forestB, steelB, metalMix) * shade);
+        const red = Math.round(clamp(color.r * shade, 0, 255));
+        const green = Math.round(clamp(color.g * shade, 0, 255));
+        const blue = Math.round(clamp(color.b * shade, 0, 255));
 
         drawPoints.push({
           x: screenX,

@@ -97,7 +97,8 @@ const HERO_HEADLINE_LINES = [
 ] as const;
 
 const HERO_SCRAMBLE_COLORS = [
-  "#00693E",
+  "#ff5841",
+  "#50C878",
 ] as const;
 
 function HeroShatterOverlay() {
