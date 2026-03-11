@@ -1,7 +1,5 @@
 "use client";
 
-import { BeamButton } from "@/components/marketing/BeamButton";
-import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
 import {
   HEADER_NAV_ITEMS,
   type HeaderNavItem,
@@ -56,19 +54,6 @@ export function HeaderMobileMenu({
           willChange: "transform",
         }}
       >
-        <div className="absolute right-6 top-6 z-10 hidden md:block">
-          <HeaderMobileMenuButton
-            onClick={onClose}
-            isOpen
-            className="min-[1100px]:flex"
-            style={{
-              ["--header-menu-bg" as string]: "#b9b9b9",
-              ["--header-menu-text" as string]: "#202020",
-              ["--header-menu-focus" as string]: "#202020",
-            }}
-          />
-        </div>
-
         <div className="flex h-full items-end px-6 pb-16 pt-24 md:px-10 md:pb-10 md:pt-[3.2rem]">
           <div className="w-full">
             <nav
@@ -94,46 +79,41 @@ export function HeaderMobileMenu({
               ))}
             </nav>
 
-            <div className="mt-12 flex flex-col gap-4 md:mt-16">
-              <BeamButton
+            <div className="mx-auto mt-12 flex w-full max-w-[360px] flex-col gap-4 md:mt-16 lg:mx-0">
+              <button
+                type="button"
                 onClick={onSecondaryClick}
-                className="w-full rounded bg-transparent py-3 text-base font-medium text-[#202020] border border-[#202020]/20 hover:bg-[#202020]/5"
+                className="frame1-cm-btn w-full"
                 style={{
-                  color: "#202020",
-                  borderColor: "rgba(32, 32, 32, 0.2)",
-                  ["--beam-overlay" as string]: "rgba(32, 32, 32, 0.05)",
-                  ["--btn-active-bg" as string]: "#202020",
-                  ["--btn-active-text" as string]: "#b9b9b9",
-                  ["--btn-active-border" as string]: "rgba(185, 185, 185, 0.35)",
-                  fontFamily: "var(--font-aux-mono), monospace",
-                  fontSize: "12px",
-                  letterSpacing: "-0.24px",
-                  lineHeight: "1.33",
-                  textTransform: "uppercase",
+                  minWidth: "0",
+                  ["--frame1-cm-bg" as string]: "#b9b9b9",
+                  ["--frame1-cm-border" as string]: "rgba(32, 32, 32, 0.28)",
+                  ["--frame1-cm-text" as string]: "#202020",
+                  ["--frame1-cm-hover-bg" as string]: "#202020",
+                  ["--frame1-cm-hover-border" as string]: "#b9b9b9",
+                  ["--frame1-cm-hover-text" as string]: "#b9b9b9",
+                  ["--frame1-cm-focus" as string]: "#202020",
                 }}
               >
-                Contact
-              </BeamButton>
-              <BeamButton
+                <span>Contact</span>
+              </button>
+              <button
+                type="button"
                 onClick={onPrimaryClick}
-                className="w-full rounded py-3 text-base font-medium"
+                className="frame1-cm-btn w-full"
                 style={{
-                  backgroundColor: "#202020",
-                  color: "#b9b9b9",
-                  borderColor: "transparent",
-                  ["--beam-overlay" as string]: "rgba(255, 255, 255, 0.08)",
-                  ["--btn-active-bg" as string]: "#b9b9b9",
-                  ["--btn-active-text" as string]: "#202020",
-                  ["--btn-active-border" as string]: "rgba(32, 32, 32, 0.18)",
-                  fontFamily: "var(--font-aux-mono), monospace",
-                  fontSize: "12px",
-                  letterSpacing: "-0.24px",
-                  lineHeight: "1.33",
-                  textTransform: "uppercase",
+                  minWidth: "0",
+                  ["--frame1-cm-bg" as string]: "#202020",
+                  ["--frame1-cm-border" as string]: "rgba(32, 32, 32, 0.28)",
+                  ["--frame1-cm-text" as string]: "#b9b9b9",
+                  ["--frame1-cm-hover-bg" as string]: "#b9b9b9",
+                  ["--frame1-cm-hover-border" as string]: "rgba(32, 32, 32, 0.28)",
+                  ["--frame1-cm-hover-text" as string]: "#202020",
+                  ["--frame1-cm-focus" as string]: "#202020",
                 }}
               >
-                Book a Call
-              </BeamButton>
+                <span>Book a Call</span>
+              </button>
             </div>
           </div>
         </div>

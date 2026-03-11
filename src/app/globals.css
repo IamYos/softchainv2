@@ -281,7 +281,7 @@ button {
   width: 16px;
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 767px) {
   .header-menu-button {
     background: transparent;
     color: var(--header-menu-mobile-text, var(--header-menu-text, #202020));

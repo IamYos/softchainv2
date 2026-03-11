@@ -277,9 +277,6 @@ export function Header() {
           <HeaderMobileMenuButton
             onClick={() => setMobileMenuOpen((open) => !open)}
             isOpen={mobileMenuOpen}
-            className={
-              mobileMenuOpen ? "min-[1100px]:pointer-events-none min-[1100px]:opacity-0" : ""
-            }
           />
         </PageContainer>
       </header>
