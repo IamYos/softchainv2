@@ -12,20 +12,29 @@ type SpherePoint = {
   scatterY: number;
   scatterZ: number;
   settleDelay: number;
+  glyph: "0" | "1";
+  nextGlyphFlipAt: number;
 };
 
 type RenderPoint = {
   x: number;
   y: number;
   z: number;
-  size: number;
+  fontSize: number;
   alpha: number;
   r: number;
   g: number;
   b: number;
+  glyph: "0" | "1";
 };
 
 const TAU = Math.PI * 2;
+const PARTICLE_FONT_FALLBACK =
+  '"Hack", "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace';
+const PARTICLE_FONT_SCALE = 3.25;
+const BUBBLE_SCALE = 1.15;
+const MIN_GLYPH_FLIP_DELAY = 0.35;
+const MAX_GLYPH_FLIP_DELAY = 1.75;
 const PARTICLE_PALETTE = [
   { r: 255, g: 88, b: 65 }, // #ff5841
   { r: 80, g: 200, b: 120 }, // #50C878
@@ -38,6 +47,14 @@ function clamp(value: number, min: number, max: number) {
 
 function lerp(from: number, to: number, amount: number) {
   return from + (to - from) * amount;
+}
+
+function createGlyphFlipDelay() {
+  return MIN_GLYPH_FLIP_DELAY + Math.random() * (MAX_GLYPH_FLIP_DELAY - MIN_GLYPH_FLIP_DELAY);
+}
+
+function createBinaryGlyph(): "0" | "1" {
+  return Math.random() < 0.5 ? "0" : "1";
 }
 
 function samplePalette(cycle: number) {
@@ -80,6 +97,8 @@ function createSpherePoints(count: number): SpherePoint[] {
         Math.sin(theta) * radius * (2.2 + Math.random() * 3.2) +
         (Math.random() - 0.5) * 1.2,
       settleDelay: Math.random() * 0.28,
+      glyph: createBinaryGlyph(),
+      nextGlyphFlipAt: Math.random() * MAX_GLYPH_FLIP_DELAY,
     });
   }
 
@@ -103,6 +122,15 @@ export function HeroParticleBubble() {
     if (!context) {
       return;
     }
+
+    const auxMonoFontVariable =
+      getComputedStyle(document.documentElement).getPropertyValue("--font-aux-mono").trim();
+    const monoFontVariable =
+      getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim();
+    const particleFontFamily =
+      auxMonoFontVariable || monoFontVariable
+        ? `${auxMonoFontVariable || monoFontVariable}, ${PARTICLE_FONT_FALLBACK}`
+        : PARTICLE_FONT_FALLBACK;
 
     let width = 1;
     let height = 1;
@@ -189,7 +217,8 @@ export function HeroParticleBubble() {
       const minAxis = Math.min(width, height);
       const mobileWidthProgress = clamp((width - 320) / (768 - 320), 0, 1);
       const mobileRadiusFactor = lerp(0.32, 0.275, mobileWidthProgress);
-      const sphereRadius = minAxis * (width < 768 ? mobileRadiusFactor : 0.255);
+      const sphereRadius =
+        minAxis * (width < 768 ? mobileRadiusFactor : 0.255) * BUBBLE_SCALE;
       const pointSizeScale = clamp(sphereRadius / 180, 0.65, 1);
       const cameraDepth = 3.3;
       const rotateY = time * 0.55 + mouse.x * 0.5;
@@ -221,6 +250,11 @@ export function HeroParticleBubble() {
 
       for (let index = 0; index < points.length; index += 1) {
         const point = points[index];
+        if (elapsed >= point.nextGlyphFlipAt) {
+          point.glyph = point.glyph === "0" ? "1" : "0";
+          point.nextGlyphFlipAt = elapsed + createGlyphFlipDelay();
+        }
+
         const pulse = Math.sin(time * point.wobble + point.phase * TAU) * 0.045;
 
         let x = point.x * (1 + pulse);
@@ -278,28 +312,40 @@ export function HeroParticleBubble() {
           (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
           0.01,
         );
+        const glyphFontSize = Math.max(
+          Math.round(dotSize * PARTICLE_FONT_SCALE * 10) / 10,
+          0.8,
+        );
 
         drawPoints.push({
           x: screenX,
           y: screenY,
           z,
-          size: dotSize,
+          fontSize: glyphFontSize,
           alpha: clamp((0.12 + depthMix * 0.7) * lerp(0.35, 1, introOpacity), 0.05, 0.85),
           r: clamp(red, 0, 255),
           g: clamp(green, 0, 255),
           b: clamp(blue, 0, 255),
+          glyph: point.glyph,
         });
       }
 
       drawPoints.sort((left, right) => left.z - right.z);
 
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+
+      let activeFontSize = -1;
       for (let index = 0; index < drawPoints.length; index += 1) {
         const point = drawPoints[index];
 
+        if (point.fontSize !== activeFontSize) {
+          activeFontSize = point.fontSize;
+          context.font = `400 ${point.fontSize}px ${particleFontFamily}`;
+        }
+
         context.fillStyle = `rgba(${point.r}, ${point.g}, ${point.b}, ${point.alpha})`;
-        context.beginPath();
-        context.arc(point.x, point.y, point.size, 0, TAU);
-        context.fill();
+        context.fillText(point.glyph, point.x, point.y);
       }
     };
 

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,23 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const auxMono = localFont({
+  src: [
+    {
+      path: "../../docs/shift5-extract/raw/fonts/AuxMono.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../docs/shift5-extract/raw/fonts/AuxMono.woff",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  variable: "--font-aux-mono",
+  display: "swap",
 });
 
 const siteTitle = "Softchain | Software Engineering And Infrastructure";
@@ -72,7 +90,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${auxMono.variable} antialiased`}
       >
         {children}
       </body>
