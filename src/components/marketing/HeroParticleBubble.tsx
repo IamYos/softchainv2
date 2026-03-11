@@ -1,0 +1,239 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+type SpherePoint = {
+  x: number;
+  y: number;
+  z: number;
+  phase: number;
+  wobble: number;
+};
+
+type RenderPoint = {
+  x: number;
+  y: number;
+  z: number;
+  size: number;
+  alpha: number;
+  r: number;
+  g: number;
+  b: number;
+};
+
+const TAU = Math.PI * 2;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function createSpherePoints(count: number): SpherePoint[] {
+  const points: SpherePoint[] = [];
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+  for (let index = 0; index < count; index += 1) {
+    const y = 1 - (index / (count - 1)) * 2;
+    const radius = Math.sqrt(1 - y * y);
+    const theta = goldenAngle * index;
+
+    points.push({
+      x: Math.cos(theta) * radius,
+      y,
+      z: Math.sin(theta) * radius,
+      phase: Math.random(),
+      wobble: 0.8 + Math.random() * 1.6,
+    });
+  }
+
+  return points;
+}
+
+export function HeroParticleBubble() {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    const canvas = canvasRef.current;
+
+    if (!wrapper || !canvas) {
+      return;
+    }
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return;
+    }
+
+    let width = 1;
+    let height = 1;
+    let dpr = 1;
+    let frameId = 0;
+    let time = 0;
+    let points = createSpherePoints(window.innerWidth < 768 ? 1300 : 2200);
+
+    const mouse = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+    };
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const resize = () => {
+      const bounds = wrapper.getBoundingClientRect();
+
+      width = Math.max(Math.round(bounds.width), 1);
+      height = Math.max(Math.round(bounds.height), 1);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      points = createSpherePoints(width < 768 ? 1300 : 2200);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      const bounds = wrapper.getBoundingClientRect();
+
+      if (bounds.width <= 0 || bounds.height <= 0) {
+        return;
+      }
+
+      const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
+      const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+
+      mouse.targetX = clamp(x, -1, 1);
+      mouse.targetY = clamp(y, -1, 1);
+    };
+
+    const resetPointer = () => {
+      mouse.targetX = 0;
+      mouse.targetY = 0;
+    };
+
+    resize();
+
+    const resizeObserver =
+      "ResizeObserver" in window ? new ResizeObserver(resize) : null;
+    resizeObserver?.observe(wrapper);
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("blur", resetPointer);
+
+    const render = () => {
+      frameId = window.requestAnimationFrame(render);
+      time += prefersReducedMotion ? 0.0025 : 0.006;
+
+      mouse.x += (mouse.targetX - mouse.x) * 0.06;
+      mouse.y += (mouse.targetY - mouse.y) * 0.06;
+
+      context.clearRect(0, 0, width, height);
+
+      const centerX = width * 0.5;
+      const centerY = height * 0.46;
+      const sphereRadius = Math.min(width, height) * (width < 768 ? 0.18 : 0.22);
+      const cameraDepth = 3.3;
+      const rotateY = time * 0.55 + mouse.x * 0.5;
+      const rotateX = time * 0.3 - mouse.y * 0.35;
+      const sinY = Math.sin(rotateY);
+      const cosY = Math.cos(rotateY);
+      const sinX = Math.sin(rotateX);
+      const cosX = Math.cos(rotateX);
+
+      const aura = context.createRadialGradient(
+        centerX,
+        centerY,
+        sphereRadius * 0.35,
+        centerX,
+        centerY,
+        sphereRadius * 1.75,
+      );
+      aura.addColorStop(0, "rgba(0, 105, 62, 0.12)");
+      aura.addColorStop(1, "rgba(0, 105, 62, 0)");
+      context.fillStyle = aura;
+      context.beginPath();
+      context.arc(centerX, centerY, sphereRadius * 1.75, 0, TAU);
+      context.fill();
+
+      const drawPoints: RenderPoint[] = [];
+
+      for (let index = 0; index < points.length; index += 1) {
+        const point = points[index];
+        const pulse = Math.sin(time * point.wobble + point.phase * TAU) * 0.045;
+
+        let x = point.x * (1 + pulse);
+        let y = point.y * (1 + pulse);
+        let z = point.z * (1 + pulse);
+
+        const xzX = x * cosY - z * sinY;
+        const xzZ = x * sinY + z * cosY;
+        x = xzX;
+        z = xzZ;
+
+        const yzY = y * cosX - z * sinX;
+        const yzZ = y * sinX + z * cosX;
+        y = yzY;
+        z = yzZ;
+
+        const mouseFactor = (z + 1) * 0.5;
+        x += mouse.x * 0.2 * mouseFactor;
+        y += mouse.y * 0.16 * mouseFactor;
+
+        const depth = z + cameraDepth;
+        const perspective = cameraDepth / depth;
+        const screenX = centerX + x * sphereRadius * perspective;
+        const screenY = centerY + y * sphereRadius * perspective;
+        const mix = clamp((z + 1) * 0.5, 0, 1);
+        const shimmer = 0.88 + Math.sin(time * 3 + point.phase * TAU) * 0.1;
+
+        const red = Math.round((0 * (1 - mix) + 185 * mix) * shimmer);
+        const green = Math.round((105 * (1 - mix) + 193 * mix) * shimmer);
+        const blue = Math.round((62 * (1 - mix) + 201 * mix) * shimmer);
+
+        drawPoints.push({
+          x: screenX,
+          y: screenY,
+          z,
+          size: (0.6 + mix * 2.1) * perspective,
+          alpha: clamp(0.12 + mix * 0.7, 0.05, 0.85),
+          r: clamp(red, 0, 255),
+          g: clamp(green, 0, 255),
+          b: clamp(blue, 0, 255),
+        });
+      }
+
+      drawPoints.sort((left, right) => left.z - right.z);
+
+      for (let index = 0; index < drawPoints.length; index += 1) {
+        const point = drawPoints[index];
+
+        context.fillStyle = `rgba(${point.r}, ${point.g}, ${point.b}, ${point.alpha})`;
+        context.beginPath();
+        context.arc(point.x, point.y, point.size, 0, TAU);
+        context.fill();
+      }
+    };
+
+    render();
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("blur", resetPointer);
+      resizeObserver?.disconnect();
+    };
+  }, []);
+
+  return (
+    <div ref={wrapperRef} className="pointer-events-none absolute inset-0 z-[6]">
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+    </div>
+  );
+}

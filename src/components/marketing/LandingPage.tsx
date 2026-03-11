@@ -7,6 +7,7 @@ import { FadeIn } from "@/components/marketing/FadeIn";
 import { FixItReveal } from "@/components/marketing/FixItReveal";
 import { Footer } from "@/components/marketing/Footer";
 import { Header } from "@/components/marketing/Header";
+import { HeroParticleBubble } from "@/components/marketing/HeroParticleBubble";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { ScrambleHeadlineLoop } from "@/components/marketing/ScrambleHeadlineLoop";
@@ -96,8 +97,7 @@ const HERO_HEADLINE_LINES = [
 ] as const;
 
 const HERO_SCRAMBLE_COLORS = [
-  "var(--mf-brand-green-soft)",
-  "var(--mf-brand-sky)",
+  "#00693E",
 ] as const;
 
 function HeroShatterOverlay() {
@@ -352,6 +352,7 @@ function HeroAndSections() {
               }}
             >
               <HeroShatterOverlay />
+              <HeroParticleBubble />
 
               <PageContainer className="relative flex h-full flex-col items-center justify-center">
                 <div
