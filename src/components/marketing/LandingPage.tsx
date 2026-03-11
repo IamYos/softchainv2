@@ -397,73 +397,13 @@ function HeroAndSections() {
                       bottom: "max(env(safe-area-inset-bottom), clamp(2.75rem, 8vh, 5rem))",
                     }}
                   >
-                    <div className="relative">
-                      <div
-                        className="absolute inset-0 z-0 m-auto h-full w-full rounded-full pointer-events-none"
-                        aria-hidden="true"
-                        style={{
-                          background:
-                            "linear-gradient(90deg, var(--mf-brand-blue), var(--mf-brand-red))",
-                          filter: "blur(24px)",
-                          opacity: 0.4,
-                          transform: "scale(1.03)",
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="group relative z-10 h-[56px] min-w-[200px] cursor-pointer overflow-hidden rounded-[5px] border border-transparent px-8 text-base font-medium tracking-tight"
-                        onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}
-                      >
-                        <span
-                          className="absolute inset-0 rounded-[inherit] transition-opacity duration-300"
-                          style={{
-                            backgroundColor: "var(--mf-text-heading)",
-                            opacity: 1,
-                          }}
-                        />
-                        <span className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
-                          <span
-                            className="absolute inset-0 translate-y-full transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-active:translate-y-0"
-                            style={{
-                              backgroundColor: "var(--mf-bg-base)",
-                            }}
-                          />
-                        </span>
-                        <span className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
-                          <span
-                            className="absolute inset-0 overflow-hidden rounded-[inherit]"
-                            style={{
-                              mask: "linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0)",
-                              padding: "1px",
-                            }}
-                          >
-                            <span
-                              className="absolute left-1/2 top-1/2 block h-[600px] w-[600px] animate-[beam-spin_4s_linear_infinite]"
-                              style={{
-                                background:
-                                  "conic-gradient(from 0deg, var(--mf-brand-blue), var(--mf-brand-red), var(--mf-brand-blue))",
-                                transform: "translateX(-50%) translateY(-50%)",
-                              }}
-                            />
-                          </span>
-                        </span>
-                        <span className="relative z-10 flex items-center gap-2 transition-colors duration-300 group-hover:text-white group-active:text-white text-[var(--mf-text-foreground)]">
-                          <svg viewBox="0 0 33.2 32.6" className="h-5 w-5" fill="currentColor" aria-hidden="true">
-                            <path d="M26.8885 19.9289L32.0565 22.9126L25.0693 24.7848L19.9014 21.8011L26.8885 19.9289Z" />
-                            <path d="M13.0956 28.084L16.0794 22.9161L9.09221 24.7883L6.10849 29.9562L13.0956 28.084Z" />
-                            <path d="M27.2119 14.0909L33.1926 14.0909L28.0663 19.38L22.0855 19.38L27.2119 14.0909Z" />
-                            <path d="M19.67 5.16795L22.6537 0L24.5259 6.98715L21.5422 12.1551L19.67 5.16795Z" />
-                            <path d="M24.3306 8.75446L29.4985 5.77075L27.6263 12.7579L22.4584 15.7416L24.3306 8.75446Z" />
-                            <path d="M5.12636 19.3789L11.1071 19.3789L5.98075 14.0898L0 14.0898L5.12636 19.3789Z" />
-                            <path d="M8.66803 6.98849L11.6518 12.1564L13.524 5.16929L10.5402 0.0013407L8.66803 6.98849Z" />
-                            <path d="M5.5672 12.7567L10.7352 15.7404L8.86295 8.75325L3.695 5.76953L5.5672 12.7567Z" />
-                            <path d="M24.0976 24.7893L27.0813 29.9573L20.0941 28.0851L17.1104 22.9171L24.0976 24.7893Z" />
-                            <path d="M8.12226 24.7841L13.2902 21.8004L6.30307 19.9282L1.13511 22.9119L8.12226 24.7841Z" />
-                          </svg>
-                          Try An Assessment
-                        </span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="frame1-cm-btn"
+                      onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}
+                    >
+                      <span>Try an assessment</span>
+                    </button>
                   </div>
                 </div>
               </PageContainer>
