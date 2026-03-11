@@ -1,6 +1,7 @@
 "use client";
 
 import { BeamButton } from "@/components/marketing/BeamButton";
+import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
 import {
   HEADER_NAV_ITEMS,
   type HeaderNavItem,
@@ -55,6 +56,19 @@ export function HeaderMobileMenu({
           willChange: "transform",
         }}
       >
+        <div className="absolute right-6 top-6 z-10 hidden md:block">
+          <HeaderMobileMenuButton
+            onClick={onClose}
+            isOpen
+            className="min-[1100px]:flex"
+            style={{
+              ["--header-menu-bg" as string]: "#b9b9b9",
+              ["--header-menu-text" as string]: "#202020",
+              ["--header-menu-focus" as string]: "#202020",
+            }}
+          />
+        </div>
+
         <div className="flex h-full items-end px-6 pb-16 pt-24 md:px-10 md:pb-10 md:pt-[3.2rem]">
           <div className="w-full">
             <nav

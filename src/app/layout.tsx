@@ -33,12 +33,12 @@ const auxMono = localFont({
 const nonSans = localFont({
   src: [
     {
-      path: "../../docs/shift5-extract/raw/fonts/NON-Sans-Medium.woff2",
+      path: "../fonts/NON-Sans-Medium.woff2",
       weight: "500",
       style: "normal",
     },
     {
-      path: "../../docs/shift5-extract/raw/fonts/NON-Sans-Medium.woff",
+      path: "../fonts/NON-Sans-Medium.woff",
       weight: "500",
       style: "normal",
     },
