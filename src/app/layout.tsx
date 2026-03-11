@@ -16,12 +16,12 @@ const geistMono = Geist_Mono({
 const auxMono = localFont({
   src: [
     {
-      path: "../../docs/shift5-extract/raw/fonts/AuxMono.woff2",
+      path: "../fonts/AuxMono.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../../docs/shift5-extract/raw/fonts/AuxMono.woff",
+      path: "../fonts/AuxMono.woff",
       weight: "400",
       style: "normal",
     },
