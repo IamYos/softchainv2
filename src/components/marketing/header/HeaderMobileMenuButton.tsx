@@ -1,33 +1,39 @@
 "use client";
 
+import { CSSProperties } from "react";
+
 type HeaderMobileMenuButtonProps = {
   onClick: () => void;
   isOpen: boolean;
   className?: string;
+  style?: CSSProperties;
 };
 
 export function HeaderMobileMenuButton({
   onClick,
   isOpen,
   className = "",
+  style,
 }: HeaderMobileMenuButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[44px] min-w-[44px] items-center justify-center cursor-pointer p-2 ${className}`}
-      style={{ color: "var(--header-text)" }}
-      aria-label="Open menu"
+      className={`header-menu-button ${className}`}
+      style={style}
+      data-open={isOpen ? "true" : "false"}
+      aria-label={isOpen ? "Close menu" : "Open menu"}
       aria-expanded={isOpen}
     >
-      <span className="flex flex-col gap-[5px]">
-        {[0, 1, 2].map((index) => (
-          <span
-            key={index}
-            className="block h-[2px] w-5 rounded-full"
-            style={{ backgroundColor: "currentColor" }}
-          />
-        ))}
+      <span className="header-menu-button__lines" aria-hidden="true">
+        <span className="header-menu-button__line" />
+        <span className="header-menu-button__line" />
+      </span>
+      <span className="header-menu-button__label header-menu-button__label--open">
+        Menu
+      </span>
+      <span className="header-menu-button__label header-menu-button__label--close">
+        Close
       </span>
     </button>
   );

@@ -3,8 +3,6 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { useLenis, useScrollShell } from "@/components/marketing/SmoothScroll";
-import { HeaderDesktopActions } from "@/components/marketing/header/HeaderDesktopActions";
-import { HeaderDesktopNav } from "@/components/marketing/header/HeaderDesktopNav";
 import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
 import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu";
 import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
@@ -28,6 +26,14 @@ const LIGHT_FRAME_HEADER_PALETTE = {
   ["--header-primary-active-bg" as string]: "#ffffff",
   ["--header-primary-active-text" as string]: "#202020",
   ["--header-primary-active-border" as string]: "rgba(32, 32, 32, 0.28)",
+  ["--header-menu-bg" as string]: "#b9b9b9",
+  ["--header-menu-border" as string]: "rgba(32, 32, 32, 0.12)",
+  ["--header-menu-text" as string]: "#202020",
+  ["--header-menu-mobile-text" as string]: "#202020",
+  ["--header-menu-hover-bg" as string]: "#202020",
+  ["--header-menu-hover-border" as string]: "#b9b9b9",
+  ["--header-menu-hover-text" as string]: "#b9b9b9",
+  ["--header-menu-focus" as string]: "#202020",
   ["--header-cta-contact-bg" as string]: "#b9b9b9",
   ["--header-cta-contact-border" as string]: "rgba(32, 32, 32, 0.28)",
   ["--header-cta-contact-text" as string]: "#202020",
@@ -60,6 +66,14 @@ const DARK_FRAME_HEADER_PALETTE = {
   ["--header-primary-active-bg" as string]: "#202020",
   ["--header-primary-active-text" as string]: "#ffffff",
   ["--header-primary-active-border" as string]: "rgba(255, 255, 255, 0.28)",
+  ["--header-menu-bg" as string]: "#b9b9b9",
+  ["--header-menu-border" as string]: "rgba(185, 185, 185, 0.38)",
+  ["--header-menu-text" as string]: "#202020",
+  ["--header-menu-mobile-text" as string]: "#ffffff",
+  ["--header-menu-hover-bg" as string]: "#202020",
+  ["--header-menu-hover-border" as string]: "#b9b9b9",
+  ["--header-menu-hover-text" as string]: "#b9b9b9",
+  ["--header-menu-focus" as string]: "#b9b9b9",
   ["--header-cta-contact-bg" as string]: "#b9b9b9",
   ["--header-cta-contact-border" as string]: "rgba(32, 32, 32, 0.28)",
   ["--header-cta-contact-text" as string]: "#202020",
@@ -115,18 +129,6 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const closeMenuOnDesktop = () => {
-      if (window.innerWidth >= 1100) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", closeMenuOnDesktop);
-
-    return () => window.removeEventListener("resize", closeMenuOnDesktop);
-  }, []);
-
-  useEffect(() => {
     if (mobileMenuOpen) {
       lenis?.stop();
     } else {
@@ -168,6 +170,12 @@ export function Header() {
 
     const update = () => {
       frame = 0;
+      if (mobileMenuOpen) {
+        backdrop.style.opacity = "0";
+        applyHeaderPalette(header, LIGHT_FRAME_HEADER_PALETTE);
+        return;
+      }
+
       backdrop.style.opacity = `${getHeaderBackdropOpacity(
         scrollRoot.scrollTop,
         scrollRoot.clientHeight || window.innerHeight,
@@ -217,7 +225,7 @@ export function Header() {
       scrollRoot.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [scrollWrapperRef]);
+  }, [mobileMenuOpen, scrollWrapperRef]);
 
   const scrollToTop = () => {
     setMobileMenuOpen(false);
@@ -263,34 +271,19 @@ export function Header() {
           }}
         />
 
-        <PageContainer className="relative z-10 mt-2 grid h-16 grid-cols-[auto_1fr_auto] items-center">
+        <PageContainer className="relative z-10 mt-2 flex h-16 items-center justify-between">
           <HeaderLogoButton onClick={scrollToTop} />
 
-          <HeaderDesktopNav
-            onItemClick={handleNavItemClick}
-            className="hidden min-[1100px]:flex"
+          <HeaderMobileMenuButton
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            isOpen={mobileMenuOpen}
           />
-          <div className="min-[1100px]:hidden" />
-
-          <div className="flex items-center justify-end gap-4">
-            <HeaderDesktopActions
-              onSecondaryClick={() => scrollToTarget("footer")}
-              onPrimaryClick={() => scrollToTarget("closing-cta")}
-              className="hidden min-[1100px]:flex"
-            />
-            <HeaderMobileMenuButton
-              onClick={() => setMobileMenuOpen(true)}
-              isOpen={mobileMenuOpen}
-              className="min-[1100px]:hidden"
-            />
-          </div>
         </PageContainer>
       </header>
 
       <HeaderMobileMenu
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        onLogoClick={scrollToTop}
         onItemClick={handleNavItemClick}
         onSecondaryClick={() => scrollToTarget("footer")}
         onPrimaryClick={() => scrollToTarget("closing-cta")}

@@ -30,6 +30,23 @@ const auxMono = localFont({
   display: "swap",
 });
 
+const nonSans = localFont({
+  src: [
+    {
+      path: "../../docs/shift5-extract/raw/fonts/NON-Sans-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../docs/shift5-extract/raw/fonts/NON-Sans-Medium.woff",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+  variable: "--font-non-sans",
+  display: "swap",
+});
+
 const siteTitle = "Softchain | Software Engineering And Infrastructure";
 const siteDescription =
   "Softchain builds software, AI systems, and technical infrastructure for companies that need senior execution from scoping through long-term support.";
@@ -90,7 +107,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${auxMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${auxMono.variable} ${nonSans.variable} antialiased`}
       >
         {children}
       </body>

@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
 import { BeamButton } from "@/components/marketing/BeamButton";
-import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
 import {
   HEADER_NAV_ITEMS,
   type HeaderNavItem,
@@ -12,7 +9,6 @@ import {
 type HeaderMobileMenuProps = {
   isOpen: boolean;
   onClose: () => void;
-  onLogoClick: () => void;
   onItemClick: (item: HeaderNavItem) => void;
   onSecondaryClick: () => void;
   onPrimaryClick: () => void;
@@ -21,112 +17,112 @@ type HeaderMobileMenuProps = {
 export function HeaderMobileMenu({
   isOpen,
   onClose,
-  onLogoClick,
   onItemClick,
   onSecondaryClick,
   onPrimaryClick,
 }: HeaderMobileMenuProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = overlayRef.current;
-    if (!el) return;
-
-    if (isOpen) {
-      el.style.visibility = "visible";
-      el.getBoundingClientRect();
-      el.style.transform = "translate3d(0, 0, 0)";
-      el.style.opacity = "1";
-    } else {
-      el.style.transform = "translate3d(100%, 0, 0)";
-      el.style.opacity = "0";
-      const onEnd = () => {
-        if (!isOpen) el.style.visibility = "hidden";
-      };
-      el.addEventListener("transitionend", onEnd, { once: true });
-      const timeout = setTimeout(onEnd, 500);
-      return () => {
-        clearTimeout(timeout);
-        el.removeEventListener("transitionend", onEnd);
-      };
-    }
-  }, [isOpen]);
-
   return (
     <div
-      ref={overlayRef}
-      className="absolute inset-0 z-[var(--mf-z-modal)] flex flex-col overflow-y-auto p-6 min-[1100px]:hidden"
+      className="fixed inset-0 z-40"
       style={{
-        backgroundColor: "#000000",
-        transform: "translate3d(100%, 0, 0)",
-        opacity: 0,
-        visibility: "hidden",
-        transition: "transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease",
-        willChange: "transform, opacity",
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
+        opacity: isOpen ? 1 : 0,
+        pointerEvents: isOpen ? "auto" : "none",
+        visibility: isOpen ? "visible" : "hidden",
+        transition: isOpen
+          ? "opacity 0.4s ease"
+          : "opacity 0.4s ease, visibility 0s linear 0.4s",
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Mobile navigation"
+      aria-label="Site navigation"
     >
-      <div className="mb-8 flex items-center justify-between">
-        <HeaderLogoButton
-          filter="brightness(0) invert(1)"
-          onClick={onLogoClick}
-          ariaLabel="Scroll to top"
-        />
-        <button
-          type="button"
-          onClick={onClose}
-          className="group flex min-h-[44px] min-w-[44px] items-center justify-center p-2 text-white cursor-pointer"
-          aria-label="Close menu"
-          style={{
-            transform: "rotate(90deg)",
-            transition: "transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "rotate(180deg)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "rotate(90deg)";
-          }}
-        >
-          <X size={24} />
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-label="Close menu"
+        onClick={onClose}
+        className="absolute inset-0 cursor-pointer border-0 bg-[#202020]"
+        style={{
+          opacity: isOpen ? 0.96 : 0,
+          transition: "opacity 0.4s ease",
+        }}
+      />
 
-      <nav
-        className="flex flex-col gap-2 text-xl font-medium text-white"
-        aria-label="Mobile navigation"
+      <div
+        className="absolute inset-0 bg-[#ff5841] text-[#202020] md:inset-auto md:right-[2.4rem] md:top-[2.4rem] md:h-[min(50rem,calc(100vh-4.8rem))] md:min-h-[380px] md:w-[min(54rem,calc(100vw-4.8rem))] md:rounded-[8px] md:bg-[#b9b9b9]"
+        style={{
+          transform: isOpen ? "translate3d(0, 0, 0)" : "translate3d(100%, 0, 0)",
+          transition: "transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)",
+          willChange: "transform",
+        }}
       >
-        {HEADER_NAV_ITEMS.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            className="link-underline min-h-[44px] w-fit cursor-pointer py-3 text-left text-white"
-            onClick={() => onItemClick(item)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
+        <div className="flex h-full items-end px-6 pb-16 pt-24 md:px-10 md:pb-10 md:pt-[3.2rem]">
+          <div className="w-full">
+            <nav
+              className="flex flex-col gap-3"
+              aria-label="Primary navigation"
+              style={{
+                fontFamily: "var(--font-non-sans), var(--font-geist-sans), sans-serif",
+                fontSize: "clamp(44px, 8vw, 72px)",
+                fontWeight: 500,
+                letterSpacing: "-0.02em",
+                lineHeight: 1,
+              }}
+            >
+              {HEADER_NAV_ITEMS.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  className="w-fit cursor-pointer py-2 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
+                  onClick={() => onItemClick(item)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
 
-      <div className="mt-auto flex flex-col gap-4">
-        <BeamButton
-          onClick={onSecondaryClick}
-          className="w-full rounded bg-transparent py-3 text-base font-medium text-white border border-white/20 hover:bg-white/[0.06]"
-        >
-          Contact
-        </BeamButton>
-        <BeamButton
-          onClick={onPrimaryClick}
-          theme="light"
-          className="w-full rounded py-3 text-base font-medium"
-          style={{ borderColor: "transparent" }}
-        >
-          Book a Call
-        </BeamButton>
+            <div className="mt-12 flex flex-col gap-4 md:mt-16">
+              <BeamButton
+                onClick={onSecondaryClick}
+                className="w-full rounded bg-transparent py-3 text-base font-medium text-[#202020] border border-[#202020]/20 hover:bg-[#202020]/5"
+                style={{
+                  color: "#202020",
+                  borderColor: "rgba(32, 32, 32, 0.2)",
+                  ["--beam-overlay" as string]: "rgba(32, 32, 32, 0.05)",
+                  ["--btn-active-bg" as string]: "#202020",
+                  ["--btn-active-text" as string]: "#b9b9b9",
+                  ["--btn-active-border" as string]: "rgba(185, 185, 185, 0.35)",
+                  fontFamily: "var(--font-aux-mono), monospace",
+                  fontSize: "12px",
+                  letterSpacing: "-0.24px",
+                  lineHeight: "1.33",
+                  textTransform: "uppercase",
+                }}
+              >
+                Contact
+              </BeamButton>
+              <BeamButton
+                onClick={onPrimaryClick}
+                className="w-full rounded py-3 text-base font-medium"
+                style={{
+                  backgroundColor: "#202020",
+                  color: "#b9b9b9",
+                  borderColor: "transparent",
+                  ["--beam-overlay" as string]: "rgba(255, 255, 255, 0.08)",
+                  ["--btn-active-bg" as string]: "#b9b9b9",
+                  ["--btn-active-text" as string]: "#202020",
+                  ["--btn-active-border" as string]: "rgba(32, 32, 32, 0.18)",
+                  fontFamily: "var(--font-aux-mono), monospace",
+                  fontSize: "12px",
+                  letterSpacing: "-0.24px",
+                  lineHeight: "1.33",
+                  textTransform: "uppercase",
+                }}
+              >
+                Book a Call
+              </BeamButton>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
