@@ -15,6 +15,11 @@ import {
 } from "@/components/marketing/HeroParticleBubble";
 import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
+import {
+  MarketingPerfOverlay,
+  PerfSection,
+  recordPerfSample,
+} from "@/components/marketing/MarketingPerfDebug";
 import { ScrambleHeadlineLoop } from "@/components/marketing/ScrambleHeadlineLoop";
 import {
   SmoothScroll,
@@ -190,6 +195,7 @@ function HeroAndSections() {
     let frame = 0;
 
     const update = () => {
+      const startedAt = performance.now();
       frame = 0;
 
       const rect = heroReveal.getBoundingClientRect();
@@ -303,6 +309,7 @@ function HeroAndSections() {
         interpolate(splitProgress, [0.28, 0.5], [0.92, 1]).toString(),
       );
       heroLayer.style.pointerEvents = heroLayerOpacity < 0.1 ? "none" : "auto";
+      recordPerfSample("hero-scroll-update", performance.now() - startedAt);
     };
 
     const schedule = () => {
@@ -337,11 +344,15 @@ function HeroAndSections() {
         >
           <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[var(--mf-bg-base)]">
             <div className="absolute inset-0 z-0 pointer-events-none">
-              <TheProblem />
+              <PerfSection id="TheProblem">
+                <TheProblem />
+              </PerfSection>
             </div>
 
             <div className="absolute inset-0 z-10 pointer-events-none">
-              <FixItReveal />
+              <PerfSection id="FixItReveal">
+                <FixItReveal />
+              </PerfSection>
             </div>
 
             <div
@@ -360,17 +371,21 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
-              <GridHoverEffect
-                cellSize={102}
-                segmentInset={10}
-                maxAlpha={0.62}
-                spread={3}
-                glow={10}
-                lineWidth={1.35}
-                fadeOutMs={280}
-              />
+              <PerfSection id="HeroGridHoverEffect">
+                <GridHoverEffect
+                  cellSize={102}
+                  segmentInset={10}
+                  maxAlpha={0.62}
+                  spread={3}
+                  glow={10}
+                  lineWidth={1.35}
+                  fadeOutMs={280}
+                />
+              </PerfSection>
               <HeroShatterOverlay />
-              <HeroParticleBubble />
+              <PerfSection id="HeroParticleBubble">
+                <HeroParticleBubble />
+              </PerfSection>
 
               <PageContainer className="relative h-full">
                 <div
@@ -432,11 +447,19 @@ function HeroAndSections() {
           </PageContainer>
         </section>
 
-        <Capabilities />
-        <HireTalentSection />
-        <DotGridCTA />
+        <PerfSection id="Capabilities">
+          <Capabilities />
+        </PerfSection>
+        <PerfSection id="HireTalentSection">
+          <HireTalentSection />
+        </PerfSection>
+        <PerfSection id="DotGridCTA">
+          <DotGridCTA />
+        </PerfSection>
       </main>
-      <Footer />
+      <PerfSection id="Footer">
+        <Footer />
+      </PerfSection>
     </>
   );
 }
@@ -446,12 +469,19 @@ export function LandingPage() {
     <SmoothScroll
       overlay={
         <>
-          <Header />
-          <CustomCursor rgb="255, 88, 65" />
+          <PerfSection id="Header">
+            <Header />
+          </PerfSection>
+          <PerfSection id="CustomCursor">
+            <CustomCursor rgb="255, 88, 65" />
+          </PerfSection>
+          <MarketingPerfOverlay />
         </>
       }
     >
-      <HeroAndSections />
+      <PerfSection id="HeroAndSections">
+        <HeroAndSections />
+      </PerfSection>
     </SmoothScroll>
   );
 }

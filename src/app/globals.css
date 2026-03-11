@@ -147,6 +147,7 @@ button {
 .group:active .beam-beam-core {
   animation-duration: 1.5s;
   animation-timing-function: cubic-bezier(0.35, 0.15, 0.5, 0.95);
+  animation-play-state: running;
 }
 
 .beam-button:active {

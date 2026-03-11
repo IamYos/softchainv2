@@ -2,6 +2,7 @@
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { PageContainer } from "@/components/marketing/PageContainer";
+import { recordPerfSample } from "@/components/marketing/MarketingPerfDebug";
 import { useLenis, useScrollShell } from "@/components/marketing/SmoothScroll";
 import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
 import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu";
@@ -169,10 +170,12 @@ export function Header() {
     let heroReveal: HTMLElement | null = null;
 
     const update = () => {
+      const startedAt = performance.now();
       frame = 0;
       if (mobileMenuOpen) {
         backdrop.style.opacity = "0";
         applyHeaderPalette(header, LIGHT_FRAME_HEADER_PALETTE);
+        recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
 
@@ -186,6 +189,7 @@ export function Header() {
       }
 
       if (!heroReveal) {
+        recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
 
@@ -196,6 +200,7 @@ export function Header() {
         !Number.isNaN(heroLayerOpacity) && heroLayerOpacity > FRAME_ONE_FADE_THRESHOLD;
 
       if (showFrameOnePalette === isFrameOnePaletteRef.current) {
+        recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
 
@@ -204,6 +209,7 @@ export function Header() {
         header,
         showFrameOnePalette ? LIGHT_FRAME_HEADER_PALETTE : DARK_FRAME_HEADER_PALETTE,
       );
+      recordPerfSample("header-scroll-update", performance.now() - startedAt);
     };
 
     const schedule = () => {

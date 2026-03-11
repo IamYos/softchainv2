@@ -72,7 +72,11 @@ export function BeamButton({
             background:
               "conic-gradient(from 0deg, transparent 0deg 200deg, var(--mf-brand-blue) 260deg, var(--mf-brand-red) 320deg, transparent 360deg)",
             translate: "-50% -50%",
-            animation: "beam-spin 4s linear infinite",
+            animationName: "beam-spin",
+            animationDuration: "4s",
+            animationIterationCount: "infinite",
+            animationTimingFunction: "linear",
+            animationPlayState: "paused",
           }}
         />
       </span>
