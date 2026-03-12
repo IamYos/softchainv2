@@ -95,6 +95,7 @@ const HERO_SCRAMBLE_COLORS = [
   "#ff5841",
   "#50C878",
 ] as const;
+const HERO_CANVAS_FADE_THRESHOLD = 0.1;
 
 function HeroShatterOverlay() {
   return (
@@ -148,6 +149,8 @@ function HeroAndSections() {
   const lenis = useLenis();
   const { scrollWrapperRef } = useScrollShell();
   const { noCanvas, noHeroBlur } = useDevFlags();
+  const [heroCanvasActive, setHeroCanvasActive] = useState(true);
+  const heroCanvasActiveRef = useRef(true);
   const [slowZoneEnd, setSlowZoneEnd] = useState(0);
 
   useSlowZone(slowZoneEnd);
@@ -191,12 +194,18 @@ function HeroAndSections() {
       const scrollProgress = scrollOffset / scrollRange;
       const heroFadeProgress = easeInCubic(normalize(scrollProgress, 0.14, 0.32));
       const heroLayerOpacity = 1 - heroFadeProgress;
+      const nextHeroCanvasActive = heroLayerOpacity > HERO_CANVAS_FADE_THRESHOLD;
       const contentFadeProgress = easeInCubic(normalize(scrollProgress, 0.02, 0.1));
       const shatterTimeline = easeInCubic(normalize(scrollProgress, 0.06, 0.32));
       const shatterProgress = interpolate(shatterTimeline, [0, 1], [0, 1]);
       const shatterStrength = interpolate(shatterTimeline, [0, 0.45, 0.75, 1], [0, 0.35, 1, 0.22]);
       const shatterOpacity = interpolate(shatterTimeline, [0.2, 0.55, 0.9], [0, 1, 0.18]);
       const shatterBlur = interpolate(shatterTimeline, [0.3, 0.65, 1], [0, 0.35, 1]);
+
+      if (nextHeroCanvasActive !== heroCanvasActiveRef.current) {
+        heroCanvasActiveRef.current = nextHeroCanvasActive;
+        setHeroCanvasActive(nextHeroCanvasActive);
+      }
 
       heroReveal.style.setProperty("--hero-layer-opacity", heroLayerOpacity.toString());
       heroReveal.style.setProperty(
@@ -295,6 +304,7 @@ function HeroAndSections() {
               {!noCanvas ? (
                 <PerfSection id="HeroGridHoverEffect">
                   <GridHoverEffect
+                    active={heroCanvasActive}
                     cellSize={102}
                     segmentInset={10}
                     maxAlpha={0.62}
@@ -308,7 +318,7 @@ function HeroAndSections() {
               <HeroShatterOverlay />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">
-                  <HeroParticleBubble />
+                  <HeroParticleBubble active={heroCanvasActive} />
                 </PerfSection>
               ) : null}
 

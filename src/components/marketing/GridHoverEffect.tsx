@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 type GridHoverEffectProps = {
+  active?: boolean;
   cellSize?: number;
   segmentInset?: number;
   maxAlpha?: number;
@@ -24,6 +25,7 @@ function mixChannel(from: number, to: number, amount: number) {
 }
 
 export function GridHoverEffect({
+  active = true,
   cellSize = 102,
   segmentInset = 10,
   maxAlpha = 0.46,
@@ -34,6 +36,23 @@ export function GridHoverEffect({
 }: GridHoverEffectProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeRef = useRef(active);
+  const controlsRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+
+  useEffect(() => {
+    activeRef.current = active;
+
+    const controls = controlsRef.current;
+    if (!controls) {
+      return;
+    }
+
+    if (active) {
+      controls.start();
+    } else {
+      controls.stop();
+    }
+  }, [active]);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -221,7 +240,21 @@ export function GridHoverEffect({
       context.stroke();
     };
 
+    const stop = () => {
+      if (!frameId) {
+        return;
+      }
+
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+
     const render = (time: number) => {
+      if (!activeRef.current || document.hidden) {
+        frameId = 0;
+        return;
+      }
+
       frameId = window.requestAnimationFrame(render);
       context.clearRect(0, 0, width, height);
       context.shadowBlur = glow;
@@ -268,10 +301,31 @@ export function GridHoverEffect({
       }
     };
 
-    frameId = window.requestAnimationFrame(render);
+    const start = () => {
+      if (frameId || !activeRef.current || document.hidden) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(render);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+        return;
+      }
+
+      start();
+    };
+
+    controlsRef.current = { start, stop };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    start();
 
     return () => {
-      window.cancelAnimationFrame(frameId);
+      controlsRef.current = null;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      stop();
       clearHideTimeout();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
@@ -292,4 +346,3 @@ export function GridHoverEffect({
     </div>
   );
 }
-

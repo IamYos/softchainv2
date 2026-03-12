@@ -42,6 +42,10 @@ const PARTICLE_PALETTE = [
   { r: 0, g: 0, b: 0 }, // black
 ] as const;
 
+type HeroParticleBubbleProps = {
+  active?: boolean;
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -106,9 +110,26 @@ function createSpherePoints(count: number): SpherePoint[] {
   return points;
 }
 
-export function HeroParticleBubble() {
+export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeRef = useRef(active);
+  const controlsRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+
+  useEffect(() => {
+    activeRef.current = active;
+
+    const controls = controlsRef.current;
+    if (!controls) {
+      return;
+    }
+
+    if (active) {
+      controls.start();
+    } else {
+      controls.stop();
+    }
+  }, [active]);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -195,8 +216,23 @@ export function HeroParticleBubble() {
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("blur", resetPointer);
 
+    const stop = () => {
+      if (!frameId) {
+        return;
+      }
+
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      lastTimestamp = 0;
+    };
+
     const render = (timestamp: number) => {
-      frameId = window.requestAnimationFrame(render);
+      if (!activeRef.current || document.hidden) {
+        frameId = 0;
+        lastTimestamp = 0;
+        return;
+      }
+
       if (!lastTimestamp) {
         lastTimestamp = timestamp;
       }
@@ -348,12 +384,35 @@ export function HeroParticleBubble() {
         context.fillStyle = `rgba(${point.r}, ${point.g}, ${point.b}, ${point.alpha})`;
         context.fillText(point.glyph, point.x, point.y);
       }
+
+      frameId = window.requestAnimationFrame(render);
     };
 
-    frameId = window.requestAnimationFrame(render);
+    const start = () => {
+      if (frameId || !activeRef.current || document.hidden) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(render);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+        return;
+      }
+
+      start();
+    };
+
+    controlsRef.current = { start, stop };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    start();
 
     return () => {
-      window.cancelAnimationFrame(frameId);
+      controlsRef.current = null;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      stop();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("blur", resetPointer);
