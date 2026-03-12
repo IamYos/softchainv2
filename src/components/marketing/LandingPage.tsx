@@ -86,9 +86,10 @@ const HERO_DEFAULTS = {
 } as CSSProperties;
 
 const HERO_HEADLINE_LINES = [
-  ["Opportunity Promised.", "Outcomes Earned."],
-  ["Competition", "Takes Courage."],
-  ["Safe Hiring Builds", "Mediocre T~eams."],
+  ["ENGINEERING", "INTEGRATION"],
+  ["INFRASTRUCTURE", "UPTIME"],
+  ["ARCHITECTURE", "LIFECYCLE DELIVERY"],
+  ["NATIVE AI", "SYSTEMS"],
 ] as const;
 
 const HERO_SCRAMBLE_COLORS = [
@@ -326,7 +327,9 @@ function HeroAndSections() {
                       style={{ fontSize: "clamp(24px, 8vw, 112px)" }}
                     >
                       <span className="sr-only">
-                        Skills-based hiring assessments — hire on merit, not history
+                        Software engineering, IT systems, infrastructure,
+                        operational support, scoping, architecture, delivery,
+                        and long term support.
                       </span>
                       <ScrambleHeadlineLoop
                         lineSets={HERO_HEADLINE_LINES}
