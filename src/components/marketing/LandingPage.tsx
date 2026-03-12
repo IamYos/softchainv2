@@ -28,6 +28,7 @@ import {
   useSlowZone,
 } from "@/components/marketing/SmoothScroll";
 import { TheProblem } from "@/components/marketing/TheProblem";
+import { useDevFlags } from "@/components/marketing/useDevFlags";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -162,6 +163,7 @@ function HeroAndSections() {
   const heroLayerRef = useRef<HTMLDivElement>(null);
   const lenis = useLenis();
   const { scrollWrapperRef } = useScrollShell();
+  const { noCanvas, noHeroBlur } = useDevFlags();
   const [slowZoneEnd, setSlowZoneEnd] = useState(0);
 
   useSlowZone(slowZoneEnd);
@@ -367,25 +369,29 @@ function HeroAndSections() {
                 opacity: "var(--hero-layer-opacity, 1)",
                 transform: "translate3d(0, 0, 0)",
                 transformOrigin: "center center",
-                filter: "blur(var(--hero-shatter-blur, 0px))",
+                filter: noHeroBlur ? "none" : "blur(var(--hero-shatter-blur, 0px))",
                 willChange: "transform, opacity, filter",
               }}
             >
-              <PerfSection id="HeroGridHoverEffect">
-                <GridHoverEffect
-                  cellSize={102}
-                  segmentInset={10}
-                  maxAlpha={0.62}
-                  spread={3}
-                  glow={10}
-                  lineWidth={1.35}
-                  fadeOutMs={280}
-                />
-              </PerfSection>
+              {!noCanvas ? (
+                <PerfSection id="HeroGridHoverEffect">
+                  <GridHoverEffect
+                    cellSize={102}
+                    segmentInset={10}
+                    maxAlpha={0.62}
+                    spread={3}
+                    glow={10}
+                    lineWidth={1.35}
+                    fadeOutMs={280}
+                  />
+                </PerfSection>
+              ) : null}
               <HeroShatterOverlay />
-              <PerfSection id="HeroParticleBubble">
-                <HeroParticleBubble />
-              </PerfSection>
+              {!noCanvas ? (
+                <PerfSection id="HeroParticleBubble">
+                  <HeroParticleBubble />
+                </PerfSection>
+              ) : null}
 
               <PageContainer className="relative h-full">
                 <div
@@ -465,6 +471,8 @@ function HeroAndSections() {
 }
 
 export function LandingPage() {
+  const { noCursor } = useDevFlags();
+
   return (
     <SmoothScroll
       overlay={
@@ -472,9 +480,11 @@ export function LandingPage() {
           <PerfSection id="Header">
             <Header />
           </PerfSection>
-          <PerfSection id="CustomCursor">
-            <CustomCursor rgb="255, 88, 65" />
-          </PerfSection>
+          {!noCursor ? (
+            <PerfSection id="CustomCursor">
+              <CustomCursor rgb="255, 88, 65" />
+            </PerfSection>
+          ) : null}
           <MarketingPerfOverlay />
         </>
       }

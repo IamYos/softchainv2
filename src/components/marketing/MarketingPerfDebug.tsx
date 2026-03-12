@@ -6,9 +6,9 @@ import {
   type ReactNode,
   useEffect,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { useScrollShell } from "@/components/marketing/SmoothScroll";
+import { getDevFlagsSnapshot, useDevFlags } from "@/components/marketing/useDevFlags";
 
 type ReactSectionMetric = {
   commits: number;
@@ -43,6 +43,14 @@ type PerfRecordingPoint = {
   snapshot: PerfSnapshot;
 };
 
+type PerfRecordingReport = {
+  recordedAt: string;
+  url: string;
+  flags: ReturnType<typeof getDevFlagsSnapshot>;
+  summary: PerfSnapshot;
+  timeline: PerfRecordingPoint[];
+};
+
 const PERF_SNAPSHOT: PerfSnapshot = {
   fps: 0,
   slowFrames: 0,
@@ -60,8 +68,6 @@ const PERF_RECORDING = {
   startedAt: 0,
   timeline: [] as PerfRecordingPoint[],
 };
-
-let cachedPerfEnabled: boolean | null = null;
 
 function round(value: number) {
   return Math.round(value * 100) / 100;
@@ -109,49 +115,18 @@ function capturePerfRecordingPoint() {
   });
 }
 
-function buildPerfRecordingReport() {
+function buildPerfRecordingReport(): PerfRecordingReport {
   return {
     recordedAt: new Date().toISOString(),
     url: typeof window === "undefined" ? "" : window.location.href,
+    flags: getDevFlagsSnapshot(),
     summary: cloneSnapshot(),
     timeline: PERF_RECORDING.timeline,
   };
 }
 
 export function isPerfDebugEnabled() {
-  if (process.env.NODE_ENV === "production" || typeof window === "undefined") {
-    return false;
-  }
-
-  if (cachedPerfEnabled !== null) {
-    return cachedPerfEnabled;
-  }
-
-  const searchParams = new URLSearchParams(window.location.search);
-  cachedPerfEnabled =
-    searchParams.get("perf") === "1" || window.localStorage.getItem("softchain:perf") === "1";
-
-  return cachedPerfEnabled;
-}
-
-function subscribePerfDebug() {
-  return () => {};
-}
-
-function getPerfDebugClientSnapshot() {
-  return isPerfDebugEnabled();
-}
-
-function getPerfDebugServerSnapshot() {
-  return false;
-}
-
-function usePerfDebugEnabled() {
-  return useSyncExternalStore(
-    subscribePerfDebug,
-    getPerfDebugClientSnapshot,
-    getPerfDebugServerSnapshot,
-  );
+  return getDevFlagsSnapshot().perf;
 }
 
 export function recordPerfSample(id: string, duration: number) {
@@ -206,9 +181,9 @@ const onRender: ProfilerOnRenderCallback = (
 };
 
 export function PerfSection({ id, children }: { id: string; children: ReactNode }) {
-  const enabled = usePerfDebugEnabled();
+  const { perf } = useDevFlags();
 
-  if (!enabled) {
+  if (!perf) {
     return <>{children}</>;
   }
 
@@ -221,7 +196,8 @@ export function PerfSection({ id, children }: { id: string; children: ReactNode 
 
 export function MarketingPerfOverlay() {
   const { scrollWrapperRef } = useScrollShell();
-  const enabled = usePerfDebugEnabled();
+  const flags = useDevFlags();
+  const enabled = flags.perf;
   const [snapshot, setSnapshot] = useState<PerfSnapshot>(cloneSnapshot);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedPoints, setRecordedPoints] = useState(0);
@@ -351,6 +327,14 @@ export function MarketingPerfOverlay() {
       <div className="flex items-center justify-between">
         <span className="font-medium uppercase tracking-[0.18em] text-white/70">Perf Debug</span>
         <span className="text-white/50">`?perf=1`</span>
+      </div>
+
+      <div className="mt-2 text-[11px] text-white/45">
+        Flags{" "}
+        {Object.entries(flags)
+          .filter(([, value]) => value)
+          .map(([name]) => name)
+          .join(", ") || "none"}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2 text-[11px]">

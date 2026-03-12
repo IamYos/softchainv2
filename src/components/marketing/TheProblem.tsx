@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { useInView } from "@/components/marketing/useInView";
+import { useDevFlags } from "@/components/marketing/useDevFlags";
 
 type MarqueeRowProps = {
   text: string;
@@ -81,6 +82,7 @@ function MarqueeRow({
 
 export function TheProblem() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { noCanvas, noMarquee } = useDevFlags();
   const isInView = useInView(sectionRef, {
     once: false,
     rootMargin: "200px 0px",
@@ -100,43 +102,47 @@ export function TheProblem() {
           }}
         />
       </div>
-      <GridHoverEffect
-        cellSize={102}
-        segmentInset={10}
-        maxAlpha={0.58}
-        spread={3}
-        glow={9}
-        lineWidth={1.3}
-        fadeOutMs={280}
-      />
+      {!noCanvas ? (
+        <GridHoverEffect
+          cellSize={102}
+          segmentInset={10}
+          maxAlpha={0.58}
+          spread={3}
+          glow={9}
+          lineWidth={1.3}
+          fadeOutMs={280}
+        />
+      ) : null}
 
-      <div className="relative z-10 flex w-full flex-col gap-0">
-        <div
-          className="flex flex-col gap-0"
-          style={{
-            transform: "translate3d(0, var(--problem-y-top, 0px), 0)",
-            willChange: "transform",
-          }}
-        >
-          <MarqueeRow text="SOFTWARE CREAKS." speed={15} opacity={0.03} direction={1} paused={!isInView} />
-          <MarqueeRow text="SYSTEMS DRIFT." speed={20} opacity={0.05} direction={-1} paused={!isInView} />
-          <MarqueeRow text="TEAMS STALL." speed={25} opacity={0.1} direction={1} paused={!isInView} />
-          <MarqueeRow text="DELIVERY BREAKS." speed={30} opacity={1} direction={-1} paused={!isInView} />
-        </div>
+      {!noMarquee ? (
+        <div className="relative z-10 flex w-full flex-col gap-0">
+          <div
+            className="flex flex-col gap-0"
+            style={{
+              transform: "translate3d(0, var(--problem-y-top, 0px), 0)",
+              willChange: "transform",
+            }}
+          >
+            <MarqueeRow text="SOFTWARE CREAKS." speed={15} opacity={0.03} direction={1} paused={!isInView} />
+            <MarqueeRow text="SYSTEMS DRIFT." speed={20} opacity={0.05} direction={-1} paused={!isInView} />
+            <MarqueeRow text="TEAMS STALL." speed={25} opacity={0.1} direction={1} paused={!isInView} />
+            <MarqueeRow text="DELIVERY BREAKS." speed={30} opacity={1} direction={-1} paused={!isInView} />
+          </div>
 
-        <div
-          className="flex flex-col gap-0"
-          style={{
-            transform: "translate3d(0, var(--problem-y-bottom, 0px), 0)",
-            willChange: "transform",
-          }}
-        >
-          <MarqueeRow text="BUILD IT OR FAIL." speed={30} opacity={1} direction={1} gradient paused={!isInView} />
-          <MarqueeRow text="OPERATE IT OR FAIL." speed={25} opacity={0.1} direction={-1} gradient paused={!isInView} />
-          <MarqueeRow text="SECURE IT OR FAIL." speed={20} opacity={0.05} direction={1} gradient paused={!isInView} />
-          <MarqueeRow text="SCALE IT OR FAIL." speed={15} opacity={0.03} direction={-1} gradient paused={!isInView} />
+          <div
+            className="flex flex-col gap-0"
+            style={{
+              transform: "translate3d(0, var(--problem-y-bottom, 0px), 0)",
+              willChange: "transform",
+            }}
+          >
+            <MarqueeRow text="BUILD IT OR FAIL." speed={30} opacity={1} direction={1} gradient paused={!isInView} />
+            <MarqueeRow text="OPERATE IT OR FAIL." speed={25} opacity={0.1} direction={-1} gradient paused={!isInView} />
+            <MarqueeRow text="SECURE IT OR FAIL." speed={20} opacity={0.05} direction={1} gradient paused={!isInView} />
+            <MarqueeRow text="SCALE IT OR FAIL." speed={15} opacity={0.03} direction={-1} gradient paused={!isInView} />
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }

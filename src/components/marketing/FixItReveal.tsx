@@ -1,3 +1,5 @@
+import { useDevFlags } from "@/components/marketing/useDevFlags";
+
 const LINES = [
   "Scope the architecture before delivery begins.",
   "Build the system cleanly, with senior execution.",
@@ -5,14 +7,19 @@ const LINES = [
 ];
 
 export function FixItReveal() {
+  const { noBackdropBlur, noHeroBlur } = useDevFlags();
+
   return (
     <section className="absolute inset-0">
       <div
-        className="absolute left-1/2 top-1/2 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),rgba(220,38,38,0.18),transparent_68%)] blur-3xl"
+        className={`absolute left-1/2 top-1/2 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),rgba(220,38,38,0.18),transparent_68%)]${
+          noHeroBlur ? "" : " blur-3xl"
+        }`}
         style={{
           opacity: "var(--fix-burst-opacity, 0)",
           transform:
             "translate3d(-50%, -50%, 0) scale(var(--fix-burst-scale, 0.4))",
+          filter: noHeroBlur ? "none" : undefined,
           willChange: "transform, opacity",
         }}
       />
@@ -42,7 +49,9 @@ export function FixItReveal() {
       </div>
 
       <div
-        className="absolute left-1/2 top-1/2 z-20 w-[min(92vw,820px)] rounded-[28px] border border-white/10 bg-[rgba(17,17,17,0.92)] p-5 backdrop-blur-xl md:p-7"
+        className={`absolute left-1/2 top-1/2 z-20 w-[min(92vw,820px)] rounded-[28px] border border-white/10 bg-[rgba(17,17,17,0.92)] p-5 ${
+          noBackdropBlur ? "" : "backdrop-blur-xl"
+        } md:p-7`}
         style={{
           opacity: "var(--fix-panel-opacity, 0)",
           transform:
