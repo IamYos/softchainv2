@@ -36,11 +36,8 @@ const BUBBLE_SCALE = 1.15;
 const MIN_GLYPH_FLIP_DELAY = 0.35;
 const MAX_GLYPH_FLIP_DELAY = 1.75;
 export const HERO_BUBBLE_CENTER_Y_RATIO = 0.46;
-const PARTICLE_PALETTE = [
-  { r: 255, g: 88, b: 65 }, // #ff5841
-  { r: 80, g: 200, b: 120 }, // #50C878
-  { r: 0, g: 0, b: 0 }, // black
-] as const;
+const PARTICLE_MIN_TONE = 118;
+const PARTICLE_MAX_TONE = 196;
 
 type HeroParticleBubbleProps = {
   active?: boolean;
@@ -60,22 +57,6 @@ function createGlyphFlipDelay() {
 
 function createBinaryGlyph(): "0" | "1" {
   return Math.random() < 0.5 ? "0" : "1";
-}
-
-function samplePalette(cycle: number) {
-  const wrapped = ((cycle % 1) + 1) % 1;
-  const scaled = wrapped * PARTICLE_PALETTE.length;
-  const startIndex = Math.floor(scaled) % PARTICLE_PALETTE.length;
-  const endIndex = (startIndex + 1) % PARTICLE_PALETTE.length;
-  const mix = scaled - Math.floor(scaled);
-  const start = PARTICLE_PALETTE[startIndex];
-  const end = PARTICLE_PALETTE[endIndex];
-
-  return {
-    r: lerp(start.r, end.r, mix),
-    g: lerp(start.g, end.g, mix),
-    b: lerp(start.b, end.b, mix),
-  };
 }
 
 function createSpherePoints(count: number): SpherePoint[] {
@@ -267,22 +248,6 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       const introProgress = prefersReducedMotion ? 1 : clamp(elapsed / 1.3, 0, 1);
       const introOpacity = prefersReducedMotion ? 1 : clamp(elapsed / 0.85, 0, 1);
 
-      const aura = context.createRadialGradient(
-        centerX,
-        centerY,
-        sphereRadius * 0.35,
-        centerX,
-        centerY,
-        sphereRadius * 1.75,
-      );
-      aura.addColorStop(0, "rgba(0, 105, 62, 0.16)");
-      aura.addColorStop(0.55, "rgba(56, 66, 78, 0.1)");
-      aura.addColorStop(1, "rgba(0, 105, 62, 0)");
-      context.fillStyle = aura;
-      context.beginPath();
-      context.arc(centerX, centerY, sphereRadius * 1.75, 0, TAU);
-      context.fill();
-
       const drawPoints: RenderPoint[] = [];
 
       for (let index = 0; index < points.length; index += 1) {
@@ -330,20 +295,14 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
         const screenX = centerX + x * sphereRadius * perspective;
         const screenY = centerY + y * sphereRadius * perspective;
         const depthMix = clamp((z + 1) * 0.5, 0, 1);
-        const phaseMix =
-          (Math.sin(time * 1.9 + point.phase * TAU + x * 2.2 - y * 1.6) + 1) * 0.5;
-        const colorCycle =
-          time * 0.1 + point.phase * 0.8 + depthMix * 0.28 + phaseMix * 0.22;
-        const color = samplePalette(colorCycle);
-        const shade = clamp(
-          0.74 + depthMix * 0.22 + Math.sin(time * 2.5 + point.phase * TAU) * 0.18,
-          0.32,
-          1.2,
+        const tone = Math.round(
+          clamp(
+            lerp(PARTICLE_MIN_TONE, PARTICLE_MAX_TONE, depthMix) +
+              Math.sin(time * 2.5 + point.phase * TAU) * 14,
+            PARTICLE_MIN_TONE,
+            PARTICLE_MAX_TONE,
+          ),
         );
-
-        const red = Math.round(clamp(color.r * shade, 0, 255));
-        const green = Math.round(clamp(color.g * shade, 0, 255));
-        const blue = Math.round(clamp(color.b * shade, 0, 255));
 
         const dotSize = Math.max(
           (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
@@ -360,9 +319,9 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
           z,
           fontSize: glyphFontSize,
           alpha: clamp((0.12 + depthMix * 0.7) * lerp(0.35, 1, introOpacity), 0.05, 0.85),
-          r: clamp(red, 0, 255),
-          g: clamp(green, 0, 255),
-          b: clamp(blue, 0, 255),
+          r: tone,
+          g: tone,
+          b: tone,
           glyph: point.glyph,
         });
       }

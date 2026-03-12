@@ -20,6 +20,7 @@ import {
   useScrollShell,
   useSlowZone,
 } from "@/components/marketing/SmoothScroll";
+import { Shift5BlockBackground } from "@/components/marketing/Shift5BlockBackground";
 import { useDevFlags } from "@/components/marketing/useDevFlags";
 import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
 import { SFFooter } from "@/components/marketing/sf/SFFooter";
@@ -94,6 +95,7 @@ const HERO_SCRAMBLE_COLORS = [
   "#ff5841",
   "#50C878",
 ] as const;
+const HERO_RESOLVED_COLOR = "#b9b9b9";
 const HERO_CANVAS_FADE_THRESHOLD = 0.1;
 
 function HeroShatterOverlay() {
@@ -280,15 +282,15 @@ function HeroAndSections() {
         <div
           id="hero-reveal"
           ref={heroRevealRef}
-          className="relative z-30 h-[160vh] bg-[#b9b9b9] md:h-[180vh]"
+          className="relative z-30 h-[160vh] bg-[#202020] md:h-[180vh]"
           style={HERO_DEFAULTS}
         >
-          <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[#b9b9b9]">
+          <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[#202020]">
             <div
               ref={heroLayerRef}
               className="absolute inset-0 z-20"
               style={{
-                backgroundColor: "#b9b9b9",
+                backgroundColor: "#202020",
                 opacity: "var(--hero-layer-opacity, 1)",
                 transform: "translate3d(0, 0, 0)",
                 transformOrigin: "center center",
@@ -296,6 +298,7 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
+              <Shift5BlockBackground reveal />
               <HeroShatterOverlay />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">
@@ -328,6 +331,7 @@ function HeroAndSections() {
                       <ScrambleHeadlineLoop
                         lineSets={HERO_HEADLINE_LINES}
                         scrambleColors={HERO_SCRAMBLE_COLORS}
+                        resolvedColor={HERO_RESOLVED_COLOR}
                         className="flex w-full max-w-full flex-col items-center justify-center gap-4"
                         lineClassName="flex max-w-full flex-wrap items-center justify-center leading-[0.9]"
                       />

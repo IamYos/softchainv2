@@ -21,6 +21,7 @@ type ScrambleLineProps = {
   delayMs: number;
   charset: string;
   scrambleColors: readonly string[];
+  resolvedColor: string;
   lineClassName: string;
   letterSpacing: string;
 };
@@ -30,6 +31,7 @@ function ScrambleHeadlineLine({
   delayMs,
   charset,
   scrambleColors,
+  resolvedColor,
   lineClassName,
   letterSpacing,
 }: ScrambleLineProps) {
@@ -66,7 +68,7 @@ function ScrambleHeadlineLine({
           if (tickRef.current > 2.5 * index + 25) {
             nextGlyphs.push({
               char: targetChar,
-              color: "#202020",
+              color: resolvedColor,
               resolved: true,
             });
             continue;
@@ -101,7 +103,7 @@ function ScrambleHeadlineLine({
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [charset, cleanText, delayMs, scrambleColors]);
+  }, [charset, cleanText, delayMs, resolvedColor, scrambleColors]);
 
   return (
     <div className={lineClassName} style={{ letterSpacing }}>
@@ -191,6 +193,7 @@ export type ScrambleHeadlineLoopProps = {
   lineDelayMs?: number;
   charset?: string;
   scrambleColors?: readonly string[];
+  resolvedColor?: string;
   className?: string;
   lineClassName?: string;
   letterSpacing?: string;
@@ -202,6 +205,7 @@ export function ScrambleHeadlineLoop({
   lineDelayMs = 100,
   charset = DEFAULT_CHARSET,
   scrambleColors = DEFAULT_SCRAMBLE_COLORS,
+  resolvedColor = "#202020",
   className = DEFAULT_CONTAINER_CLASS,
   lineClassName = DEFAULT_LINE_CLASS,
   letterSpacing = "var(--mf-tracking-hero)",
@@ -238,6 +242,7 @@ export function ScrambleHeadlineLoop({
           delayMs={lineDelayMs * lineIndex}
           charset={safeCharset}
           scrambleColors={safeScrambleColors}
+          resolvedColor={resolvedColor}
           lineClassName={lineClassName}
           letterSpacing={letterSpacing}
         />

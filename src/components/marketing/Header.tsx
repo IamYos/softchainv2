@@ -174,7 +174,7 @@ export function Header() {
       frame = 0;
       if (mobileMenuOpen) {
         backdrop.style.opacity = "0";
-        applyHeaderPalette(header, LIGHT_FRAME_HEADER_PALETTE);
+        applyHeaderPalette(header, DARK_FRAME_HEADER_PALETTE);
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
@@ -207,7 +207,7 @@ export function Header() {
       isFrameOnePaletteRef.current = showFrameOnePalette;
       applyHeaderPalette(
         header,
-        showFrameOnePalette ? LIGHT_FRAME_HEADER_PALETTE : DARK_FRAME_HEADER_PALETTE,
+        showFrameOnePalette ? DARK_FRAME_HEADER_PALETTE : LIGHT_FRAME_HEADER_PALETTE,
       );
       recordPerfSample("header-scroll-update", performance.now() - startedAt);
     };
@@ -262,7 +262,7 @@ export function Header() {
         ref={headerRef}
         className="absolute left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
         data-contrast="light"
-        style={LIGHT_FRAME_HEADER_PALETTE as CSSProperties}
+        style={DARK_FRAME_HEADER_PALETTE as CSSProperties}
       >
         <div
           ref={backdropRef}
