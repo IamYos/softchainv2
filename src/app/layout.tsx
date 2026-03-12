@@ -1,17 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const auxMono = localFont({
   src: [
@@ -44,6 +33,23 @@ const nonSans = localFont({
     },
   ],
   variable: "--font-non-sans",
+  display: "swap",
+});
+
+const ppEditorial = localFont({
+  src: [
+    {
+      path: "../fonts/PPEditorialNew-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../fonts/PPEditorialNew-Light.woff",
+      weight: "300",
+      style: "normal",
+    },
+  ],
+  variable: "--font-pp-editorial",
   display: "swap",
 });
 
@@ -107,7 +113,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${auxMono.variable} ${nonSans.variable} antialiased`}
+        className={`${auxMono.variable} ${nonSans.variable} ${ppEditorial.variable} antialiased`}
       >
         {children}
       </body>

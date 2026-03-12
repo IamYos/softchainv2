@@ -1,11 +1,6 @@
 "use client";
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { Capabilities } from "@/components/marketing/Capabilities";
-import { DotGridCTA } from "@/components/marketing/DotGridCTA";
-import { FadeIn } from "@/components/marketing/FadeIn";
-import { FixItReveal } from "@/components/marketing/FixItReveal";
-import { Footer } from "@/components/marketing/Footer";
 import { CustomCursor } from "@/components/marketing/CustomCursor";
 import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { Header } from "@/components/marketing/Header";
@@ -13,7 +8,6 @@ import {
   HERO_BUBBLE_CENTER_Y_RATIO,
   HeroParticleBubble,
 } from "@/components/marketing/HeroParticleBubble";
-import { HireTalentSection } from "@/components/marketing/HireTalentSection";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import {
   MarketingPerfOverlay,
@@ -27,8 +21,11 @@ import {
   useScrollShell,
   useSlowZone,
 } from "@/components/marketing/SmoothScroll";
-import { TheProblem } from "@/components/marketing/TheProblem";
 import { useDevFlags } from "@/components/marketing/useDevFlags";
+import { Shift5ContactForm } from "@/components/marketing/shift5/Shift5ContactForm";
+import { Shift5Footer } from "@/components/marketing/shift5/Shift5Footer";
+import { Shift5InsightsBlock } from "@/components/marketing/shift5/Shift5InsightsBlock";
+import { Shift5SolutionSlider } from "@/components/marketing/shift5/Shift5SolutionSlider";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -86,19 +83,6 @@ const HERO_DEFAULTS = {
   ["--hero-fragment-bottom-x" as string]: "0px",
   ["--hero-fragment-bottom-y" as string]: "0px",
   ["--hero-fragment-bottom-rotate" as string]: "0deg",
-  ["--grid-opacity" as string]: "0.55",
-  ["--grid-scale" as string]: "1",
-  ["--problem-y-top" as string]: "0px",
-  ["--problem-y-bottom" as string]: "0px",
-  ["--fix-text-top" as string]: "50%",
-  ["--fix-text-offset-y" as string]: "80px",
-  ["--fix-text-opacity" as string]: "0",
-  ["--fix-text-scale" as string]: "1.05",
-  ["--fix-burst-scale" as string]: "0.4",
-  ["--fix-burst-opacity" as string]: "0",
-  ["--fix-panel-opacity" as string]: "0",
-  ["--fix-panel-y" as string]: "90px",
-  ["--fix-panel-scale" as string]: "0.92",
 } as CSSProperties;
 
 const HERO_HEADLINE_LINES = [
@@ -205,7 +189,6 @@ function HeroAndSections() {
       const scrollRange = Math.max(heroReveal.offsetHeight - viewportHeight, 1);
       const scrollOffset = clamp(-rect.top, 0, scrollRange);
       const scrollProgress = scrollOffset / scrollRange;
-      const splitProgress = easeInCubic(interpolate(scrollProgress, [0.28, 1], [0, 1]));
       const heroFadeProgress = easeInCubic(normalize(scrollProgress, 0.14, 0.32));
       const heroLayerOpacity = 1 - heroFadeProgress;
       const contentFadeProgress = easeInCubic(normalize(scrollProgress, 0.02, 0.1));
@@ -258,58 +241,6 @@ function HeroAndSections() {
         "--hero-fragment-bottom-rotate",
         `${3.2 * shatterProgress}deg`,
       );
-      heroReveal.style.setProperty(
-        "--grid-opacity",
-        interpolate(scrollProgress, [0, 0.18, 0.32], [1, 0.55, 0]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--grid-scale",
-        interpolate(scrollProgress, [0, 0.3], [1, 1.08]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--problem-y-top",
-        `${interpolate(splitProgress, [0, 0.8], [0, -viewportHeight])}px`,
-      );
-      heroReveal.style.setProperty(
-        "--problem-y-bottom",
-        `${interpolate(splitProgress, [0, 0.8], [0, viewportHeight])}px`,
-      );
-      heroReveal.style.setProperty(
-        "--fix-text-top",
-        `${interpolate(splitProgress, [0.2, 0.5], [50, 10])}%`,
-      );
-      heroReveal.style.setProperty(
-        "--fix-text-offset-y",
-        `${interpolate(splitProgress, [0.2, 0.5], [80, 0])}px`,
-      );
-      heroReveal.style.setProperty(
-        "--fix-text-opacity",
-        interpolate(splitProgress, [0.2, 0.35], [0, 1]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--fix-text-scale",
-        interpolate(splitProgress, [0.2, 0.5], [1.05, 1]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--fix-burst-scale",
-        interpolate(splitProgress, [0.2, 0.45], [0.4, 1.8]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--fix-burst-opacity",
-        interpolate(splitProgress, [0.2, 0.25, 0.45], [0, 0.42, 0]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--fix-panel-opacity",
-        interpolate(splitProgress, [0.3, 0.4, 0.65], [0, 1, 1]).toString(),
-      );
-      heroReveal.style.setProperty(
-        "--fix-panel-y",
-        `${interpolate(splitProgress, [0.28, 0.5], [90, 0])}px`,
-      );
-      heroReveal.style.setProperty(
-        "--fix-panel-scale",
-        interpolate(splitProgress, [0.28, 0.5], [0.92, 1]).toString(),
-      );
       heroLayer.style.pointerEvents = heroLayerOpacity < 0.1 ? "none" : "auto";
       recordPerfSample("hero-scroll-update", performance.now() - startedAt);
     };
@@ -341,22 +272,10 @@ function HeroAndSections() {
         <div
           id="hero-reveal"
           ref={heroRevealRef}
-          className="relative z-30 h-[160vh] bg-[var(--mf-bg-base)] md:h-[180vh]"
+          className="relative z-30 h-[160vh] bg-[#b9b9b9] md:h-[180vh]"
           style={HERO_DEFAULTS}
         >
-          <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[var(--mf-bg-base)]">
-            <div className="absolute inset-0 z-0 pointer-events-none">
-              <PerfSection id="TheProblem">
-                <TheProblem />
-              </PerfSection>
-            </div>
-
-            <div className="absolute inset-0 z-10 pointer-events-none">
-              <PerfSection id="FixItReveal">
-                <FixItReveal />
-              </PerfSection>
-            </div>
-
+          <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[#b9b9b9]">
             <div
               ref={heroLayerRef}
               className="absolute inset-0 z-20 softchain-grid softchain-grid--light"
@@ -443,28 +362,18 @@ function HeroAndSections() {
           </div>
         </div>
 
-        <section className="relative z-30 border-t border-white/8 py-24">
-          <PageContainer>
-            <FadeIn className="mx-auto max-w-[900px] text-center">
-              <p className="text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
-                We do not sell products. We take ownership of technical scope, architecture, implementation, integration, deployment, and long-term support.
-              </p>
-            </FadeIn>
-          </PageContainer>
-        </section>
-
-        <PerfSection id="Capabilities">
-          <Capabilities />
+        <PerfSection id="Shift5SolutionSlider">
+          <Shift5SolutionSlider />
         </PerfSection>
-        <PerfSection id="HireTalentSection">
-          <HireTalentSection />
+        <PerfSection id="Shift5InsightsBlock">
+          <Shift5InsightsBlock />
         </PerfSection>
-        <PerfSection id="DotGridCTA">
-          <DotGridCTA />
+        <PerfSection id="Shift5ContactForm">
+          <Shift5ContactForm />
         </PerfSection>
       </main>
-      <PerfSection id="Footer">
-        <Footer />
+      <PerfSection id="Shift5Footer">
+        <Shift5Footer />
       </PerfSection>
     </>
   );

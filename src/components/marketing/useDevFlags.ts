@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 export type DevFlags = {
   perf: boolean;
@@ -20,30 +20,19 @@ const DEFAULT_DEV_FLAGS: DevFlags = {
   noBackdropBlur: false,
 };
 
-const NOOP_SUBSCRIBE = () => () => {};
-let cachedSearch = "";
-let cachedFlags = DEFAULT_DEV_FLAGS;
-
 function hasFlag(searchParams: URLSearchParams, name: string) {
   const value = searchParams.get(name);
   return value === "1" || value === "true";
 }
 
-export function getDevFlagsSnapshot(): DevFlags {
-  if (process.env.NODE_ENV === "production" || typeof window === "undefined") {
+function parseDevFlags(search: string): DevFlags {
+  if (process.env.NODE_ENV === "production" || !search) {
     return DEFAULT_DEV_FLAGS;
   }
 
-  const currentSearch = window.location.search;
+  const searchParams = new URLSearchParams(search);
 
-  if (currentSearch === cachedSearch) {
-    return cachedFlags;
-  }
-
-  const searchParams = new URLSearchParams(currentSearch);
-
-  cachedSearch = currentSearch;
-  cachedFlags = {
+  return {
     perf: hasFlag(searchParams, "perf"),
     noCanvas: hasFlag(searchParams, "noCanvas"),
     noCursor: hasFlag(searchParams, "noCursor"),
@@ -51,14 +40,40 @@ export function getDevFlagsSnapshot(): DevFlags {
     noHeroBlur: hasFlag(searchParams, "noHeroBlur"),
     noBackdropBlur: hasFlag(searchParams, "noBackdropBlur"),
   };
-
-  return cachedFlags;
 }
 
-function getServerSnapshot() {
-  return DEFAULT_DEV_FLAGS;
+export function getDevFlagsSnapshot(): DevFlags {
+  if (typeof window === "undefined") {
+    return DEFAULT_DEV_FLAGS;
+  }
+
+  return parseDevFlags(window.location.search);
+}
+
+function subscribeToSearch(callback: () => void) {
+  window.addEventListener("popstate", callback);
+  window.addEventListener("hashchange", callback);
+
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener("hashchange", callback);
+  };
+}
+
+function getSearchSnapshot() {
+  return window.location.search;
+}
+
+function getServerSearchSnapshot() {
+  return "";
 }
 
 export function useDevFlags() {
-  return useSyncExternalStore(NOOP_SUBSCRIBE, getDevFlagsSnapshot, getServerSnapshot);
+  const search = useSyncExternalStore(
+    subscribeToSearch,
+    getSearchSnapshot,
+    getServerSearchSnapshot,
+  );
+
+  return useMemo(() => parseDevFlags(search), [search]);
 }
