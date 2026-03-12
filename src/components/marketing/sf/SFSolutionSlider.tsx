@@ -1,21 +1,21 @@
 "use client";
 
 import { useRef } from "react";
-import styles from "./Shift5PostFrame.module.css";
+import styles from "./SFPostFrame.module.css";
 import {
-  Shift5ArrowLeftIcon,
-  Shift5ArrowRightIcon,
-  Shift5DefaultIcon,
-  Shift5GlobeIcon,
-  Shift5TriangleIcon,
-} from "./Shift5SourceIcons";
+  SFArrowLeftIcon,
+  SFArrowRightIcon,
+  SFDefaultIcon,
+  SFGlobeIcon,
+  SFTriangleIcon,
+} from "./SFSourceIcons";
 
 const SOLUTIONS = [
   {
     title: "Software Engineering",
     description:
       "Web platforms, client portals, dashboards, internal systems, and production software delivery built to hold up under real operational load.",
-    href: "#shift5-solutions",
+    href: "#sf-solutions",
     icon: "globe" as const,
     lines: 3,
   },
@@ -23,7 +23,7 @@ const SOLUTIONS = [
     title: "AI Systems",
     description:
       "RAG, workflow automation, intelligent interfaces, and private or hybrid inference pipelines deployed where they create measurable business value.",
-    href: "#shift5-insights",
+    href: "#sf-insights",
     icon: "dots" as const,
     lines: 3,
   },
@@ -64,21 +64,21 @@ function SolutionLines({ count }: { count: number }) {
 
 function SolutionIcon({ icon }: { icon: (typeof SOLUTIONS)[number]["icon"] }) {
   if (icon === "globe") {
-    return <Shift5GlobeIcon className={styles.solutionIconShell} />;
+    return <SFGlobeIcon className={styles.solutionIconShell} />;
   }
 
   if (icon === "default") {
-    return <Shift5DefaultIcon className={styles.solutionIconShell} />;
+    return <SFDefaultIcon className={styles.solutionIconShell} />;
   }
 
   if (icon === "triangle") {
-    return <Shift5TriangleIcon className={styles.solutionIconShell} />;
+    return <SFTriangleIcon className={styles.solutionIconShell} />;
   }
 
   return <div className={styles.solutionDotsIcon} aria-hidden="true" />;
 }
 
-export function Shift5SolutionSlider() {
+export function SFSolutionSlider() {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const scrollByCard = (direction: 1 | -1) => {
@@ -94,7 +94,7 @@ export function Shift5SolutionSlider() {
 
   return (
     <section
-      id="shift5-solutions"
+      id="sf-solutions"
       className={`${styles.sectionRoot} ${styles.solutionsSection}`}
     >
       <div className={styles.wrapper}>
@@ -109,7 +109,7 @@ export function Shift5SolutionSlider() {
               aria-label="Scroll solutions left"
               onClick={() => scrollByCard(-1)}
             >
-              <Shift5ArrowLeftIcon className={styles.solutionsControlIcon} />
+              <SFArrowLeftIcon className={styles.solutionsControlIcon} />
             </button>
             <button
               type="button"
@@ -117,7 +117,7 @@ export function Shift5SolutionSlider() {
               aria-label="Scroll solutions right"
               onClick={() => scrollByCard(1)}
             >
-              <Shift5ArrowRightIcon className={styles.solutionsControlIcon} />
+              <SFArrowRightIcon className={styles.solutionsControlIcon} />
             </button>
           </div>
         </div>

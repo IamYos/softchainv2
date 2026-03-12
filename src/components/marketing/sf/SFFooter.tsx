@@ -3,23 +3,23 @@
 import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import styles from "./Shift5PostFrame.module.css";
+import styles from "./SFPostFrame.module.css";
 
 const FOOTER_LINKS = {
-  platform: [{ label: "Overview", href: "#shift5-solutions" }],
+  platform: [{ label: "Overview", href: "#sf-solutions" }],
   services: [
-    { label: "Software Engineering", href: "#shift5-solutions" },
-    { label: "AI Systems", href: "#shift5-solutions" },
-    { label: "Infrastructure", href: "#shift5-solutions" },
-    { label: "Mobile Delivery", href: "#shift5-solutions" },
+    { label: "Software Engineering", href: "#sf-solutions" },
+    { label: "AI Systems", href: "#sf-solutions" },
+    { label: "Infrastructure", href: "#sf-solutions" },
+    { label: "Mobile Delivery", href: "#sf-solutions" },
   ],
   company: [
-    { label: "Company Profile", href: "#shift5-insights" },
-    { label: "Global Delivery", href: "#shift5-insights" },
+    { label: "Company Profile", href: "#sf-insights" },
+    { label: "Global Delivery", href: "#sf-insights" },
   ],
 } as const;
 
-export function Shift5Footer() {
+export function SFFooter() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -114,7 +114,7 @@ export function Shift5Footer() {
                 </ul>
               </li>
               <li className={`${styles.footerNavItem} ${styles.p2}`}>
-                <a href="#shift5-insights">Insights</a>
+                <a href="#sf-insights">Insights</a>
               </li>
               <li className={`${styles.footerNavItem} ${styles.p2}`}>
                 <a href="#closing-cta">Contact</a>

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import styles from "./Shift5PostFrame.module.css";
+import styles from "./SFPostFrame.module.css";
 
 const FEATURED_INSIGHT = {
   title: "Engineering work that survives the real world, not just the kickoff.",
@@ -122,10 +122,10 @@ function InsightRail() {
   );
 }
 
-export function Shift5InsightsBlock() {
+export function SFInsightsBlock() {
   return (
     <section
-      id="shift5-insights"
+      id="sf-insights"
       className={`${styles.sectionRoot} ${styles.insightsSection}`}
     >
       <div className={styles.insightsMobile}>

@@ -22,10 +22,10 @@ import {
   useSlowZone,
 } from "@/components/marketing/SmoothScroll";
 import { useDevFlags } from "@/components/marketing/useDevFlags";
-import { Shift5ContactForm } from "@/components/marketing/shift5/Shift5ContactForm";
-import { Shift5Footer } from "@/components/marketing/shift5/Shift5Footer";
-import { Shift5InsightsBlock } from "@/components/marketing/shift5/Shift5InsightsBlock";
-import { Shift5SolutionSlider } from "@/components/marketing/shift5/Shift5SolutionSlider";
+import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
+import { SFFooter } from "@/components/marketing/sf/SFFooter";
+import { SFInsightsBlock } from "@/components/marketing/sf/SFInsightsBlock";
+import { SFSolutionSlider } from "@/components/marketing/sf/SFSolutionSlider";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -362,18 +362,18 @@ function HeroAndSections() {
           </div>
         </div>
 
-        <PerfSection id="Shift5SolutionSlider">
-          <Shift5SolutionSlider />
+        <PerfSection id="SFSolutionSlider">
+          <SFSolutionSlider />
         </PerfSection>
-        <PerfSection id="Shift5InsightsBlock">
-          <Shift5InsightsBlock />
+        <PerfSection id="SFInsightsBlock">
+          <SFInsightsBlock />
         </PerfSection>
-        <PerfSection id="Shift5ContactForm">
-          <Shift5ContactForm />
+        <PerfSection id="SFContactForm">
+          <SFContactForm />
         </PerfSection>
       </main>
-      <PerfSection id="Shift5Footer">
-        <Shift5Footer />
+      <PerfSection id="SFFooter">
+        <SFFooter />
       </PerfSection>
     </>
   );

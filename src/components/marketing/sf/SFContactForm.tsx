@@ -1,14 +1,14 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import styles from "./Shift5PostFrame.module.css";
+import styles from "./SFPostFrame.module.css";
 import {
-  Shift5CloseIcon,
-  Shift5LeftParenthesisIcon,
-  Shift5RightParenthesisIcon,
-} from "./Shift5SourceIcons";
+  SFCloseIcon,
+  SFLeftParenthesisIcon,
+  SFRightParenthesisIcon,
+} from "./SFSourceIcons";
 
-export function Shift5ContactForm() {
+export function SFContactForm() {
   const [email, setEmail] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -70,7 +70,7 @@ export function Shift5ContactForm() {
 
         <div className={styles.emailStage}>
           <div className={styles.emailContent}>
-            <Shift5LeftParenthesisIcon className={styles.parenthesisIcon} />
+            <SFLeftParenthesisIcon className={styles.parenthesisIcon} />
             <div className={styles.emailFieldWrap}>
               <label htmlFor="contact-email" className={styles.srOnly}>
                 Enter your email
@@ -85,7 +85,7 @@ export function Shift5ContactForm() {
               />
               <div className={styles.fieldLine} aria-hidden="true" />
             </div>
-            <Shift5RightParenthesisIcon className={styles.parenthesisIcon} />
+            <SFRightParenthesisIcon className={styles.parenthesisIcon} />
           </div>
 
           <button
@@ -108,7 +108,7 @@ export function Shift5ContactForm() {
             aria-label="Close contact form"
             className={`${styles.fieldsClose} ${styles.fieldsCloseMobile}`}
           >
-            <Shift5CloseIcon className={styles.fieldsCloseIcon} />
+            <SFCloseIcon className={styles.fieldsCloseIcon} />
           </button>
 
           <h3 className={`${styles.fieldsTitle} ${styles.p2}`}>
@@ -207,7 +207,7 @@ export function Shift5ContactForm() {
           aria-label="Close contact form"
           className={`${styles.fieldsClose} ${styles.fieldsCloseDesktop} ${isOpen ? styles.fieldsCloseActive : ""}`}
         >
-          <Shift5CloseIcon className={styles.fieldsCloseIcon} />
+          <SFCloseIcon className={styles.fieldsCloseIcon} />
         </button>
 
         <div className={`${styles.formSuccess} ${isSubmitted ? styles.formSuccessVisible : ""}`}>
