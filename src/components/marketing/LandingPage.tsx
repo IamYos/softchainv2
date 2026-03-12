@@ -2,7 +2,6 @@
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { CustomCursor } from "@/components/marketing/CustomCursor";
-import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { Header } from "@/components/marketing/Header";
 import {
   HERO_BUBBLE_CENTER_Y_RATIO,
@@ -287,12 +286,8 @@ function HeroAndSections() {
           <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[#b9b9b9]">
             <div
               ref={heroLayerRef}
-              className="absolute inset-0 z-20 softchain-grid softchain-grid--light"
+              className="absolute inset-0 z-20"
               style={{
-                ["--softchain-grid-size" as string]: "102px",
-                ["--softchain-grid-bg" as string]: "#b9b9b9",
-                ["--softchain-grid-pattern" as string]:
-                  'url("data:image/svg+xml,%3Csvg%20width%3D%22102%22%20height%3D%22102%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cline%20x1%3D%2210%22%20y1%3D%220.5%22%20x2%3D%2292%22%20y2%3D%220.5%22%20stroke%3D%22%238F8F8F%22%20stroke-opacity%3D%220.45%22%20stroke-width%3D%221%22%20%2F%3E%3Cline%20x1%3D%220.5%22%20y1%3D%2210%22%20x2%3D%220.5%22%20y2%3D%2292%22%20stroke%3D%22%238F8F8F%22%20stroke-opacity%3D%220.45%22%20stroke-width%3D%221%22%20%2F%3E%3C%2Fsvg%3E")',
                 backgroundColor: "#b9b9b9",
                 opacity: "var(--hero-layer-opacity, 1)",
                 transform: "translate3d(0, 0, 0)",
@@ -301,20 +296,6 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
-              {!noCanvas ? (
-                <PerfSection id="HeroGridHoverEffect">
-                  <GridHoverEffect
-                    active={heroCanvasActive}
-                    cellSize={102}
-                    segmentInset={10}
-                    maxAlpha={0.62}
-                    spread={3}
-                    glow={10}
-                    lineWidth={1.35}
-                    fadeOutMs={280}
-                  />
-                </PerfSection>
-              ) : null}
               <HeroShatterOverlay />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">

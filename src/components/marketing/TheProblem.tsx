@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import { GridHoverEffect } from "@/components/marketing/GridHoverEffect";
 import { useInView } from "@/components/marketing/useInView";
 import { useDevFlags } from "@/components/marketing/useDevFlags";
 
@@ -82,7 +81,7 @@ function MarqueeRow({
 
 export function TheProblem() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { noCanvas, noMarquee } = useDevFlags();
+  const { noMarquee } = useDevFlags();
   const isInView = useInView(sectionRef, {
     once: false,
     rootMargin: "200px 0px",
@@ -93,26 +92,7 @@ export function TheProblem() {
       ref={sectionRef}
       className="absolute inset-0 flex items-center justify-center overflow-hidden"
     >
-      <div className="absolute inset-0 bg-[var(--mf-bg-base)]">
-        <div
-          className="absolute inset-0 softchain-grid softchain-grid--dark"
-          style={{
-            ["--softchain-grid-size" as string]: "102px",
-            ["--softchain-grid-bg" as string]: "var(--mf-bg-base)",
-          }}
-        />
-      </div>
-      {!noCanvas ? (
-        <GridHoverEffect
-          cellSize={102}
-          segmentInset={10}
-          maxAlpha={0.58}
-          spread={3}
-          glow={9}
-          lineWidth={1.3}
-          fadeOutMs={280}
-        />
-      ) : null}
+      <div className="absolute inset-0 bg-[var(--mf-bg-base)]" />
 
       {!noMarquee ? (
         <div className="relative z-10 flex w-full flex-col gap-0">
