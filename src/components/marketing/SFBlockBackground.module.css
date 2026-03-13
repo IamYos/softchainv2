@@ -22,7 +22,7 @@
 .fillReveal {
   clip-path: inset(100% 0 0 0);
   will-change: clip-path;
-  animation: shift5BlockReveal 900ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
+  animation: sfBlockReveal 900ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -32,7 +32,7 @@
   }
 }
 
-@keyframes shift5BlockReveal {
+@keyframes sfBlockReveal {
   from {
     clip-path: inset(100% 0 0 0);
   }

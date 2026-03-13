@@ -20,7 +20,7 @@ import {
   useScrollShell,
   useSlowZone,
 } from "@/components/marketing/SmoothScroll";
-import { Shift5BlockBackground } from "@/components/marketing/Shift5BlockBackground";
+import { SFBlockBackground } from "@/components/marketing/SFBlockBackground";
 import { useDevFlags } from "@/components/marketing/useDevFlags";
 import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
 import { SFFooter } from "@/components/marketing/sf/SFFooter";
@@ -299,7 +299,7 @@ function HeroAndSections() {
                 willChange: "transform, opacity, filter",
               }}
             >
-              <Shift5BlockBackground reveal />
+              <SFBlockBackground reveal />
               <HeroShatterOverlay />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">

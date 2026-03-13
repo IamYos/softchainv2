@@ -1,16 +1,16 @@
-import styles from "./Shift5BlockBackground.module.css";
+import styles from "./SFBlockBackground.module.css";
 
-type Shift5BlockBackgroundProps = {
+type SFBlockBackgroundProps = {
   className?: string;
   rounded?: boolean;
   reveal?: boolean;
 };
 
-export function Shift5BlockBackground({
+export function SFBlockBackground({
   className,
   rounded = false,
   reveal = false,
-}: Shift5BlockBackgroundProps) {
+}: SFBlockBackgroundProps) {
   const rootClassName = [
     styles.root,
     rounded ? styles.rounded : "",
