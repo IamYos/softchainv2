@@ -48,12 +48,17 @@ const HERO_RESOLVED_COLOR = "#b9b9b9";
 function ScrollTrappedSection({ children, id }: { children: ReactNode; id?: string }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const cachedScrollableRef = useRef<HTMLElement | null>(null);
-  const wasAtBoundaryRef = useRef(false);
-  const transitioningRef = useRef(false);
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
+
+    // "scrolling" — inner content scrolls, wheel events are trapped
+    // "locked"   — hit boundary, swallowing the rest of this gesture
+    // "released" — gesture ended after lock, next events pass to snap scroller
+    let phase: "scrolling" | "locked" | "released" = "scrolling";
+    let lockedDirection: 1 | -1 = 1;
+    let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
 
     const getScrollable = (): HTMLElement | null => {
       const cached = cachedScrollableRef.current;
@@ -66,7 +71,6 @@ function ScrollTrappedSection({ children, id }: { children: ReactNode; id?: stri
         return cached;
       }
 
-      // Find the visible element with overflow-y: auto that has scrollable content
       const elements = section.querySelectorAll<HTMLElement>("*");
       for (const el of elements) {
         if (el.offsetParent === null) continue;
@@ -84,74 +88,77 @@ function ScrollTrappedSection({ children, id }: { children: ReactNode; id?: stri
       return null;
     };
 
-    const scrollToAdjacentSection = (direction: 1 | -1) => {
-      if (transitioningRef.current) return;
-      transitioningRef.current = true;
-
-      const allSections = Array.from(
-        document.querySelectorAll<HTMLElement>(".snap-section"),
-      );
-      const currentIdx = allSections.indexOf(section);
-      const targetIdx = currentIdx + direction;
-
-      if (targetIdx >= 0 && targetIdx < allSections.length) {
-        allSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-
-      setTimeout(() => {
-        transitioningRef.current = false;
-      }, 900);
-    };
-
     const handleWheel = (e: WheelEvent) => {
-      // Always prevent default to stop the native snap from firing
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (transitioningRef.current) return;
-
       const scrollable = getScrollable();
+      // No inner scrollable — let event pass to snap scroller
       if (!scrollable) return;
 
       const { scrollTop, scrollHeight, clientHeight } = scrollable;
       const atTop = scrollTop <= 1;
       const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-      const atBoundary =
-        (e.deltaY > 0 && atBottom) || (e.deltaY < 0 && atTop);
+      const direction: 1 | -1 = e.deltaY > 0 ? 1 : -1;
 
-      // Scrolling down and inner content has room to scroll
+      // Released: let events pass through to the native snap scroller
+      if (phase === "released") {
+        const hasRoom = (direction === 1 && !atBottom) || (direction === -1 && !atTop);
+        if (hasRoom || direction !== lockedDirection) {
+          // Inner scroll has room again or direction reversed — back to scrolling
+          phase = "scrolling";
+        } else {
+          // Don't preventDefault — snap scroller picks it up
+          return;
+        }
+      }
+
+      // Locked: swallow events until the gesture ends
+      if (phase === "locked") {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (gestureEndTimer) clearTimeout(gestureEndTimer);
+        gestureEndTimer = setTimeout(() => {
+          phase = "released";
+          gestureEndTimer = null;
+        }, 150);
+
+        if (direction !== lockedDirection) {
+          // Direction reversed while locked — go back to scrolling
+          phase = "scrolling";
+        } else {
+          return;
+        }
+      }
+
+      // Scrolling: trap events and redirect to inner scrollable
+      e.preventDefault();
+      e.stopPropagation();
+
       if (e.deltaY > 0 && !atBottom) {
         scrollable.scrollTop = Math.min(
           scrollTop + e.deltaY,
           scrollHeight - clientHeight,
         );
-        wasAtBoundaryRef.current = false;
         return;
       }
 
-      // Scrolling up and inner content has room to scroll
       if (e.deltaY < 0 && !atTop) {
         scrollable.scrollTop = Math.max(scrollTop + e.deltaY, 0);
-        wasAtBoundaryRef.current = false;
         return;
       }
 
-      // At boundary — require two consecutive boundary events
-      if (atBoundary && !wasAtBoundaryRef.current) {
-        wasAtBoundaryRef.current = true;
-        return;
-      }
+      // Hit boundary — lock and wait for gesture to end
+      phase = "locked";
+      lockedDirection = direction;
 
-      // Second consecutive boundary — smoothly transition to adjacent section
-      if (atBoundary) {
-        wasAtBoundaryRef.current = false;
-        scrollToAdjacentSection(e.deltaY > 0 ? 1 : -1);
-      }
+      if (gestureEndTimer) clearTimeout(gestureEndTimer);
+      gestureEndTimer = setTimeout(() => {
+        phase = "released";
+        gestureEndTimer = null;
+      }, 150);
     };
 
     section.addEventListener("wheel", handleWheel, { passive: false });
 
-    // Invalidate cached scrollable on resize
     const handleResize = () => {
       cachedScrollableRef.current = null;
     };
@@ -160,6 +167,7 @@ function ScrollTrappedSection({ children, id }: { children: ReactNode; id?: stri
     return () => {
       section.removeEventListener("wheel", handleWheel);
       window.removeEventListener("resize", handleResize);
+      if (gestureEndTimer) clearTimeout(gestureEndTimer);
     };
   }, []);
 
