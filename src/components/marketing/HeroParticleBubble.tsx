@@ -14,6 +14,8 @@ type SpherePoint = {
   settleDelay: number;
   glyph: "0" | "1";
   nextGlyphFlipAt: number;
+  colorIndex: number;
+  nextColorFlipAt: number;
 };
 
 type RenderPoint = {
@@ -22,9 +24,11 @@ type RenderPoint = {
   z: number;
   fontSize: number;
   alpha: number;
-  r: number;
-  g: number;
-  b: number;
+  color: {
+    r: number;
+    g: number;
+    b: number;
+  };
   glyph: "0" | "1";
 };
 
@@ -33,11 +37,16 @@ const PARTICLE_FONT_FALLBACK =
   '"Hack", "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace';
 const PARTICLE_FONT_SCALE = 3.6;
 const BUBBLE_SCALE = 1.15;
-const MIN_GLYPH_FLIP_DELAY = 0.35;
-const MAX_GLYPH_FLIP_DELAY = 1.75;
+const MIN_GLYPH_FLIP_DELAY = 0.06;
+const MAX_GLYPH_FLIP_DELAY = 0.5;
+const MIN_COLOR_FLIP_DELAY = 0.08;
+const MAX_COLOR_FLIP_DELAY = 0.5;
 export const HERO_BUBBLE_CENTER_Y_RATIO = 0.46;
-const PARTICLE_MIN_TONE = 118;
-const PARTICLE_MAX_TONE = 196;
+const PARTICLE_COLOR_PALETTE = [
+  { r: 185, g: 185, b: 185 },
+  { r: 255, g: 88, b: 65 },
+  { r: 80, g: 200, b: 120 },
+] as const;
 
 type HeroParticleBubbleProps = {
   active?: boolean;
@@ -55,8 +64,27 @@ function createGlyphFlipDelay() {
   return MIN_GLYPH_FLIP_DELAY + Math.random() * (MAX_GLYPH_FLIP_DELAY - MIN_GLYPH_FLIP_DELAY);
 }
 
+function createColorFlipDelay() {
+  return MIN_COLOR_FLIP_DELAY + Math.random() * (MAX_COLOR_FLIP_DELAY - MIN_COLOR_FLIP_DELAY);
+}
+
 function createBinaryGlyph(): "0" | "1" {
   return Math.random() < 0.5 ? "0" : "1";
+}
+
+function createColorIndex(exclude?: number) {
+  const nextIndex = Math.floor(Math.random() * PARTICLE_COLOR_PALETTE.length);
+
+  if (
+    exclude !== undefined &&
+    PARTICLE_COLOR_PALETTE.length > 1 &&
+    nextIndex === exclude
+  ) {
+    return (nextIndex + 1 + Math.floor(Math.random() * (PARTICLE_COLOR_PALETTE.length - 1))) %
+      PARTICLE_COLOR_PALETTE.length;
+  }
+
+  return nextIndex;
 }
 
 function createSpherePoints(count: number): SpherePoint[] {
@@ -85,6 +113,8 @@ function createSpherePoints(count: number): SpherePoint[] {
       settleDelay: Math.random() * 0.28,
       glyph: createBinaryGlyph(),
       nextGlyphFlipAt: Math.random() * MAX_GLYPH_FLIP_DELAY,
+      colorIndex: createColorIndex(),
+      nextColorFlipAt: Math.random() * MAX_COLOR_FLIP_DELAY,
     });
   }
 
@@ -256,6 +286,10 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
           point.glyph = point.glyph === "0" ? "1" : "0";
           point.nextGlyphFlipAt = elapsed + createGlyphFlipDelay();
         }
+        if (elapsed >= point.nextColorFlipAt) {
+          point.colorIndex = createColorIndex(point.colorIndex);
+          point.nextColorFlipAt = elapsed + createColorFlipDelay();
+        }
 
         const pulse = Math.sin(time * point.wobble + point.phase * TAU) * 0.045;
 
@@ -295,14 +329,7 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
         const screenX = centerX + x * sphereRadius * perspective;
         const screenY = centerY + y * sphereRadius * perspective;
         const depthMix = clamp((z + 1) * 0.5, 0, 1);
-        const tone = Math.round(
-          clamp(
-            lerp(PARTICLE_MIN_TONE, PARTICLE_MAX_TONE, depthMix) +
-              Math.sin(time * 2.5 + point.phase * TAU) * 14,
-            PARTICLE_MIN_TONE,
-            PARTICLE_MAX_TONE,
-          ),
-        );
+        const color = PARTICLE_COLOR_PALETTE[point.colorIndex];
 
         const dotSize = Math.max(
           (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
@@ -319,9 +346,7 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
           z,
           fontSize: glyphFontSize,
           alpha: clamp((0.12 + depthMix * 0.7) * lerp(0.35, 1, introOpacity), 0.05, 0.85),
-          r: tone,
-          g: tone,
-          b: tone,
+          color,
           glyph: point.glyph,
         });
       }
@@ -340,7 +365,7 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
           context.font = `700 ${point.fontSize}px ${particleFontFamily}`;
         }
 
-        context.fillStyle = `rgba(${point.r}, ${point.g}, ${point.b}, ${point.alpha})`;
+        context.fillStyle = `rgba(${point.color.r}, ${point.color.g}, ${point.color.b}, ${point.alpha})`;
         context.fillText(point.glyph, point.x, point.y);
       }
 
