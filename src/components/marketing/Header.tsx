@@ -70,7 +70,7 @@ const DARK_FRAME_HEADER_PALETTE = {
   ["--header-menu-bg" as string]: "#b9b9b9",
   ["--header-menu-border" as string]: "rgba(185, 185, 185, 0.38)",
   ["--header-menu-text" as string]: "#202020",
-  ["--header-menu-mobile-text" as string]: "#ffffff",
+  ["--header-menu-mobile-text" as string]: "#b9b9b9",
   ["--header-menu-hover-bg" as string]: "#202020",
   ["--header-menu-hover-border" as string]: "#b9b9b9",
   ["--header-menu-hover-text" as string]: "#b9b9b9",
@@ -91,6 +91,13 @@ const DARK_FRAME_HEADER_PALETTE = {
   ["--header-cta-book-focus" as string]: "#b9b9b9",
 } satisfies Record<string, string>;
 
+const MENU_OPEN_HEADER_PALETTE = {
+  ...LIGHT_FRAME_HEADER_PALETTE,
+  ["--header-text" as string]: "#202020",
+  ["--header-logo-filter" as string]: "none",
+  ["--header-menu-mobile-text" as string]: "#202020",
+} satisfies Record<string, string>;
+
 function applyHeaderPalette(
   header: HTMLElement,
   palette: Record<string, string>,
@@ -100,33 +107,11 @@ function applyHeaderPalette(
   });
 }
 
-function getHeaderBackdropOpacity(scrollTop: number, viewportHeight: number) {
-  const heroScrollRange = viewportHeight * 1.2;
-
-  if (scrollTop >= heroScrollRange) {
-    return 1;
-  }
-
-  const fadeStart = viewportHeight * 0.08;
-  const fadeEnd = viewportHeight * 0.3;
-
-  if (scrollTop <= fadeStart) {
-    return 0;
-  }
-
-  if (scrollTop >= fadeEnd) {
-    return 1;
-  }
-
-  return (scrollTop - fadeStart) / (fadeEnd - fadeStart);
-}
-
 export function Header() {
   const lenis = useLenis();
   const { scrollWrapperRef } = useScrollShell();
   const headerRef = useRef<HTMLElement>(null);
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const isFrameOnePaletteRef = useRef(true);
+  const isFrameOnePaletteRef = useRef<boolean | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -159,10 +144,9 @@ export function Header() {
 
   useEffect(() => {
     const header = headerRef.current;
-    const backdrop = backdropRef.current;
     const scrollRoot = scrollWrapperRef.current;
 
-    if (!header || !backdrop || !scrollRoot) {
+    if (!header || !scrollRoot) {
       return;
     }
 
@@ -173,16 +157,11 @@ export function Header() {
       const startedAt = performance.now();
       frame = 0;
       if (mobileMenuOpen) {
-        backdrop.style.opacity = "0";
-        applyHeaderPalette(header, DARK_FRAME_HEADER_PALETTE);
+        isFrameOnePaletteRef.current = null;
+        applyHeaderPalette(header, MENU_OPEN_HEADER_PALETTE);
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
-
-      backdrop.style.opacity = `${getHeaderBackdropOpacity(
-        scrollRoot.scrollTop,
-        scrollRoot.clientHeight || window.innerHeight,
-      )}`;
 
       if (!heroReveal) {
         heroReveal = document.getElementById("hero-reveal");
@@ -264,19 +243,6 @@ export function Header() {
         data-contrast="light"
         style={DARK_FRAME_HEADER_PALETTE as CSSProperties}
       >
-        <div
-          ref={backdropRef}
-          className="absolute inset-0 h-24 pointer-events-none"
-          style={{
-            backgroundColor: "rgba(10, 10, 10, 1)",
-            opacity: 0,
-            maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
-            WebkitMaskImage:
-              "linear-gradient(to bottom, black 0%, transparent 100%)",
-            willChange: "opacity",
-          }}
-        />
-
         <PageContainer className="relative z-10 mt-2 flex h-16 items-center justify-between">
           <HeaderLogoButton onClick={scrollToTop} />
 
