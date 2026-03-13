@@ -116,15 +116,18 @@ export function Header() {
 
   useEffect(() => {
     if (mobileMenuOpen) {
-      lenis?.stop();
+      const wrapper = scrollWrapperRef.current;
+      if (wrapper) wrapper.style.overflow = "hidden";
     } else {
-      lenis?.start();
+      const wrapper = scrollWrapperRef.current;
+      if (wrapper) wrapper.style.overflow = "";
     }
 
     return () => {
-      lenis?.start();
+      const wrapper = scrollWrapperRef.current;
+      if (wrapper) wrapper.style.overflow = "";
     };
-  }, [lenis, mobileMenuOpen]);
+  }, [mobileMenuOpen, scrollWrapperRef]);
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -151,7 +154,6 @@ export function Header() {
     }
 
     let frame = 0;
-    let heroReveal: HTMLElement | null = null;
 
     const update = () => {
       const startedAt = performance.now();
@@ -163,20 +165,16 @@ export function Header() {
         return;
       }
 
-      if (!heroReveal) {
-        heroReveal = document.getElementById("hero-reveal");
-      }
-
+      // Check if hero section is the currently visible snap section
+      const heroReveal = document.getElementById("hero-reveal");
       if (!heroReveal) {
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
 
-      const heroLayerOpacity = Number.parseFloat(
-        getComputedStyle(heroReveal).getPropertyValue("--hero-layer-opacity"),
-      );
-      const showFrameOnePalette =
-        !Number.isNaN(heroLayerOpacity) && heroLayerOpacity > FRAME_ONE_FADE_THRESHOLD;
+      const heroRect = heroReveal.getBoundingClientRect();
+      // Hero is visible if its top is close to 0 (within snap threshold)
+      const showFrameOnePalette = heroRect.top > -heroRect.height * 0.5;
 
       if (showFrameOnePalette === isFrameOnePaletteRef.current) {
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
@@ -214,21 +212,12 @@ export function Header() {
 
   const scrollToTop = () => {
     setMobileMenuOpen(false);
-    lenis?.start();
-    lenis?.scrollTo(0, { duration: 1, force: true });
+    lenis?.scrollTo(0, { duration: 1 });
   };
 
   const scrollToTarget = (target: string) => {
-    const element = document.getElementById(target);
-
     setMobileMenuOpen(false);
-
-    if (!element) {
-      return;
-    }
-
-    lenis?.start();
-    lenis?.scrollTo(element, { duration: 1.2, force: true });
+    lenis?.scrollTo(`#${target}`, { duration: 1.2 });
   };
 
   const handleNavItemClick = (item: HeaderNavItem) => {

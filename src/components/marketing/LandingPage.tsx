@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, ReactNode, useEffect, useRef } from "react";
 import { CustomCursor } from "@/components/marketing/CustomCursor";
 import { Header } from "@/components/marketing/Header";
 import {
@@ -11,14 +11,11 @@ import { PageContainer } from "@/components/marketing/PageContainer";
 import {
   MarketingPerfOverlay,
   PerfSection,
-  recordPerfSample,
 } from "@/components/marketing/MarketingPerfDebug";
 import { ScrambleHeadlineLoop } from "@/components/marketing/ScrambleHeadlineLoop";
 import {
   SmoothScroll,
   useLenis,
-  useScrollShell,
-  useSlowZone,
 } from "@/components/marketing/SmoothScroll";
 import { SFBlockBackground } from "@/components/marketing/SFBlockBackground";
 import { useDevFlags } from "@/components/marketing/useDevFlags";
@@ -26,64 +23,6 @@ import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
 import { SFFooter } from "@/components/marketing/sf/SFFooter";
 import { SFInsightsBlock } from "@/components/marketing/sf/SFInsightsBlock";
 import { SFSolutionSlider } from "@/components/marketing/sf/SFSolutionSlider";
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function interpolate(value: number, input: number[], output: number[]) {
-  if (input.length !== output.length) {
-    throw new Error("Input and output ranges must have the same length.");
-  }
-
-  if (value <= input[0]) {
-    return output[0];
-  }
-
-  if (value >= input[input.length - 1]) {
-    return output[output.length - 1];
-  }
-
-  let index = 0;
-
-  while (index < input.length - 1 && value > input[index + 1]) {
-    index += 1;
-  }
-
-  const start = input[index];
-  const end = input[index + 1];
-  const progress = (value - start) / (end - start);
-
-  return output[index] + (output[index + 1] - output[index]) * progress;
-}
-
-function normalize(value: number, min: number, max: number) {
-  if (max <= min) {
-    return 0;
-  }
-
-  return clamp((value - min) / (max - min), 0, 1);
-}
-
-function easeInCubic(value: number) {
-  return value * value * value;
-}
-
-const HERO_DEFAULTS = {
-  ["--hero-layer-opacity" as string]: "1",
-  ["--hero-content-opacity" as string]: "1",
-  ["--hero-shatter-opacity" as string]: "0",
-  ["--hero-shatter-blur" as string]: "0px",
-  ["--hero-fragment-left-x" as string]: "0px",
-  ["--hero-fragment-left-y" as string]: "0px",
-  ["--hero-fragment-left-rotate" as string]: "0deg",
-  ["--hero-fragment-right-x" as string]: "0px",
-  ["--hero-fragment-right-y" as string]: "0px",
-  ["--hero-fragment-right-rotate" as string]: "0deg",
-  ["--hero-fragment-bottom-x" as string]: "0px",
-  ["--hero-fragment-bottom-y" as string]: "0px",
-  ["--hero-fragment-bottom-rotate" as string]: "0deg",
-} as CSSProperties;
 
 const HERO_HEADLINE_LINES = [
   ["ENGINEERING", "INTEGRATION"],
@@ -97,224 +36,163 @@ const HERO_SCRAMBLE_COLORS = [
   "#50C878",
 ] as const;
 const HERO_RESOLVED_COLOR = "#b9b9b9";
-const HERO_CANVAS_FADE_THRESHOLD = 0.1;
 
-function HeroShatterOverlay() {
+/**
+ * A snap section that traps scroll events to allow internal content
+ * to scroll before releasing to the outer snap container.
+ * On desktop, intercepts wheel events and redirects them to the
+ * inner scrollable element. On mobile, relies on native touch
+ * scroll chaining (inner scrollable handles touch, then chains
+ * to parent snap container when at boundary).
+ */
+function ScrollTrappedSection({ children, id }: { children: ReactNode; id?: string }) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const cachedScrollableRef = useRef<HTMLElement | null>(null);
+  const wasAtBoundaryRef = useRef(false);
+  const transitioningRef = useRef(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const getScrollable = (): HTMLElement | null => {
+      const cached = cachedScrollableRef.current;
+      if (
+        cached &&
+        section.contains(cached) &&
+        cached.offsetParent !== null &&
+        cached.scrollHeight > cached.clientHeight
+      ) {
+        return cached;
+      }
+
+      // Find the visible element with overflow-y: auto that has scrollable content
+      const elements = section.querySelectorAll<HTMLElement>("*");
+      for (const el of elements) {
+        if (el.offsetParent === null) continue;
+        const style = getComputedStyle(el);
+        if (
+          (style.overflowY === "auto" || style.overflowY === "scroll") &&
+          el.scrollHeight > el.clientHeight
+        ) {
+          cachedScrollableRef.current = el;
+          return el;
+        }
+      }
+
+      cachedScrollableRef.current = null;
+      return null;
+    };
+
+    const scrollToAdjacentSection = (direction: 1 | -1) => {
+      if (transitioningRef.current) return;
+      transitioningRef.current = true;
+
+      const allSections = Array.from(
+        document.querySelectorAll<HTMLElement>(".snap-section"),
+      );
+      const currentIdx = allSections.indexOf(section);
+      const targetIdx = currentIdx + direction;
+
+      if (targetIdx >= 0 && targetIdx < allSections.length) {
+        allSections[targetIdx].scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      setTimeout(() => {
+        transitioningRef.current = false;
+      }, 900);
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      // Always prevent default to stop the native snap from firing
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (transitioningRef.current) return;
+
+      const scrollable = getScrollable();
+      if (!scrollable) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollable;
+      const atTop = scrollTop <= 1;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      const atBoundary =
+        (e.deltaY > 0 && atBottom) || (e.deltaY < 0 && atTop);
+
+      // Scrolling down and inner content has room to scroll
+      if (e.deltaY > 0 && !atBottom) {
+        scrollable.scrollTop = Math.min(
+          scrollTop + e.deltaY,
+          scrollHeight - clientHeight,
+        );
+        wasAtBoundaryRef.current = false;
+        return;
+      }
+
+      // Scrolling up and inner content has room to scroll
+      if (e.deltaY < 0 && !atTop) {
+        scrollable.scrollTop = Math.max(scrollTop + e.deltaY, 0);
+        wasAtBoundaryRef.current = false;
+        return;
+      }
+
+      // At boundary — require two consecutive boundary events
+      if (atBoundary && !wasAtBoundaryRef.current) {
+        wasAtBoundaryRef.current = true;
+        return;
+      }
+
+      // Second consecutive boundary — smoothly transition to adjacent section
+      if (atBoundary) {
+        wasAtBoundaryRef.current = false;
+        scrollToAdjacentSection(e.deltaY > 0 ? 1 : -1);
+      }
+    };
+
+    section.addEventListener("wheel", handleWheel, { passive: false });
+
+    // Invalidate cached scrollable on resize
+    const handleResize = () => {
+      cachedScrollableRef.current = null;
+    };
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      section.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-30 overflow-hidden"
-      style={{
-        opacity: "var(--hero-shatter-opacity, 0)",
-        willChange: "opacity",
-      }}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0),rgba(255,255,255,0)_54%,rgba(255,255,255,0.2)_100%)]" />
-      <div
-        className="absolute left-[-5%] top-[-3%] h-[58%] w-[44%] border border-black/10 bg-white/12 shadow-[0_22px_50px_rgba(0,0,0,0.08)]"
-        style={{
-          clipPath: "polygon(0 0, 100% 0, 74% 64%, 20% 100%, 0 84%)",
-          transform:
-            "translate3d(var(--hero-fragment-left-x, 0px), var(--hero-fragment-left-y, 0px), 0) rotate(var(--hero-fragment-left-rotate, 0deg))",
-          willChange: "transform",
-        }}
-      />
-      <div
-        className="absolute right-[-8%] top-[6%] h-[54%] w-[50%] border border-black/10 bg-white/10 shadow-[0_20px_46px_rgba(0,0,0,0.08)]"
-        style={{
-          clipPath: "polygon(16% 0, 100% 12%, 100% 86%, 28% 100%, 0 46%)",
-          transform:
-            "translate3d(var(--hero-fragment-right-x, 0px), var(--hero-fragment-right-y, 0px), 0) rotate(var(--hero-fragment-right-rotate, 0deg))",
-          willChange: "transform",
-        }}
-      />
-      <div
-        className="absolute bottom-[-12%] left-[14%] h-[38%] w-[58%] border border-black/10 bg-white/8 shadow-[0_18px_40px_rgba(0,0,0,0.06)]"
-        style={{
-          clipPath: "polygon(10% 0, 100% 0, 84% 100%, 0 74%)",
-          transform:
-            "translate3d(var(--hero-fragment-bottom-x, 0px), var(--hero-fragment-bottom-y, 0px), 0) rotate(var(--hero-fragment-bottom-rotate, 0deg))",
-          willChange: "transform",
-        }}
-      />
-      <div className="absolute left-[8%] top-[48%] h-px w-[40%] rotate-[-20deg] bg-[linear-gradient(90deg,rgba(23,23,23,0),rgba(23,23,23,0.22),rgba(23,23,23,0))]" />
-      <div className="absolute left-[42%] top-[16%] h-[42%] w-px rotate-[18deg] bg-[linear-gradient(180deg,rgba(23,23,23,0),rgba(23,23,23,0.18),rgba(23,23,23,0))]" />
-      <div className="absolute right-[10%] top-[34%] h-px w-[34%] rotate-[26deg] bg-[linear-gradient(90deg,rgba(23,23,23,0),rgba(23,23,23,0.18),rgba(23,23,23,0))]" />
-      <div className="absolute left-[26%] top-[62%] h-px w-[28%] rotate-[14deg] bg-[linear-gradient(90deg,rgba(23,23,23,0),rgba(23,23,23,0.14),rgba(23,23,23,0))]" />
-    </div>
+    <section ref={sectionRef} id={id} className="snap-section">
+      {children}
+    </section>
   );
 }
 
 function HeroAndSections() {
-  const heroRevealRef = useRef<HTMLDivElement>(null);
-  const heroLayerRef = useRef<HTMLDivElement>(null);
   const lenis = useLenis();
-  const { scrollWrapperRef } = useScrollShell();
-  const { noCanvas, noHeroBlur } = useDevFlags();
-  const [heroCanvasActive, setHeroCanvasActive] = useState(true);
-  const heroCanvasActiveRef = useRef(true);
-  const [slowZoneEnd, setSlowZoneEnd] = useState(0);
-
-  useSlowZone(slowZoneEnd);
-
-  useEffect(() => {
-    const scrollRoot = scrollWrapperRef.current;
-
-    if (!scrollRoot) {
-      return;
-    }
-
-    const updateSlowZone = () => {
-      setSlowZoneEnd(scrollRoot.clientHeight * 0.6);
-    };
-
-    updateSlowZone();
-    window.addEventListener("resize", updateSlowZone);
-
-    return () => window.removeEventListener("resize", updateSlowZone);
-  }, [scrollWrapperRef]);
-
-  useEffect(() => {
-    const heroReveal = heroRevealRef.current;
-    const heroLayer = heroLayerRef.current;
-    const scrollRoot = scrollWrapperRef.current;
-
-    if (!heroReveal || !heroLayer || !scrollRoot) {
-      return;
-    }
-
-    let frame = 0;
-
-    const update = () => {
-      const startedAt = performance.now();
-      frame = 0;
-
-      const rect = heroReveal.getBoundingClientRect();
-      const viewportHeight = scrollRoot.clientHeight || window.innerHeight;
-      const scrollRange = Math.max(heroReveal.offsetHeight - viewportHeight, 1);
-      const scrollOffset = clamp(-rect.top, 0, scrollRange);
-      const scrollProgress = scrollOffset / scrollRange;
-      const heroFadeProgress = easeInCubic(normalize(scrollProgress, 0.14, 0.32));
-      const heroLayerOpacity = 1 - heroFadeProgress;
-      const nextHeroCanvasActive = heroLayerOpacity > HERO_CANVAS_FADE_THRESHOLD;
-      const contentFadeProgress = easeInCubic(normalize(scrollProgress, 0.02, 0.1));
-      const shatterTimeline = easeInCubic(normalize(scrollProgress, 0.06, 0.32));
-      const shatterProgress = interpolate(shatterTimeline, [0, 1], [0, 1]);
-      const shatterStrength = interpolate(shatterTimeline, [0, 0.45, 0.75, 1], [0, 0.35, 1, 0.22]);
-      const shatterOpacity = interpolate(shatterTimeline, [0.2, 0.55, 0.9], [0, 1, 0.18]);
-      const shatterBlur = interpolate(shatterTimeline, [0.3, 0.65, 1], [0, 0.35, 1]);
-
-      if (nextHeroCanvasActive !== heroCanvasActiveRef.current) {
-        heroCanvasActiveRef.current = nextHeroCanvasActive;
-        setHeroCanvasActive(nextHeroCanvasActive);
-      }
-
-      heroReveal.style.setProperty("--hero-layer-opacity", heroLayerOpacity.toString());
-      heroReveal.style.setProperty(
-        "--hero-content-opacity",
-        (1 - contentFadeProgress).toString(),
-      );
-      heroReveal.style.setProperty("--hero-shatter-opacity", shatterOpacity.toString());
-      heroReveal.style.setProperty("--hero-shatter-blur", `${shatterBlur}px`);
-      heroReveal.style.setProperty(
-        "--hero-fragment-left-x",
-        `${-56 * shatterProgress}px`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-left-y",
-        `${-20 * shatterProgress - 10 * shatterStrength}px`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-left-rotate",
-        `${-4 * shatterProgress}deg`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-right-x",
-        `${62 * shatterProgress}px`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-right-y",
-        `${-18 * shatterProgress - 8 * shatterStrength}px`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-right-rotate",
-        `${4.5 * shatterProgress}deg`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-bottom-x",
-        `${10 * shatterProgress}px`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-bottom-y",
-        `${42 * shatterProgress + 10 * shatterStrength}px`,
-      );
-      heroReveal.style.setProperty(
-        "--hero-fragment-bottom-rotate",
-        `${3.2 * shatterProgress}deg`,
-      );
-      heroLayer.style.pointerEvents = heroLayerOpacity < 0.1 ? "none" : "auto";
-      recordPerfSample("hero-scroll-update", performance.now() - startedAt);
-    };
-
-    const schedule = () => {
-      if (!frame) {
-        frame = window.requestAnimationFrame(update);
-      }
-    };
-
-    update();
-
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-
-    return () => {
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-
-      scrollRoot.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-    };
-  }, [scrollWrapperRef]);
+  const { noCanvas } = useDevFlags();
 
   return (
     <>
       <main className="marketing-v2" data-header-theme="dark">
-        <div
+        <section
           id="hero-reveal"
-          ref={heroRevealRef}
-          className="relative z-30 h-[160vh] bg-[#202020] md:h-[180vh]"
-          style={HERO_DEFAULTS}
+          className="snap-section bg-[#202020]"
+          style={{ ["--hero-layer-opacity" as string]: "1" } as CSSProperties}
         >
-          <div className="sticky top-0 h-dvh w-full overflow-hidden bg-[#202020]">
-            <div
-              ref={heroLayerRef}
-              className="absolute inset-0 z-20"
-              style={{
-                backgroundColor: "#202020",
-                opacity: "var(--hero-layer-opacity, 1)",
-                transform: "translate3d(0, 0, 0)",
-                transformOrigin: "center center",
-                filter: noHeroBlur ? "none" : "blur(var(--hero-shatter-blur, 0px))",
-                willChange: "transform, opacity, filter",
-              }}
-            >
+          <div className="relative h-full w-full overflow-hidden bg-[#202020]">
+            <div className="absolute inset-0 z-20" style={{ backgroundColor: "#202020" }}>
               <SFBlockBackground reveal />
-              <HeroShatterOverlay />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">
-                  <HeroParticleBubble active={heroCanvasActive} />
+                  <HeroParticleBubble active />
                 </PerfSection>
               ) : null}
 
               <PageContainer className="relative h-full">
-                <div
-                  style={{
-                    opacity: "var(--hero-content-opacity, 1)",
-                    willChange: "opacity",
-                  }}
-                  className="relative z-10 h-full w-full px-4 text-center"
-                >
+                <div className="relative z-10 h-full w-full px-4 text-center">
                   <div
                     className="absolute inset-x-0 flex justify-center"
                     style={{
@@ -358,21 +236,31 @@ function HeroAndSections() {
               </PageContainer>
             </div>
           </div>
-        </div>
+        </section>
 
-        <PerfSection id="SFSolutionSlider">
-          <SFSolutionSlider />
-        </PerfSection>
-        <PerfSection id="SFInsightsBlock">
-          <SFInsightsBlock />
-        </PerfSection>
-        <PerfSection id="SFContactForm">
-          <SFContactForm />
-        </PerfSection>
+        <section className="snap-section">
+          <PerfSection id="SFSolutionSlider">
+            <SFSolutionSlider />
+          </PerfSection>
+        </section>
+
+        <ScrollTrappedSection>
+          <PerfSection id="SFInsightsBlock">
+            <SFInsightsBlock />
+          </PerfSection>
+        </ScrollTrappedSection>
+
+        <section className="snap-section">
+          <PerfSection id="SFContactForm">
+            <SFContactForm />
+          </PerfSection>
+        </section>
       </main>
-      <PerfSection id="SFFooter">
-        <SFFooter />
-      </PerfSection>
+      <section className="snap-section">
+        <PerfSection id="SFFooter">
+          <SFFooter />
+        </PerfSection>
+      </section>
     </>
   );
 }

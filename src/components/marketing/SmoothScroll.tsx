@@ -1,20 +1,16 @@
 "use client";
 
-import Lenis from "lenis";
 import {
   createContext,
   ReactNode,
   RefObject,
+  useCallback,
   useContext,
-  useEffect,
-  useMemo,
   useRef,
-  useState,
 } from "react";
 
-type SmoothScrollContextValue = {
-  lenis: Lenis | null;
-  setSlowZoneEnd: (value: number) => void;
+type ScrollContextValue = {
+  scrollTo: (target: string | number, options?: { duration?: number }) => void;
   viewportRef: RefObject<HTMLDivElement | null>;
   scrollWrapperRef: RefObject<HTMLDivElement | null>;
   scrollContentRef: RefObject<HTMLDivElement | null>;
@@ -22,32 +18,25 @@ type SmoothScrollContextValue = {
 
 const NULL_DIV_REF = { current: null } as RefObject<HTMLDivElement | null>;
 
-const SmoothScrollContext = createContext<SmoothScrollContextValue>({
-  lenis: null,
-  setSlowZoneEnd: () => {},
+const ScrollContext = createContext<ScrollContextValue>({
+  scrollTo: () => {},
   viewportRef: NULL_DIV_REF,
   scrollWrapperRef: NULL_DIV_REF,
   scrollContentRef: NULL_DIV_REF,
 });
 
-export function useLenis() {
-  return useContext(SmoothScrollContext).lenis;
+export function useLenis(): { scrollTo: ScrollContextValue["scrollTo"] } | null {
+  const ctx = useContext(ScrollContext);
+  return ctx.scrollTo ? { scrollTo: ctx.scrollTo } : null;
 }
 
 export function useScrollShell() {
-  const { viewportRef, scrollWrapperRef, scrollContentRef } = useContext(SmoothScrollContext);
-
+  const { viewportRef, scrollWrapperRef, scrollContentRef } = useContext(ScrollContext);
   return { viewportRef, scrollWrapperRef, scrollContentRef };
 }
 
-export function useSlowZone(endY: number) {
-  const { setSlowZoneEnd } = useContext(SmoothScrollContext);
-
-  useEffect(() => {
-    setSlowZoneEnd(endY);
-
-    return () => setSlowZoneEnd(0);
-  }, [endY, setSlowZoneEnd]);
+export function useSlowZone(_endY: number) {
+  // No-op: slow zones are not needed with snap scrolling
 }
 
 type SmoothScrollProps = {
@@ -55,72 +44,34 @@ type SmoothScrollProps = {
   overlay?: ReactNode;
 };
 
-const SLOW_ZONE_MULTIPLIER = 0.5;
-
 export function SmoothScroll({ children, overlay }: SmoothScrollProps) {
-  const [lenis, setLenis] = useState<Lenis | null>(null);
-  const slowZoneEndRef = useRef(0);
   const viewportRef = useRef<HTMLDivElement>(null);
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
 
-  const setSlowZoneEnd = useMemo(
-    () => (value: number) => {
-      slowZoneEndRef.current = value;
+  const scrollTo = useCallback(
+    (target: string | number, _options?: { duration?: number }) => {
+      const wrapper = scrollWrapperRef.current;
+      if (!wrapper) return;
+
+      if (typeof target === "number") {
+        wrapper.scrollTo({ top: target, behavior: "smooth" });
+        return;
+      }
+
+      const selector = target.startsWith("#") ? target : `#${target}`;
+      const element = wrapper.querySelector(selector);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     },
     [],
   );
 
-  useEffect(() => {
-    const wrapper = scrollWrapperRef.current;
-    const content = scrollContentRef.current;
-
-    if (!wrapper || !content) {
-      return;
-    }
-
-    const instance = new Lenis({
-      wrapper,
-      content,
-      eventsTarget: wrapper,
-      autoRaf: false,
-      // Disabled: syncTouch hijacks native touch scrolling, causing
-      // sluggish feel and blocking tap events on fixed-position elements.
-      syncTouch: false,
-      virtualScroll: (event) => {
-        const threshold = slowZoneEndRef.current;
-
-        if (threshold > 0 && instance.scroll < threshold) {
-          event.deltaY *= SLOW_ZONE_MULTIPLIER;
-        }
-
-        return true;
-      },
-    });
-
-    setLenis(instance);
-
-    let frame = 0;
-
-    const raf = (time: number) => {
-      instance.raf(time);
-      frame = window.requestAnimationFrame(raf);
-    };
-
-    frame = window.requestAnimationFrame(raf);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      instance.destroy();
-      setLenis(null);
-    };
-  }, []);
-
   return (
-    <SmoothScrollContext.Provider
+    <ScrollContext.Provider
       value={{
-        lenis,
-        setSlowZoneEnd,
+        scrollTo,
         viewportRef,
         scrollWrapperRef,
         scrollContentRef,
@@ -134,6 +85,6 @@ export function SmoothScroll({ children, overlay }: SmoothScrollProps) {
           </div>
         </div>
       </div>
-    </SmoothScrollContext.Provider>
+    </ScrollContext.Provider>
   );
 }
