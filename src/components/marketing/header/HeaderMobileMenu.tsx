@@ -191,16 +191,13 @@ export function HeaderMobileMenu({
 
               <button
                 type="button"
-                className="w-fit cursor-pointer py-2 text-left transition-opacity duration-200 hover:opacity-70 md:text-[#ff5841]"
+                className="w-fit cursor-pointer py-2 text-left text-[#b9b9b9] transition-opacity duration-200 hover:opacity-70 md:text-[#ff5841]"
                 style={{
                   ...menuItemStyle,
-                  color: "#202020",
                 }}
                 onClick={onPrimaryClick}
               >
-                <span className="md:text-inherit" style={{ color: "#ff5841" }}>
-                  Book a Call
-                </span>
+                <span>Book a Call</span>
               </button>
             </nav>
           </div>
