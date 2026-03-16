@@ -3,21 +3,13 @@
 import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  HEADER_MENU_ABOUT_ITEMS,
+  HEADER_MENU_OVERVIEW_ITEM,
+  HEADER_MENU_SECONDARY_ITEMS,
+  HEADER_MENU_SOLUTION_ITEMS,
+} from "@/components/marketing/header/navigation";
 import styles from "./SFPostFrame.module.css";
-
-const FOOTER_LINKS = {
-  platform: [{ label: "Overview", href: "#sf-solutions" }],
-  services: [
-    { label: "Software Engineering", href: "#sf-solutions" },
-    { label: "AI Systems", href: "#sf-solutions" },
-    { label: "Infrastructure", href: "#sf-solutions" },
-    { label: "Mobile Delivery", href: "#sf-solutions" },
-  ],
-  company: [
-    { label: "Company Profile", href: "#sf-insights" },
-    { label: "Global Delivery", href: "#sf-insights" },
-  ],
-} as const;
 
 export function SFFooter() {
   const [email, setEmail] = useState("");
@@ -78,22 +70,22 @@ export function SFFooter() {
             </Link>
 
             <ul className={styles.footerNav}>
-              {FOOTER_LINKS.platform.map((item) => (
-                <li key={item.label} className={`${styles.footerNavItem} ${styles.p2}`}>
-                  <a href={item.href}>{item.label}</a>
-                </li>
-              ))}
+              <li className={`${styles.footerNavItem} ${styles.p2}`}>
+                <a href={`#${HEADER_MENU_OVERVIEW_ITEM.target}`}>
+                  {HEADER_MENU_OVERVIEW_ITEM.label}
+                </a>
+              </li>
             </ul>
 
             <ul className={`${styles.footerNav} ${styles.footerNavPrimary}`}>
               <li className={`${styles.footerNavItem} ${styles.p2}`}>
                 <h4 className={styles.footerSubmenuTitle} aria-level={4}>
-                  Solutions<sup>4</sup>
+                  Solutions<sup>{HEADER_MENU_SOLUTION_ITEMS.length}</sup>
                 </h4>
                 <ul className={styles.footerSubmenuList}>
-                  {FOOTER_LINKS.services.map((item) => (
+                  {HEADER_MENU_SOLUTION_ITEMS.map((item) => (
                     <li key={item.label} className={`${styles.footerSubmenuItem} ${styles.p2}`}>
-                      <a href={item.href}>{item.label}</a>
+                      <a href={`#${item.target}`}>{item.label}</a>
                     </li>
                   ))}
                 </ul>
@@ -103,22 +95,21 @@ export function SFFooter() {
             <ul className={`${styles.footerNav} ${styles.footerNavSecondary}`}>
               <li className={`${styles.footerNavItem} ${styles.p2}`}>
                 <h4 className={styles.footerSubmenuTitle} aria-level={4}>
-                  About<sup>2</sup>
+                  About<sup>{HEADER_MENU_ABOUT_ITEMS.length}</sup>
                 </h4>
                 <ul className={styles.footerSubmenuList}>
-                  {FOOTER_LINKS.company.map((item) => (
+                  {HEADER_MENU_ABOUT_ITEMS.map((item) => (
                     <li key={item.label} className={`${styles.footerSubmenuItem} ${styles.p2}`}>
-                      <a href={item.href}>{item.label}</a>
+                      <a href={`#${item.target}`}>{item.label}</a>
                     </li>
                   ))}
                 </ul>
               </li>
-              <li className={`${styles.footerNavItem} ${styles.p2}`}>
-                <a href="#sf-insights">Insights</a>
-              </li>
-              <li className={`${styles.footerNavItem} ${styles.p2}`}>
-                <a href="#closing-cta">Contact</a>
-              </li>
+              {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
+                <li key={item.label} className={`${styles.footerNavItem} ${styles.p2}`}>
+                  <a href={`#${item.target}`}>{item.label}</a>
+                </li>
+              ))}
             </ul>
           </div>
 

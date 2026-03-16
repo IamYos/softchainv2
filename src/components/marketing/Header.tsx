@@ -246,7 +246,6 @@ export function Header() {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         onItemClick={handleNavItemClick}
-        onSecondaryClick={() => scrollToTarget("footer")}
         onPrimaryClick={() => scrollToTarget("closing-cta")}
       />
     </>

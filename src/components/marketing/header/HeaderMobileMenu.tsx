@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
-  HEADER_NAV_ITEMS,
+  HEADER_MENU_ABOUT_ITEMS,
+  HEADER_MENU_SECONDARY_ITEMS,
+  HEADER_MENU_SOLUTION_ITEMS,
   type HeaderNavItem,
 } from "@/components/marketing/header/navigation";
 
@@ -9,7 +12,6 @@ type HeaderMobileMenuProps = {
   isOpen: boolean;
   onClose: () => void;
   onItemClick: (item: HeaderNavItem) => void;
-  onSecondaryClick: () => void;
   onPrimaryClick: () => void;
 };
 
@@ -17,9 +19,36 @@ export function HeaderMobileMenu({
   isOpen,
   onClose,
   onItemClick,
-  onSecondaryClick,
   onPrimaryClick,
 }: HeaderMobileMenuProps) {
+  const [openSection, setOpenSection] = useState<"solutions" | "about" | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setOpenSection(null);
+    }
+  }, [isOpen]);
+
+  const menuItemStyle = {
+    fontFamily: "var(--font-non-sans), var(--font-geist-sans), sans-serif",
+    fontSize: "clamp(44px, 8vw, 72px)",
+    fontWeight: 500,
+    letterSpacing: "-0.02em",
+    lineHeight: 1,
+  } as const;
+
+  const submenuItemStyle = {
+    fontFamily: "var(--font-non-sans), var(--font-geist-sans), sans-serif",
+    fontSize: "clamp(22px, 4.2vw, 30px)",
+    fontWeight: 500,
+    letterSpacing: "-0.02em",
+    lineHeight: 1.02,
+  } as const;
+
+  const toggleSection = (section: "solutions" | "about") => {
+    setOpenSection((current) => (current === section ? null : section));
+  };
+
   return (
     <div
       className="fixed inset-0 z-40"
@@ -54,20 +83,102 @@ export function HeaderMobileMenu({
           willChange: "transform",
         }}
       >
-        <div className="flex h-full items-end px-6 pb-16 pt-24 md:px-10 md:pb-10 md:pt-[3.2rem]">
-          <div className="w-full">
+        <div className="flex h-full overflow-y-auto px-6 pb-16 pt-24 md:px-10 md:pb-10 md:pt-[3.2rem]">
+          <div className="mt-auto w-full">
             <nav
               className="flex flex-col gap-3"
               aria-label="Primary navigation"
-              style={{
-                fontFamily: "var(--font-non-sans), var(--font-geist-sans), sans-serif",
-                fontSize: "clamp(44px, 8vw, 72px)",
-                fontWeight: 500,
-                letterSpacing: "-0.02em",
-                lineHeight: 1,
-              }}
+              style={menuItemStyle}
             >
-              {HEADER_NAV_ITEMS.map((item) => (
+              <div>
+                <button
+                  type="button"
+                  className="w-fit cursor-pointer py-2 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
+                  aria-expanded={openSection === "solutions"}
+                  onClick={() => toggleSection("solutions")}
+                >
+                  Solutions
+                  <sup className="ml-1 align-top text-[0.38em]">
+                    {HEADER_MENU_SOLUTION_ITEMS.length}
+                  </sup>
+                </button>
+                <div
+                  className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                    openSection === "solutions" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                  aria-hidden={openSection !== "solutions"}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div
+                      className={`flex flex-col gap-3 pb-2 pl-8 pt-2 transition-transform duration-300 ease-out ${
+                        openSection === "solutions" ? "translate-y-0" : "-translate-y-2"
+                      }`}
+                    >
+                      {HEADER_MENU_SOLUTION_ITEMS.map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          className="flex w-fit cursor-pointer items-start gap-3 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
+                          style={submenuItemStyle}
+                          tabIndex={openSection === "solutions" ? 0 : -1}
+                          onClick={() => onItemClick(item)}
+                        >
+                          <span aria-hidden="true" className="pt-[0.08em] text-[0.9em]">
+                            ↳
+                          </span>
+                          <span>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  className="w-fit cursor-pointer py-2 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
+                  aria-expanded={openSection === "about"}
+                  onClick={() => toggleSection("about")}
+                >
+                  About
+                  <sup className="ml-1 align-top text-[0.38em]">
+                    {HEADER_MENU_ABOUT_ITEMS.length}
+                  </sup>
+                </button>
+                <div
+                  className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                    openSection === "about" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                  aria-hidden={openSection !== "about"}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div
+                      className={`flex flex-col gap-3 pb-2 pl-8 pt-2 transition-transform duration-300 ease-out ${
+                        openSection === "about" ? "translate-y-0" : "-translate-y-2"
+                      }`}
+                    >
+                      {HEADER_MENU_ABOUT_ITEMS.map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          className="flex w-fit cursor-pointer items-start gap-3 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
+                          style={submenuItemStyle}
+                          tabIndex={openSection === "about" ? 0 : -1}
+                          onClick={() => onItemClick(item)}
+                        >
+                          <span aria-hidden="true" className="pt-[0.08em] text-[0.9em]">
+                            ↳
+                          </span>
+                          <span>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
                 <button
                   key={item.label}
                   type="button"
@@ -77,44 +188,21 @@ export function HeaderMobileMenu({
                   {item.label}
                 </button>
               ))}
-            </nav>
 
-            <div className="mx-auto mt-12 flex w-full max-w-[360px] flex-col gap-4 md:mt-16 lg:mx-0">
               <button
                 type="button"
-                onClick={onSecondaryClick}
-                className="frame1-cm-btn w-full"
+                className="w-fit cursor-pointer py-2 text-left transition-opacity duration-200 hover:opacity-70 md:text-[#ff5841]"
                 style={{
-                  minWidth: "0",
-                  ["--frame1-cm-bg" as string]: "#b9b9b9",
-                  ["--frame1-cm-border" as string]: "rgba(32, 32, 32, 0.28)",
-                  ["--frame1-cm-text" as string]: "#202020",
-                  ["--frame1-cm-hover-bg" as string]: "#202020",
-                  ["--frame1-cm-hover-border" as string]: "#b9b9b9",
-                  ["--frame1-cm-hover-text" as string]: "#b9b9b9",
-                  ["--frame1-cm-focus" as string]: "#202020",
+                  ...menuItemStyle,
+                  color: "#202020",
                 }}
-              >
-                <span>Contact</span>
-              </button>
-              <button
-                type="button"
                 onClick={onPrimaryClick}
-                className="frame1-cm-btn w-full"
-                style={{
-                  minWidth: "0",
-                  ["--frame1-cm-bg" as string]: "#202020",
-                  ["--frame1-cm-border" as string]: "rgba(32, 32, 32, 0.28)",
-                  ["--frame1-cm-text" as string]: "#b9b9b9",
-                  ["--frame1-cm-hover-bg" as string]: "#b9b9b9",
-                  ["--frame1-cm-hover-border" as string]: "rgba(32, 32, 32, 0.28)",
-                  ["--frame1-cm-hover-text" as string]: "#202020",
-                  ["--frame1-cm-focus" as string]: "#202020",
-                }}
               >
-                <span>Book a Call</span>
+                <span className="md:text-inherit" style={{ color: "#ff5841" }}>
+                  Book a Call
+                </span>
               </button>
-            </div>
+            </nav>
           </div>
         </div>
       </div>
