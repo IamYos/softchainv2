@@ -15,14 +15,9 @@ export const HEADER_MENU_SOLUTION_ITEMS: HeaderNavItem[] = [
   { label: "Mobile Delivery", target: "sf-solutions" },
 ];
 
-export const HEADER_MENU_ABOUT_ITEMS: HeaderNavItem[] = [
-  { label: "Company Profile", target: "sf-insights" },
-  { label: "Global Delivery", target: "sf-insights" },
-];
-
 export const HEADER_MENU_SECONDARY_ITEMS: HeaderNavItem[] = [
+  { label: "About", target: "sf-insights" },
   { label: "Insights", target: "sf-insights" },
-  { label: "Contact", target: "closing-cta" },
 ];
 
 export const HEADER_NAV_ITEMS: HeaderNavItem[] = [

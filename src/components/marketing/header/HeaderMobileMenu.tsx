@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  HEADER_MENU_ABOUT_ITEMS,
   HEADER_MENU_SECONDARY_ITEMS,
   HEADER_MENU_SOLUTION_ITEMS,
   type HeaderNavItem,
@@ -21,7 +20,7 @@ export function HeaderMobileMenu({
   onItemClick,
   onPrimaryClick,
 }: HeaderMobileMenuProps) {
-  const [openSection, setOpenSection] = useState<"solutions" | "about" | null>(null);
+  const [openSection, setOpenSection] = useState<"solutions" | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,7 +44,7 @@ export function HeaderMobileMenu({
     lineHeight: 1.02,
   } as const;
 
-  const toggleSection = (section: "solutions" | "about") => {
+  const toggleSection = (section: "solutions") => {
     setOpenSection((current) => (current === section ? null : section));
   };
 
@@ -121,50 +120,6 @@ export function HeaderMobileMenu({
                           className="flex w-fit cursor-pointer items-start gap-3 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
                           style={submenuItemStyle}
                           tabIndex={openSection === "solutions" ? 0 : -1}
-                          onClick={() => onItemClick(item)}
-                        >
-                          <span aria-hidden="true" className="pt-[0.08em] text-[0.9em]">
-                            ↳
-                          </span>
-                          <span>{item.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <button
-                  type="button"
-                  className="w-fit cursor-pointer py-2 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
-                  aria-expanded={openSection === "about"}
-                  onClick={() => toggleSection("about")}
-                >
-                  About
-                  <sup className="ml-1 align-top text-[0.38em]">
-                    {HEADER_MENU_ABOUT_ITEMS.length}
-                  </sup>
-                </button>
-                <div
-                  className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
-                    openSection === "about" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                  }`}
-                  aria-hidden={openSection !== "about"}
-                >
-                  <div className="min-h-0 overflow-hidden">
-                    <div
-                      className={`flex flex-col gap-3 pb-2 pl-8 pt-2 transition-transform duration-300 ease-out ${
-                        openSection === "about" ? "translate-y-0" : "-translate-y-2"
-                      }`}
-                    >
-                      {HEADER_MENU_ABOUT_ITEMS.map((item) => (
-                        <button
-                          key={item.label}
-                          type="button"
-                          className="flex w-fit cursor-pointer items-start gap-3 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
-                          style={submenuItemStyle}
-                          tabIndex={openSection === "about" ? 0 : -1}
                           onClick={() => onItemClick(item)}
                         >
                           <span aria-hidden="true" className="pt-[0.08em] text-[0.9em]">

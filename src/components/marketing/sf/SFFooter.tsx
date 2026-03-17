@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  HEADER_MENU_ABOUT_ITEMS,
   HEADER_MENU_OVERVIEW_ITEM,
   HEADER_MENU_SECONDARY_ITEMS,
   HEADER_MENU_SOLUTION_ITEMS,
@@ -93,18 +92,6 @@ export function SFFooter() {
             </ul>
 
             <ul className={`${styles.footerNav} ${styles.footerNavSecondary}`}>
-              <li className={`${styles.footerNavItem} ${styles.p2}`}>
-                <h4 className={styles.footerSubmenuTitle} aria-level={4}>
-                  About<sup>{HEADER_MENU_ABOUT_ITEMS.length}</sup>
-                </h4>
-                <ul className={styles.footerSubmenuList}>
-                  {HEADER_MENU_ABOUT_ITEMS.map((item) => (
-                    <li key={item.label} className={`${styles.footerSubmenuItem} ${styles.p2}`}>
-                      <a href={`#${item.target}`}>{item.label}</a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
               {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
                 <li key={item.label} className={`${styles.footerNavItem} ${styles.p2}`}>
                   <a href={`#${item.target}`}>{item.label}</a>
