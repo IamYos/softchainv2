@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -9,15 +10,67 @@ import {
 import styles from "./SFPostFrame.module.css";
 
 export function SFFooter() {
+  const footerTitleRef = useRef<HTMLDivElement>(null);
+  const footerWordmarkRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const container = footerTitleRef.current;
+    const wordmark = footerWordmarkRef.current;
+
+    if (!container || !wordmark) {
+      return;
+    }
+
+    const fitWordmark = () => {
+      const maxSize = 260;
+      const minSize = 48;
+      const availableWidth = container.clientWidth;
+
+      if (availableWidth <= 0) {
+        return;
+      }
+
+      let low = minSize;
+      let high = maxSize;
+      let best = minSize;
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        wordmark.style.fontSize = `${mid}px`;
+
+        if (wordmark.scrollWidth <= availableWidth) {
+          best = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      wordmark.style.fontSize = `${best}px`;
+    };
+
+    fitWordmark();
+
+    const observer = new ResizeObserver(() => {
+      fitWordmark();
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <footer id="footer" className={`${styles.sectionRoot} ${styles.footerSection}`}>
-      <div className={styles.wrapper}>
+      <div className={styles.wrapper} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <div className={styles.footerBlock}>
           <div className={styles.footerBlockContent}>
             <Link href="/" className={styles.footerLogo} aria-label="Softchain home">
-              <div className="relative h-full w-full">
+              <div className={`relative h-full w-full ${styles.footerLogoMark}`}>
                 <Image
-                  src="/softchain-logo-white.png"
+                  src="/softchain-logo.png"
                   alt="Softchain"
                   fill
                   sizes="160px"
@@ -75,8 +128,10 @@ export function SFFooter() {
             <span className={`${styles.footerCopyItem} ${styles.p}`}>Global delivery</span>
           </div>
 
-          <div className={styles.footerTitle}>
-            <span className={styles.footerWordmark}>SOFTCHAIN</span>
+          <div ref={footerTitleRef} className={styles.footerTitle}>
+            <span ref={footerWordmarkRef} className={styles.footerWordmark}>
+              SOFTCHAIN
+            </span>
           </div>
 
           <div className={`${styles.footerCopy} ${styles.footerCopyDesktop}`}>

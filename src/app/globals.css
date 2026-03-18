@@ -79,6 +79,13 @@ body {
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+@media (pointer: coarse) {
+  .app-scroll-wrapper {
+    scroll-snap-type: y proximity;
+  }
 }
 
 .app-scroll-content {
@@ -424,6 +431,7 @@ button {
   height: 100vh;
   height: 100dvh;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   overflow: hidden;
   position: relative;
 }
