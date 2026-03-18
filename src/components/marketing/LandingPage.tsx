@@ -213,9 +213,9 @@ function HeroAndSections() {
                       style={{ fontSize: "clamp(24px, 8vw, 112px)" }}
                     >
                       <span className="sr-only">
-                        Software engineering, IT systems, infrastructure,
-                        operational support, scoping, architecture, delivery,
-                        and long term support.
+                        Software design and engineering, AI systems, IT
+                        infrastructure, technology management, scoping,
+                        architecture, delivery, and long term support.
                       </span>
                       <ScrambleHeadlineLoop
                         lineSets={HERO_HEADLINE_LINES}
@@ -237,7 +237,7 @@ function HeroAndSections() {
                       className="frame1-cm-btn"
                       onClick={() => lenis?.scrollTo("#closing-cta", { duration: 1.3 })}
                     >
-                      <span>Try an assessment</span>
+                      <span>Connect</span>
                     </button>
                   </div>
                 </div>

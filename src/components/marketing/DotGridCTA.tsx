@@ -23,11 +23,11 @@ export function DotGridCTA() {
               Choose engineering that ships cleanly, scales correctly, and stays operable.
             </h2>
             <p className="mt-6 max-w-[60ch] text-base leading-8 text-[var(--mf-text-body)] md:text-lg">
-              Software engineering, AI-integrated systems, and IT operations under one execution model.
+              Software design and engineering, AI systems, IT infrastructure, and technology management under one execution model.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <BeamButton theme="light" className="min-h-[48px] px-6">Book a Strategy Call</BeamButton>
-              <BeamButton className="min-h-[48px] px-6">Review Capabilities</BeamButton>
+              <BeamButton className="min-h-[48px] px-6">Review Solutions</BeamButton>
             </div>
           </div>
         </FadeIn>

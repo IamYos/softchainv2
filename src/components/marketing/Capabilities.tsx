@@ -7,16 +7,10 @@ import { useInView } from "@/components/marketing/useInView";
 
 const CAPABILITIES = [
   {
-    label: "Web Platforms",
-    title: "Operational web products built for real business load.",
+    label: "Software Design & Engineering",
+    title: "Software systems designed and built for real operational load.",
     description:
-      "Dashboards, client portals, internal systems, automation layers, and public-facing software engineered for production reliability.",
-  },
-  {
-    label: "Mobile Apps",
-    title: "Native mobile systems where platform quality matters.",
-    description:
-      "iOS and Android delivery for internal tools, public products, and secure mobile workflows that cannot be compromised by shortcuts.",
+      "Web platforms, internal systems, custom applications, ERP integration, and native mobile delivery engineered for production reliability.",
   },
   {
     label: "AI Systems",
@@ -25,10 +19,16 @@ const CAPABILITIES = [
       "RAG systems, workflow automation, intelligent interfaces, and private or hybrid inference pipelines selected by capability and deployment constraints.",
   },
   {
-    label: "Infrastructure",
+    label: "IT Infrastructure",
     title: "Cloud, on-premise, and hybrid environments managed end to end.",
     description:
-      "Provisioning, migrations, networking, observability, security posture, procurement coordination, and ongoing operational support.",
+      "Provisioning, migrations, networking, observability, security posture, and resilient day-to-day operations across mixed environments.",
+  },
+  {
+    label: "Technology Management",
+    title: "Technology leadership that keeps business operations moving.",
+    description:
+      "Procurement, digitization planning, vendor coordination, governance, and hands-on advisory support structured around each engagement.",
   },
 ];
 
@@ -83,7 +83,7 @@ export function Capabilities() {
             className="mb-3 text-sm uppercase text-[var(--mf-text-muted)]"
             style={{ letterSpacing: "0.16em" }}
           >
-            Capabilities
+            Solutions
           </p>
           <h2
             className="max-w-[900px] text-balance text-4xl font-medium text-white md:text-6xl"
@@ -136,7 +136,7 @@ export function Capabilities() {
               key={CAPABILITIES[displayed].label}
             >
               <p className="text-sm uppercase text-[var(--mf-text-muted)]">
-                Delivery Slice
+                Solution Pillar
               </p>
               <h3
                 className="mt-4 text-balance text-2xl font-medium text-white md:text-4xl"

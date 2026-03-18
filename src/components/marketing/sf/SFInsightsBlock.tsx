@@ -1,5 +1,5 @@
-import Image from "next/image";
 import styles from "./SFPostFrame.module.css";
+import { TechStackGrid } from "./TechStackGrid";
 
 const FEATURED_INSIGHT = {
   title: "Engineering work that survives the real world, not just the kickoff.",
@@ -7,7 +7,6 @@ const FEATURED_INSIGHT = {
   description:
     "We take ownership of scoping, architecture, implementation, integration, deployment, and long-term support instead of stopping at advisory work.",
   href: "#closing-cta",
-  image: "/softchain-logo.png",
 };
 
 const INSIGHTS = [
@@ -30,7 +29,7 @@ const INSIGHTS = [
       "Internal tools, secure workflows, and public products are built without compromising platform standards.",
   },
   {
-    title: "Infrastructure is part of delivery, not a cleanup phase.",
+    title: "IT infrastructure is part of delivery, not a cleanup phase.",
     date: "Operations",
     description:
       "Cloud, on-premise, and hybrid systems are planned with observability, security, and support from the start.",
@@ -75,15 +74,7 @@ function FeaturedPanel() {
     <div className={styles.featurePanel}>
       <div className={styles.featureGrid}>
         <div className={styles.featureImageWrap}>
-          <Image
-            src={FEATURED_INSIGHT.image}
-            alt="Softchain logo"
-            className={styles.featureImage}
-            height={1931}
-            priority={false}
-            sizes="(max-width: 749px) 100vw, (max-width: 1024px) 72rem, 72rem"
-            width={2160}
-          />
+          <TechStackGrid />
         </div>
         <div className={styles.featureContent}>
           <h2 className={`${styles.featureTitle} ${styles.t8}`}>{FEATURED_INSIGHT.title}</h2>

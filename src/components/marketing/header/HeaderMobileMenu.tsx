@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   HEADER_MENU_SECONDARY_ITEMS,
   HEADER_MENU_SOLUTION_ITEMS,
@@ -21,12 +21,6 @@ export function HeaderMobileMenu({
   onPrimaryClick,
 }: HeaderMobileMenuProps) {
   const [openSection, setOpenSection] = useState<"solutions" | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setOpenSection(null);
-    }
-  }, [isOpen]);
 
   const menuItemStyle = {
     fontFamily: "var(--font-non-sans), var(--font-geist-sans), sans-serif",
@@ -80,6 +74,13 @@ export function HeaderMobileMenu({
           transform: isOpen ? "translate3d(0, 0, 0)" : "translate3d(100%, 0, 0)",
           transition: "transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)",
           willChange: "transform",
+        }}
+        onTransitionEnd={(event) => {
+          if (event.target !== event.currentTarget || event.propertyName !== "transform" || isOpen) {
+            return;
+          }
+
+          setOpenSection(null);
         }}
       >
         <div className="flex h-full overflow-y-auto px-6 pb-16 pt-24 md:px-10 md:pb-10 md:pt-[3.2rem]">

@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Softchain",
     short_name: "Softchain",
     description:
-      "Softchain builds software, AI systems, and technical infrastructure for companies that need senior execution from scoping through long-term support.",
+      "Softchain delivers software design and engineering, AI systems, IT infrastructure, and technology management for companies that need senior execution from scoping through long-term support.",
     start_url: "/",
     scope: "/",
     display: "browser",

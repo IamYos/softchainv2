@@ -12,9 +12,9 @@ import {
 
 const SOLUTIONS = [
   {
-    title: "Software Engineering",
+    title: "Software Design & Engineering",
     description:
-      "Web platforms, client portals, dashboards, internal systems, and production software delivery built to hold up under real operational load.",
+      "Custom software, internal systems, client platforms, ERP and workflow integrations, and native mobile delivery designed and built for real operational load.",
     href: "#sf-solutions",
     icon: "globe" as const,
     lines: 3,
@@ -28,17 +28,17 @@ const SOLUTIONS = [
     lines: 3,
   },
   {
-    title: "Infrastructure",
+    title: "IT Infrastructure",
     description:
-      "Cloud, on-premise, and hybrid environments handled end to end, including networking, observability, security posture, migrations, and long-term support.",
+      "Cloud, on-premise, and hybrid environments handled end to end, including networking, security posture, migrations, observability, and long-term operational stability.",
     href: "#closing-cta",
     icon: "default" as const,
     lines: 4,
   },
   {
-    title: "Mobile Delivery",
+    title: "Technology Management",
     description:
-      "Native iOS and Android products for internal tools and public apps where platform quality, security, and maintainability cannot be compromised.",
+      "Technology leadership across procurement, digitization, vendor coordination, planning, and ongoing operational oversight when the business needs a hands-on partner.",
     href: "#closing-cta",
     icon: "triangle" as const,
     lines: 0,
@@ -100,7 +100,7 @@ export function SFSolutionSlider() {
       <div className={styles.wrapper}>
         <div className={styles.solutionsHeader}>
           <h2 className={`${styles.solutionsTitle} ${styles.t5}`}>
-            Software, AI, and Infrastructure.
+            Core Craft.
           </h2>
           <div className={styles.solutionsControls}>
             <button

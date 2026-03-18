@@ -1,7 +1,12 @@
 import Image from "next/image";
 import { PageContainer } from "@/components/marketing/PageContainer";
 
-const PLATFORM_LINKS = ["Software Engineering", "AI Systems"];
+const PLATFORM_LINKS = [
+  "Software Design & Engineering",
+  "AI Systems",
+  "IT Infrastructure",
+  "Technology Management",
+];
 const COMPANY_LINKS = ["Company Profile", "Global Delivery", "Dubai HQ"];
 const LEGAL_LINKS = ["Terms", "Privacy"];
 
@@ -85,7 +90,10 @@ export function Footer() {
         </div>
 
         <div className="mt-16 border-t border-white/8 pt-6 text-sm text-[var(--mf-text-dim)]">
-          <p>© 2026 Softchain. Software engineering, AI systems, and infrastructure delivery.</p>
+          <p>
+            © 2026 Softchain. Software design and engineering, AI systems, IT infrastructure,
+            and technology management.
+          </p>
         </div>
       </PageContainer>
     </footer>

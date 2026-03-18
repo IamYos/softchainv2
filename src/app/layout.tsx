@@ -53,9 +53,10 @@ const ppEditorial = localFont({
   display: "swap",
 });
 
-const siteTitle = "Softchain | Software Engineering And Infrastructure";
+const siteTitle =
+  "Softchain | Software Design & Engineering, AI Systems, IT Infrastructure, and Technology Management";
 const siteDescription =
-  "Softchain builds software, AI systems, and technical infrastructure for companies that need senior execution from scoping through long-term support.";
+  "Softchain delivers software design and engineering, AI systems, IT infrastructure, and technology management for companies that need senior execution from scoping through long-term support.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://softchain.ae"),

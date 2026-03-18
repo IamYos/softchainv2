@@ -2,6 +2,22 @@
 
 Corporate website and web platform for [Softchain](https://softchain.ae) — an engineering firm headquartered in Dubai, UAE.
 
+## Brand Positioning
+
+Current approved top-level website label: `Solutions`
+
+Current approved solution pillars:
+
+- `Software Design & Engineering`
+- `AI Systems`
+- `IT Infrastructure`
+- `Technology Management`
+
+Messaging rules for future work:
+
+- Mobile delivery sits under `Software Design & Engineering`.
+- `Technology Management` covers procurement, digitization planning, vendor coordination, governance, and long-term partnership support.
+
 ## Tech Stack
 
 | Technology | Version | Purpose |

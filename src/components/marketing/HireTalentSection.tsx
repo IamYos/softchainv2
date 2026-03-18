@@ -7,12 +7,12 @@ import { PageContainer } from "@/components/marketing/PageContainer";
 const MARQUEE_ITEMS = [
   "Architecture",
   "Delivery",
-  "Infrastructure",
-  "Automation",
+  "IT Infrastructure",
+  "AI Systems",
   "Security",
-  "AI Workflows",
+  "Procurement",
   "Operations",
-  "Support",
+  "Management",
 ];
 
 export function HireTalentSection() {
@@ -60,10 +60,10 @@ export function HireTalentSection() {
               For businesses
             </p>
             <h3 className="mt-3 text-2xl font-medium text-white md:text-3xl">
-              Senior execution for software, infrastructure, and ongoing support.
+              Senior execution for software, AI, infrastructure, and ongoing support.
             </h3>
             <p className="mt-4 text-base leading-8 text-[var(--mf-text-body)]">
-              We take ownership of delivery, integration, cloud and on-premise systems, security posture, and operational support without building an oversized internal team.
+              We take ownership of software delivery, AI systems, IT infrastructure, procurement coordination, and operational support without building an oversized internal team.
             </p>
             <div className="mt-8">
               <BeamButton theme="light" className="min-h-[48px] px-6">Discuss Delivery</BeamButton>
