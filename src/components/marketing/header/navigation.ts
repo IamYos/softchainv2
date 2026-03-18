@@ -3,11 +3,6 @@ export type HeaderNavItem = {
   target: string;
 };
 
-export const HEADER_MENU_OVERVIEW_ITEM: HeaderNavItem = {
-  label: "Overview",
-  target: "sf-solutions",
-};
-
 export const HEADER_MENU_SOLUTION_ITEMS: HeaderNavItem[] = [
   { label: "Software Engineering", target: "sf-solutions" },
   { label: "AI Systems", target: "sf-solutions" },
@@ -21,6 +16,5 @@ export const HEADER_MENU_SECONDARY_ITEMS: HeaderNavItem[] = [
 ];
 
 export const HEADER_NAV_ITEMS: HeaderNavItem[] = [
-  HEADER_MENU_OVERVIEW_ITEM,
   ...HEADER_MENU_SECONDARY_ITEMS,
 ];

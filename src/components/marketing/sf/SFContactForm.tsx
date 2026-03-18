@@ -226,28 +226,6 @@ export function SFContactForm() {
           </button>
         </div>
 
-        <div className={styles.contactInfo}>
-          <div className={styles.contactInfoLine} aria-hidden="true" />
-          <p className={`${styles.infoLabel} ${styles.p}`}>Headquartered in Dubai. Delivering globally.</p>
-
-          <div className={styles.infoBlock}>
-            <div className={styles.infoItem}>
-              <p className={styles.p}>Operating model</p>
-              <p className={styles.p2}>Software engineering, AI systems, and technical infrastructure.</p>
-            </div>
-          </div>
-
-          <div className={`${styles.infoBlock} ${styles.infoBlockLargeOffset}`}>
-            <div className={styles.infoItem}>
-              <p className={styles.p}>Headquarters</p>
-              <p className={styles.p2}>Dubai, United Arab Emirates</p>
-            </div>
-            <div className={styles.infoItem}>
-              <p className={styles.p}>Website</p>
-              <p className={styles.p2}>softchain.ae</p>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
