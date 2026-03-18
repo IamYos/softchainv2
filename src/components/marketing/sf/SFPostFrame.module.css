@@ -234,7 +234,7 @@
 
 @media screen and (max-width: 749px) {
   .solutionsTrack {
-    grid-auto-columns: 320px;
+    grid-auto-columns: clamp(280px, calc(100vw - 56px), 320px);
     padding: 1px 0;
   }
 }
@@ -265,16 +265,6 @@
     1px 0 #4d4d4d,
     0 1px #4d4d4d,
     0 -1px #4d4d4d;
-}
-
-@media screen and (max-width: 749px) {
-  .solutionItem {
-    margin-left: 24px;
-  }
-
-  .solutionItem:first-child {
-    margin-left: 0;
-  }
 }
 
 @media screen and (min-width: 750px) {
