@@ -35,7 +35,7 @@ const SOLUTIONS = [
       "Cloud, on-premise, and hybrid environments handled end to end, including networking, security posture, migrations, observability, and long-term operational stability.",
     href: "#closing-cta",
     icon: "default" as const,
-    lines: 4,
+    lines: 3,
   },
   {
     title: "Technology Management",
