@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, ReactNode, useEffect, useRef } from "react";
+import { CSSProperties } from "react";
 import { CustomCursor } from "@/components/marketing/CustomCursor";
 import { Header } from "@/components/marketing/Header";
 import {
@@ -37,147 +37,6 @@ const HERO_SCRAMBLE_COLORS = [
 ] as const;
 const HERO_RESOLVED_COLOR = "#b9b9b9";
 
-/**
- * A snap section that traps scroll events to allow internal content
- * to scroll before releasing to the outer snap container.
- * On desktop, intercepts wheel events and redirects them to the
- * inner scrollable element. On mobile, relies on native touch
- * scroll chaining (inner scrollable handles touch, then chains
- * to parent snap container when at boundary).
- */
-function ScrollTrappedSection({ children, id }: { children: ReactNode; id?: string }) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const cachedScrollableRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    // "scrolling" — inner content scrolls, wheel events are trapped
-    // "locked"   — hit boundary, swallowing the rest of this gesture
-    // "released" — gesture ended after lock, next events pass to snap scroller
-    let phase: "scrolling" | "locked" | "released" = "scrolling";
-    let lockedDirection: 1 | -1 = 1;
-    let gestureEndTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const getScrollable = (): HTMLElement | null => {
-      const cached = cachedScrollableRef.current;
-      if (
-        cached &&
-        section.contains(cached) &&
-        cached.offsetParent !== null &&
-        cached.scrollHeight > cached.clientHeight
-      ) {
-        return cached;
-      }
-
-      const elements = section.querySelectorAll<HTMLElement>("*");
-      for (const el of elements) {
-        if (el.offsetParent === null) continue;
-        const style = getComputedStyle(el);
-        if (
-          (style.overflowY === "auto" || style.overflowY === "scroll") &&
-          el.scrollHeight > el.clientHeight
-        ) {
-          cachedScrollableRef.current = el;
-          return el;
-        }
-      }
-
-      cachedScrollableRef.current = null;
-      return null;
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      const scrollable = getScrollable();
-      // No inner scrollable — let event pass to snap scroller
-      if (!scrollable) return;
-
-      const { scrollTop, scrollHeight, clientHeight } = scrollable;
-      const atTop = scrollTop <= 1;
-      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-      const direction: 1 | -1 = e.deltaY > 0 ? 1 : -1;
-
-      // Released: let events pass through to the native snap scroller
-      if (phase === "released") {
-        const hasRoom = (direction === 1 && !atBottom) || (direction === -1 && !atTop);
-        if (hasRoom || direction !== lockedDirection) {
-          // Inner scroll has room again or direction reversed — back to scrolling
-          phase = "scrolling";
-        } else {
-          // Don't preventDefault — snap scroller picks it up
-          return;
-        }
-      }
-
-      // Locked: swallow events until the gesture ends
-      if (phase === "locked") {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (gestureEndTimer) clearTimeout(gestureEndTimer);
-        gestureEndTimer = setTimeout(() => {
-          phase = "released";
-          gestureEndTimer = null;
-        }, 150);
-
-        if (direction !== lockedDirection) {
-          // Direction reversed while locked — go back to scrolling
-          phase = "scrolling";
-        } else {
-          return;
-        }
-      }
-
-      // Scrolling: trap events and redirect to inner scrollable
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (e.deltaY > 0 && !atBottom) {
-        scrollable.scrollTop = Math.min(
-          scrollTop + e.deltaY,
-          scrollHeight - clientHeight,
-        );
-        return;
-      }
-
-      if (e.deltaY < 0 && !atTop) {
-        scrollable.scrollTop = Math.max(scrollTop + e.deltaY, 0);
-        return;
-      }
-
-      // Hit boundary — lock and wait for gesture to end
-      phase = "locked";
-      lockedDirection = direction;
-
-      if (gestureEndTimer) clearTimeout(gestureEndTimer);
-      gestureEndTimer = setTimeout(() => {
-        phase = "released";
-        gestureEndTimer = null;
-      }, 150);
-    };
-
-    section.addEventListener("wheel", handleWheel, { passive: false });
-
-    const handleResize = () => {
-      cachedScrollableRef.current = null;
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      section.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("resize", handleResize);
-      if (gestureEndTimer) clearTimeout(gestureEndTimer);
-    };
-  }, []);
-
-  return (
-    <section ref={sectionRef} id={id} className="snap-section">
-      {children}
-    </section>
-  );
-}
-
 function HeroAndSections() {
   const lenis = useLenis();
   const { noCanvas } = useDevFlags();
@@ -187,10 +46,10 @@ function HeroAndSections() {
       <main className="marketing-v2" data-header-theme="dark">
         <section
           id="hero-reveal"
-          className="snap-section bg-[#202020]"
+          className="marketing-anchor relative min-h-[100svh] bg-[#202020]"
           style={{ ["--hero-layer-opacity" as string]: "1" } as CSSProperties}
         >
-          <div className="relative h-full w-full overflow-hidden bg-[#202020]">
+          <div className="relative min-h-[100svh] w-full overflow-hidden bg-[#202020]">
             <div className="absolute inset-0 z-20" style={{ backgroundColor: "#202020" }}>
               <SFBlockBackground reveal />
               {!noCanvas ? (
@@ -199,8 +58,8 @@ function HeroAndSections() {
                 </PerfSection>
               ) : null}
 
-              <PageContainer className="relative h-full">
-                <div className="relative z-10 h-full w-full px-4 text-center">
+              <PageContainer className="relative min-h-[100svh]">
+                <div className="relative z-10 min-h-[100svh] w-full px-4 text-center">
                   <div
                     className="absolute inset-x-0 flex justify-center"
                     style={{
@@ -246,29 +105,22 @@ function HeroAndSections() {
           </div>
         </section>
 
-        <section className="snap-section">
-          <PerfSection id="SFSolutionSlider">
-            <SFSolutionSlider />
-          </PerfSection>
-        </section>
+        <PerfSection id="SFSolutionSlider">
+          <SFSolutionSlider />
+        </PerfSection>
 
-        <ScrollTrappedSection>
-          <PerfSection id="SFInsightsBlock">
-            <SFInsightsBlock />
-          </PerfSection>
-        </ScrollTrappedSection>
+        <PerfSection id="SFInsightsBlock">
+          <SFInsightsBlock />
+        </PerfSection>
 
-        <section className="snap-section">
-          <PerfSection id="SFContactForm">
-            <SFContactForm />
-          </PerfSection>
-        </section>
-      </main>
-      <section className="snap-section">
+        <PerfSection id="SFContactForm">
+          <SFContactForm />
+        </PerfSection>
+
         <PerfSection id="SFFooter">
           <SFFooter />
         </PerfSection>
-      </section>
+      </main>
     </>
   );
 }

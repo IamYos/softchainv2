@@ -117,7 +117,7 @@ export function SFInsightsBlock() {
   return (
     <section
       id="sf-insights"
-      className={`${styles.sectionRoot} ${styles.insightsSection}`}
+      className={`${styles.sectionRoot} ${styles.insightsSection} marketing-anchor`}
     >
       <div className={styles.insightsMobile}>
         <FeaturedPanel />

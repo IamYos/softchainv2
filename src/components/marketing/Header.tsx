@@ -3,13 +3,11 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { recordPerfSample } from "@/components/marketing/MarketingPerfDebug";
-import { useLenis, useScrollShell } from "@/components/marketing/SmoothScroll";
+import { useLenis } from "@/components/marketing/SmoothScroll";
 import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
 import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu";
 import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
 import { type HeaderNavItem } from "@/components/marketing/header/navigation";
-
-const FRAME_ONE_FADE_THRESHOLD = 0.1;
 
 const LIGHT_FRAME_HEADER_PALETTE = {
   ["--header-text" as string]: "#202020",
@@ -109,25 +107,36 @@ function applyHeaderPalette(
 
 export function Header() {
   const lenis = useLenis();
-  const { scrollWrapperRef } = useScrollShell();
   const headerRef = useRef<HTMLElement>(null);
   const isFrameOnePaletteRef = useRef<boolean | null>(null);
+  const pendingScrollRef = useRef<{ target: string | number; duration: number } | null>(null);
+  const scrollLockYRef = useRef(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (mobileMenuOpen) {
-      const wrapper = scrollWrapperRef.current;
-      if (wrapper) wrapper.style.overflow = "hidden";
-    } else {
-      const wrapper = scrollWrapperRef.current;
-      if (wrapper) wrapper.style.overflow = "";
+    if (!mobileMenuOpen) {
+      return;
     }
 
+    const body = document.body;
+    scrollLockYRef.current = window.scrollY;
+    body.style.left = "0";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.right = "0";
+    body.style.top = `-${scrollLockYRef.current}px`;
+    body.style.width = "100%";
+
     return () => {
-      const wrapper = scrollWrapperRef.current;
-      if (wrapper) wrapper.style.overflow = "";
+      body.style.left = "";
+      body.style.overflow = "";
+      body.style.position = "";
+      body.style.right = "";
+      body.style.top = "";
+      body.style.width = "";
+      window.scrollTo({ top: scrollLockYRef.current, behavior: "auto" });
     };
-  }, [mobileMenuOpen, scrollWrapperRef]);
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -146,10 +155,25 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   useEffect(() => {
-    const header = headerRef.current;
-    const scrollRoot = scrollWrapperRef.current;
+    if (mobileMenuOpen) {
+      return;
+    }
 
-    if (!header || !scrollRoot) {
+    const pendingScroll = pendingScrollRef.current;
+    if (!pendingScroll) {
+      return;
+    }
+
+    pendingScrollRef.current = null;
+    window.requestAnimationFrame(() => {
+      lenis?.scrollTo(pendingScroll.target, { duration: pendingScroll.duration });
+    });
+  }, [lenis, mobileMenuOpen]);
+
+  useEffect(() => {
+    const header = headerRef.current;
+
+    if (!header) {
       return;
     }
 
@@ -197,7 +221,7 @@ export function Header() {
 
     update();
 
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
 
     return () => {
@@ -205,19 +229,27 @@ export function Header() {
         window.cancelAnimationFrame(frame);
       }
 
-      scrollRoot.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [mobileMenuOpen, scrollWrapperRef]);
+  }, [mobileMenuOpen]);
+
+  const queueOrRunScroll = (target: string | number, duration: number) => {
+    if (mobileMenuOpen) {
+      pendingScrollRef.current = { target, duration };
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    lenis?.scrollTo(target, { duration });
+  };
 
   const scrollToTop = () => {
-    setMobileMenuOpen(false);
-    lenis?.scrollTo(0, { duration: 1 });
+    queueOrRunScroll(0, 1);
   };
 
   const scrollToTarget = (target: string) => {
-    setMobileMenuOpen(false);
-    lenis?.scrollTo(`#${target}`, { duration: 1.2 });
+    queueOrRunScroll(`#${target}`, 1.2);
   };
 
   const handleNavItemClick = (item: HeaderNavItem) => {
@@ -228,7 +260,7 @@ export function Header() {
     <>
       <header
         ref={headerRef}
-        className="absolute left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
+        className="fixed left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
         data-contrast="light"
         style={DARK_FRAME_HEADER_PALETTE as CSSProperties}
       >

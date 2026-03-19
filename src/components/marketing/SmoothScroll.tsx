@@ -35,8 +35,8 @@ export function useScrollShell() {
   return { viewportRef, scrollWrapperRef, scrollContentRef };
 }
 
-export function useSlowZone(_endY: number) {
-  // No-op: slow zones are not needed with snap scrolling
+export function useSlowZone() {
+  // No-op: retained for compatibility with previous experiments.
 }
 
 type SmoothScrollProps = {
@@ -50,19 +50,18 @@ export function SmoothScroll({ children, overlay }: SmoothScrollProps) {
   const scrollContentRef = useRef<HTMLDivElement>(null);
 
   const scrollTo = useCallback(
-    (target: string | number, _options?: { duration?: number }) => {
-      const wrapper = scrollWrapperRef.current;
-      if (!wrapper) return;
+    (target: string | number, options?: { duration?: number }) => {
+      const behavior: ScrollBehavior = options?.duration === 0 ? "auto" : "smooth";
 
       if (typeof target === "number") {
-        wrapper.scrollTo({ top: target, behavior: "smooth" });
+        window.scrollTo({ top: target, behavior });
         return;
       }
 
       const selector = target.startsWith("#") ? target : `#${target}`;
-      const element = wrapper.querySelector(selector);
+      const element = document.querySelector<HTMLElement>(selector);
       if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        element.scrollIntoView({ behavior, block: "start" });
       }
     },
     [],

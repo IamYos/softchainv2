@@ -26,6 +26,8 @@
   --mf-content-prose: 800px;
   --mf-z-header: 50;
   --mf-z-modal: 60;
+  --mf-header-height: 72px;
+  --mf-anchor-offset: calc(var(--mf-header-height) + 24px);
   --mf-text-page-heading: clamp(28px, 5vw + 1rem, 72px);
   --mf-text-section-heading: clamp(24px, 4vw + 0.5rem, 56px);
   --mf-tracking-hero: -0.02em;
@@ -56,36 +58,25 @@ body {
   color: var(--mf-text-heading);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-non-sans), Arial, Helvetica, sans-serif;
   overflow-x: clip;
 }
 
 .app-viewport-shell {
-  position: fixed;
-  inset: 0;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
   isolation: isolate;
+  min-height: 100%;
   background: var(--mf-bg-base);
+  position: relative;
 }
 
 .app-scroll-wrapper {
-  position: absolute;
-  inset: 0;
   overflow-x: clip;
-  overflow-y: auto;
-  overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-}
-
-@media (pointer: coarse) {
-  .app-scroll-wrapper {
-    scroll-snap-type: y proximity;
-  }
+  position: relative;
 }
 
 .app-scroll-content {
@@ -104,12 +95,16 @@ button {
 
 .marketing-v2 {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--mf-bg-base);
   color: var(--mf-text-heading);
   overflow-wrap: normal !important;
   word-break: normal !important;
   hyphens: none !important;
+}
+
+.marketing-anchor {
+  scroll-margin-top: var(--mf-anchor-offset);
 }
 
 .link-underline {
@@ -426,16 +421,6 @@ button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
-.snap-section {
-  height: 100vh;
-  height: 100dvh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  overflow: hidden;
-  position: relative;
-}
-
 
 body[data-softchain-cursor="on"],
 body[data-softchain-cursor="on"] * {

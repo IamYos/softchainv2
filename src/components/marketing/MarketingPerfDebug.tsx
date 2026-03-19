@@ -7,7 +7,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useScrollShell } from "@/components/marketing/SmoothScroll";
 import { getDevFlagsSnapshot, useDevFlags } from "@/components/marketing/useDevFlags";
 
 type ReactSectionMetric = {
@@ -195,7 +194,6 @@ export function PerfSection({ id, children }: { id: string; children: ReactNode 
 }
 
 export function MarketingPerfOverlay() {
-  const { scrollWrapperRef } = useScrollShell();
   const flags = useDevFlags();
   const enabled = flags.perf;
   const [snapshot, setSnapshot] = useState<PerfSnapshot>(cloneSnapshot);
@@ -248,9 +246,8 @@ export function MarketingPerfOverlay() {
       }
     };
 
-    const wrapper = scrollWrapperRef.current;
     const onScroll = () => {
-      PERF_SNAPSHOT.scrollTop = Math.round(wrapper?.scrollTop ?? 0);
+      PERF_SNAPSHOT.scrollTop = Math.round(window.scrollY);
     };
 
     let longTaskObserver: PerformanceObserver | null = null;
@@ -272,17 +269,17 @@ export function MarketingPerfOverlay() {
     }
 
     onScroll();
-    wrapper?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     frameId = window.requestAnimationFrame(tick);
     const refreshTimer = window.setInterval(updateSnapshot, 250);
 
     return () => {
       window.cancelAnimationFrame(frameId);
       window.clearInterval(refreshTimer);
-      wrapper?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll);
       longTaskObserver?.disconnect();
     };
-  }, [enabled, scrollWrapperRef]);
+  }, [enabled]);
 
   if (!enabled) {
     return null;

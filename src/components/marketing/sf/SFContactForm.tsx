@@ -57,7 +57,7 @@ export function SFContactForm() {
   return (
     <section
       id="closing-cta"
-      className={`${styles.sectionRoot} ${styles.contactSection}`}
+      className={`${styles.sectionRoot} ${styles.contactSection} marketing-anchor`}
     >
       <div className={`${styles.wrapper} ${styles.contactContent}`}>
         <div className={`${styles.contactBackdrop} ${isOpen ? styles.contactBackdropOpen : ""}`} />
