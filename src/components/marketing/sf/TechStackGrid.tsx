@@ -126,6 +126,7 @@ function SwitchingGrid({
 export function TechStackGrid() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [slotCount, setSlotCount] = useState(20);
+  const pixelMatrixRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let frameId = 0;
@@ -146,9 +147,55 @@ export function TechStackGrid() {
     };
   }, []);
 
+  useEffect(() => {
+    const pixelMatrix = pixelMatrixRef.current;
+    if (!pixelMatrix || prefersReducedMotion) {
+      return;
+    }
+
+    const triggerPressedAnimation = (slot: HTMLElement) => {
+      slot.classList.remove(styles.techSignalSlotPressed);
+      void slot.offsetWidth;
+      slot.classList.add(styles.techSignalSlotPressed);
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const slot = target.closest<HTMLElement>(`.${styles.techSignalSlot}`);
+      if (!slot || !pixelMatrix.contains(slot)) {
+        return;
+      }
+
+      triggerPressedAnimation(slot);
+    };
+
+    const handleAnimationEnd = (event: AnimationEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      if (target.classList.contains(styles.techSignalSlotPressed)) {
+        target.classList.remove(styles.techSignalSlotPressed);
+      }
+    };
+
+    pixelMatrix.addEventListener("click", handleClick);
+    pixelMatrix.addEventListener("animationend", handleAnimationEnd);
+
+    return () => {
+      pixelMatrix.removeEventListener("click", handleClick);
+      pixelMatrix.removeEventListener("animationend", handleAnimationEnd);
+    };
+  }, [prefersReducedMotion]);
+
   return (
     <div className={styles.techStackGrid} aria-label="Technologies we work with">
-      <div className={styles.techPixelMatrix}>
+      <div ref={pixelMatrixRef} className={styles.techPixelMatrix}>
         <SwitchingGrid
           key={slotCount}
           slotCount={slotCount}

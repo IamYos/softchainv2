@@ -1497,6 +1497,10 @@
   position: relative;
 }
 
+.techSignalSlotPressed {
+  animation: techSlotHoverColor 0.5s steps(1, end) forwards;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .techSignalSlot:hover {
     animation: techSlotHoverColor 0.5s steps(1, end) forwards;
