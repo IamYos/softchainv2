@@ -124,7 +124,7 @@ export function SFInsightsBlock() {
         <InsightRail />
       </div>
 
-      <div className={`${styles.insightsDesktop} ${styles.wrapper}`}>
+      <div className={styles.insightsDesktop}>
         <div className={styles.insightsDesktopLayout}>
           <div className={styles.stickyPanelWrap}>
             <FeaturedPanel />
