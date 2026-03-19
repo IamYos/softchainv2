@@ -127,6 +127,7 @@ export function TechStackGrid() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [slotCount, setSlotCount] = useState(20);
   const pixelMatrixRef = useRef<HTMLDivElement | null>(null);
+  const activeSlotRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let frameId = 0;
@@ -153,7 +154,24 @@ export function TechStackGrid() {
       return;
     }
 
-    const triggerPressedAnimation = (slot: HTMLElement) => {
+    const clearActiveSlot = () => {
+      const activeSlot = activeSlotRef.current;
+      if (!activeSlot) {
+        return;
+      }
+
+      activeSlot.classList.remove(styles.techSignalSlotActive);
+      activeSlot.classList.remove(styles.techSignalSlotPressed);
+      activeSlotRef.current = null;
+    };
+
+    const activateSlot = (slot: HTMLElement) => {
+      if (activeSlotRef.current && activeSlotRef.current !== slot) {
+        clearActiveSlot();
+      }
+
+      activeSlotRef.current = slot;
+      slot.classList.add(styles.techSignalSlotActive);
       slot.classList.remove(styles.techSignalSlotPressed);
       void slot.offsetWidth;
       slot.classList.add(styles.techSignalSlotPressed);
@@ -170,7 +188,22 @@ export function TechStackGrid() {
         return;
       }
 
-      triggerPressedAnimation(slot);
+      activateSlot(slot);
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        clearActiveSlot();
+        return;
+      }
+
+      const slot = target.closest(`.${styles.techSignalSlot}`);
+      if (slot && pixelMatrix.contains(slot)) {
+        return;
+      }
+
+      clearActiveSlot();
     };
 
     const handleAnimationEnd = (event: AnimationEvent) => {
@@ -186,10 +219,12 @@ export function TechStackGrid() {
 
     pixelMatrix.addEventListener("click", handleClick);
     pixelMatrix.addEventListener("animationend", handleAnimationEnd);
+    document.addEventListener("click", handleDocumentClick);
 
     return () => {
       pixelMatrix.removeEventListener("click", handleClick);
       pixelMatrix.removeEventListener("animationend", handleAnimationEnd);
+      document.removeEventListener("click", handleDocumentClick);
     };
   }, [prefersReducedMotion]);
 

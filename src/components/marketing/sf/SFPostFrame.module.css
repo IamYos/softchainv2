@@ -1497,6 +1497,10 @@
   position: relative;
 }
 
+.techSignalSlotActive {
+  color: #ff5841;
+}
+
 .techSignalSlotPressed {
   animation: techSlotHoverColor 0.5s steps(1, end) forwards;
 }
