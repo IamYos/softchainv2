@@ -10,7 +10,11 @@ export function SFFooter() {
   return (
     <footer id="footer" className={`${styles.sectionRoot} ${styles.footerSection}`}>
       <div className={styles.wrapper} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <div className={styles.footerBlock} data-header-hide-zone="footer">
+        <div
+          className={styles.footerBlock}
+          data-header-hide-zone="footer"
+          data-softchain-cursor-rgb="255, 88, 65"
+        >
           <div className={styles.footerTopGrid}>
             <div className={styles.footerPrimaryColumn}>
               <ul className={`${styles.footerNav} ${styles.footerNavPrimary}`}>

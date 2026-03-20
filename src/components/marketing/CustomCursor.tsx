@@ -90,6 +90,24 @@ function elementUsesBrandOrange(element: Element | null) {
   return false;
 }
 
+function getCursorRgbOverride(element: Element | null) {
+  let current = element;
+
+  while (current && current !== document.documentElement) {
+    if (current instanceof HTMLElement) {
+      const override = current.dataset.softchainCursorRgb;
+
+      if (override) {
+        return override;
+      }
+    }
+
+    current = current.parentElement;
+  }
+
+  return null;
+}
+
 export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
   const layerRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLSpanElement>(null);
@@ -136,6 +154,15 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
 
     const syncCursorTone = (clientX: number, clientY: number) => {
       const hoveredElements = document.elementsFromPoint(clientX, clientY);
+      const overrideRgb = hoveredElements
+        .map((element) => getCursorRgbOverride(element))
+        .find((value): value is string => Boolean(value));
+
+      if (overrideRgb) {
+        setCursorRgb(overrideRgb);
+        return;
+      }
+
       const shouldUseContrast =
         hoveredElements.length > 0 &&
         hoveredElements.some((element) => elementUsesBrandOrange(element));
