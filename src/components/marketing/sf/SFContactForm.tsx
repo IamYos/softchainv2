@@ -63,9 +63,9 @@ export function SFContactForm() {
         <div className={`${styles.contactBackdrop} ${isOpen ? styles.contactBackdropOpen : ""}`} />
 
         <h2 className={`${styles.contactTitle} ${styles.t4}`}>
-          <span>Ready to build software</span>
+          <span>Get in touch</span>
           <span className={styles.contactTitleSlash}> / </span>
-          <span>and systems correctly?</span>
+          <span>start with your email.</span>
         </h2>
 
         <div className={styles.emailStage}>
@@ -112,7 +112,7 @@ export function SFContactForm() {
           </button>
 
           <h3 className={`${styles.fieldsTitle} ${styles.p2}`}>
-            Perfect. Just a few more questions so we can route your project correctly.
+            A few more details and we&apos;ll route this correctly.
           </h3>
 
           <div className={styles.textField}>

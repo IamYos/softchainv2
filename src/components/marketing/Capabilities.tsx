@@ -89,7 +89,7 @@ export function Capabilities() {
             className="max-w-[900px] text-balance text-4xl font-medium text-white md:text-6xl"
             style={{ letterSpacing: "var(--mf-tracking-section-heading)" }}
           >
-            Engineering work that survives the real world, not just the kickoff.
+            Software, AI, and infrastructure delivered with one accountable team.
           </h2>
         </FadeIn>
 

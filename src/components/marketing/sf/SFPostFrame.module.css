@@ -794,6 +794,7 @@
   background: none;
   border: 1px solid #202020;
   color: #202020;
+  display: flex;
   margin: 0 auto;
 }
 

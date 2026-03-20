@@ -2,10 +2,10 @@ import styles from "./SFPostFrame.module.css";
 import { TechStackGrid } from "./TechStackGrid";
 
 const FEATURED_INSIGHT = {
-  title: "Engineering work that survives the real world, not just the kickoff.",
-  date: "Softchain delivery model",
+  title: "End-to-end delivery with clear technical ownership.",
+  date: "Lifecycle",
   description:
-    "We take ownership of scoping, architecture, implementation, integration, deployment, and long-term support instead of stopping at advisory work.",
+    "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",
   href: "#closing-cta",
 };
 
@@ -86,7 +86,7 @@ function FeaturedPanel() {
             href={FEATURED_INSIGHT.href}
             className={`${styles.monoPill} ${styles.featureButton} ${styles.p}`}
           >
-            Start a Project
+            Read More
           </a>
         </div>
       </div>
