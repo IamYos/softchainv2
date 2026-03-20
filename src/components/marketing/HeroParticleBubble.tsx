@@ -44,9 +44,10 @@ const MAX_COLOR_FLIP_DELAY = 0.5;
 export const HERO_BUBBLE_CENTER_Y_RATIO = 0.46;
 const PARTICLE_COLOR_PALETTE = [
   { r: 185, g: 185, b: 185 },
-  { r: 255, g: 88, b: 65 },
-  { r: 80, g: 200, b: 120 },
+  { r: 185, g: 185, b: 185 },
+  { r: 185, g: 185, b: 185 },
 ] as const;
+const PARTICLE_INTERACTION_COLOR = { r: 255, g: 88, b: 65 } as const;
 
 type HeroParticleBubbleProps = {
   active?: boolean;
@@ -58,6 +59,27 @@ function clamp(value: number, min: number, max: number) {
 
 function lerp(from: number, to: number, amount: number) {
   return from + (to - from) * amount;
+}
+
+function smoothstep(edge0: number, edge1: number, value: number) {
+  if (edge0 === edge1) {
+    return value < edge0 ? 0 : 1;
+  }
+
+  const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function blendColor(
+  from: { r: number; g: number; b: number },
+  to: { r: number; g: number; b: number },
+  amount: number,
+) {
+  return {
+    r: Math.round(lerp(from.r, to.r, amount)),
+    g: Math.round(lerp(from.g, to.g, amount)),
+    b: Math.round(lerp(from.b, to.b, amount)),
+  };
 }
 
 function createGlyphFlipDelay() {
@@ -156,6 +178,9 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       return;
     }
 
+    const interactionSurface =
+      (wrapper.closest("#hero-reveal") as HTMLElement | null) ?? wrapper.parentElement ?? wrapper;
+
     const auxMonoFontVariable =
       getComputedStyle(document.documentElement).getPropertyValue("--font-aux-mono").trim();
     const monoFontVariable =
@@ -180,6 +205,14 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       targetX: 0,
       targetY: 0,
     };
+    const interaction = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      strength: 0,
+      targetStrength: 0,
+    };
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -199,27 +232,65 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       points = createSpherePoints(width < 768 ? 1300 : 2200);
     };
 
-    const onPointerMove = (event: PointerEvent) => {
-      if (!activeRef.current) {
-        return;
-      }
-
+    const updateInteractionTarget = (clientX: number, clientY: number) => {
       const bounds = wrapper.getBoundingClientRect();
 
       if (bounds.width <= 0 || bounds.height <= 0) {
         return;
       }
 
-      const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
-      const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+      const localX = clamp(clientX - bounds.left, 0, bounds.width);
+      const localY = clamp(clientY - bounds.top, 0, bounds.height);
+      const x = (localX / bounds.width - 0.5) * 2;
+      const y = (localY / bounds.height - 0.5) * 2;
 
       mouse.targetX = clamp(x, -1, 1);
       mouse.targetY = clamp(y, -1, 1);
+      interaction.targetX = localX;
+      interaction.targetY = localY;
+    };
+
+    const onPointerEnter = (event: PointerEvent) => {
+      if (!activeRef.current) {
+        return;
+      }
+
+      updateInteractionTarget(event.clientX, event.clientY);
+      interaction.targetStrength = 1;
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!activeRef.current) {
+        return;
+      }
+
+      updateInteractionTarget(event.clientX, event.clientY);
+      interaction.targetStrength = 1;
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!activeRef.current) {
+        return;
+      }
+
+      updateInteractionTarget(event.clientX, event.clientY);
+      interaction.targetStrength = 1;
     };
 
     const resetPointer = () => {
       mouse.targetX = 0;
       mouse.targetY = 0;
+      interaction.targetStrength = 0;
+    };
+
+    const onPointerLeave = () => {
+      resetPointer();
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") {
+        interaction.targetStrength = 0;
+      }
     };
 
     resize();
@@ -228,8 +299,13 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       "ResizeObserver" in window ? new ResizeObserver(resize) : null;
     resizeObserver?.observe(wrapper);
     window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("blur", resetPointer);
+    interactionSurface.addEventListener("pointerenter", onPointerEnter, { passive: true });
+    interactionSurface.addEventListener("pointermove", onPointerMove, { passive: true });
+    interactionSurface.addEventListener("pointerdown", onPointerDown, { passive: true });
+    interactionSurface.addEventListener("pointerleave", onPointerLeave);
+    interactionSurface.addEventListener("pointerup", onPointerUp, { passive: true });
+    interactionSurface.addEventListener("pointercancel", resetPointer);
 
     const stop = () => {
       if (!frameId) {
@@ -261,6 +337,10 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
 
       mouse.x += (mouse.targetX - mouse.x) * 0.06;
       mouse.y += (mouse.targetY - mouse.y) * 0.06;
+      interaction.x += (interaction.targetX - interaction.x) * 0.18;
+      interaction.y += (interaction.targetY - interaction.y) * 0.18;
+      interaction.strength +=
+        (interaction.targetStrength - interaction.strength) * (prefersReducedMotion ? 0.1 : 0.16);
 
       context.clearRect(0, 0, width, height);
 
@@ -281,6 +361,13 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       const cosX = Math.cos(rotateX);
       const introProgress = prefersReducedMotion ? 1 : clamp(elapsed / 1.3, 0, 1);
       const introOpacity = prefersReducedMotion ? 1 : clamp(elapsed / 0.85, 0, 1);
+      const interactionRadius = minAxis * (width < 768 ? 0.18 : 0.14);
+      const interactionRadiusSq = interactionRadius * interactionRadius;
+      const interactionStrength = prefersReducedMotion
+        ? interaction.strength * 0.55
+        : interaction.strength;
+      const interactionZoom = width < 768 ? 0.24 : 0.36;
+      const interactionPush = width < 768 ? 0.04 : 0.07;
 
       const drawPoints: RenderPoint[] = [];
 
@@ -330,26 +417,53 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
           continue;
         }
         const perspective = cameraDepth / depth;
-        const screenX = centerX + x * sphereRadius * perspective;
-        const screenY = centerY + y * sphereRadius * perspective;
+        let screenX = centerX + x * sphereRadius * perspective;
+        let screenY = centerY + y * sphereRadius * perspective;
         const depthMix = clamp((z + 1) * 0.5, 0, 1);
-        const color = PARTICLE_COLOR_PALETTE[point.colorIndex];
+        let color: RenderPoint["color"] = PARTICLE_COLOR_PALETTE[point.colorIndex];
 
         const dotSize = Math.max(
           (0.6 + depthMix * 2.1) * perspective * pointSizeScale,
           0.01,
         );
-        const glyphFontSize = Math.max(
+        let glyphFontSize = Math.max(
           Math.round(dotSize * PARTICLE_FONT_SCALE * 10) / 10,
           0.8,
         );
+        let alpha = clamp(
+          (0.12 + depthMix * 0.7) * lerp(0.35, 1, introOpacity),
+          0.05,
+          0.85,
+        );
+
+        if (interactionStrength > 0.001) {
+          const offsetX = screenX - interaction.x;
+          const offsetY = screenY - interaction.y;
+          const distanceSq = offsetX * offsetX + offsetY * offsetY;
+
+          if (distanceSq < interactionRadiusSq) {
+            const distance = Math.sqrt(distanceSq);
+            const influence = smoothstep(0, 1, 1 - distance / interactionRadius);
+            const hit = influence * interactionStrength;
+            const push = hit * interactionPush * (0.45 + depthMix * 0.55);
+
+            screenX += offsetX * push;
+            screenY += offsetY * push;
+            glyphFontSize = Math.max(
+              Math.round(glyphFontSize * (1 + hit * interactionZoom) * 10) / 10,
+              0.8,
+            );
+            alpha = clamp(alpha + hit * 0.2, 0.05, 1);
+            color = blendColor(color, PARTICLE_INTERACTION_COLOR, clamp(hit * 1.35, 0, 1));
+          }
+        }
 
         drawPoints.push({
           x: screenX,
           y: screenY,
           z,
           fontSize: glyphFontSize,
-          alpha: clamp((0.12 + depthMix * 0.7) * lerp(0.35, 1, introOpacity), 0.05, 0.85),
+          alpha,
           color,
           glyph: point.glyph,
         });
@@ -402,8 +516,13 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       stop();
       window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("blur", resetPointer);
+      interactionSurface.removeEventListener("pointerenter", onPointerEnter);
+      interactionSurface.removeEventListener("pointermove", onPointerMove);
+      interactionSurface.removeEventListener("pointerdown", onPointerDown);
+      interactionSurface.removeEventListener("pointerleave", onPointerLeave);
+      interactionSurface.removeEventListener("pointerup", onPointerUp);
+      interactionSurface.removeEventListener("pointercancel", resetPointer);
       resizeObserver?.disconnect();
     };
   }, []);
