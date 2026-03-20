@@ -105,10 +105,19 @@ function applyHeaderPalette(
   });
 }
 
+function applyHeaderVisibility(header: HTMLElement, hidden: boolean) {
+  header.style.opacity = hidden ? "0" : "1";
+  header.style.pointerEvents = hidden ? "none" : "auto";
+  header.style.transform = hidden
+    ? "translate3d(0, calc(-100% - 1rem), 0)"
+    : "translate3d(0, 0, 0)";
+}
+
 export function Header() {
   const lenis = useLenis();
   const headerRef = useRef<HTMLElement>(null);
   const isFrameOnePaletteRef = useRef<boolean | null>(null);
+  const isFooterFullyVisibleRef = useRef<boolean | null>(null);
   const pendingScrollRef = useRef<{ target: string | number; duration: number } | null>(null);
   const scrollLockYRef = useRef(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -178,15 +187,28 @@ export function Header() {
     }
 
     let frame = 0;
+    const footerHideZone = document.querySelector<HTMLElement>('[data-header-hide-zone="footer"]');
 
     const update = () => {
       const startedAt = performance.now();
       frame = 0;
       if (mobileMenuOpen) {
         isFrameOnePaletteRef.current = null;
+        isFooterFullyVisibleRef.current = null;
         applyHeaderPalette(header, MENU_OPEN_HEADER_PALETTE);
+        applyHeaderVisibility(header, false);
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
+      }
+
+      const footerRect = footerHideZone?.getBoundingClientRect();
+      const isFooterFullyVisible = footerRect
+        ? footerRect.top >= 0 && footerRect.bottom <= window.innerHeight
+        : false;
+
+      if (isFooterFullyVisible !== isFooterFullyVisibleRef.current) {
+        isFooterFullyVisibleRef.current = isFooterFullyVisible;
+        applyHeaderVisibility(header, isFooterFullyVisible);
       }
 
       // Check if hero section is the currently visible snap section
@@ -262,7 +284,13 @@ export function Header() {
         ref={headerRef}
         className="fixed left-0 right-0 top-0 z-[var(--mf-z-header)] w-full"
         data-contrast="light"
-        style={DARK_FRAME_HEADER_PALETTE as CSSProperties}
+        style={{
+          ...(DARK_FRAME_HEADER_PALETTE as CSSProperties),
+          opacity: 1,
+          transform: "translate3d(0, 0, 0)",
+          transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.24s ease",
+          willChange: "transform, opacity",
+        }}
       >
         <PageContainer className="relative z-10 mt-2 flex h-16 items-center justify-between">
           <HeaderLogoButton onClick={scrollToTop} />

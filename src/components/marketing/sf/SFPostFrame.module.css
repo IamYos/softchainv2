@@ -1277,6 +1277,9 @@
 
 .footerSubmenuTitle sup {
   font-size: 0.38em;
+  line-height: 1;
+  margin-left: 0.25em;
+  vertical-align: top;
 }
 
 .footerSubmenuList {
