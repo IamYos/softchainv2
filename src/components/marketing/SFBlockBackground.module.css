@@ -13,10 +13,49 @@
   position: absolute;
   inset: 0;
   background: #202020;
+  overflow: hidden;
 }
 
 .rounded .fill {
   border-radius: inherit;
+}
+
+.fillTechSignal {
+  background:
+    radial-gradient(circle at center, rgba(185, 185, 185, 0.06), transparent 58%),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.022) 0 1px,
+      transparent 1px 4px
+    ),
+    #202020;
+}
+
+.fillTechSignal::before,
+.fillTechSignal::after {
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.fillTechSignal::before {
+  background:
+    linear-gradient(90deg, transparent, rgba(185, 185, 185, 0.05), transparent),
+    radial-gradient(circle at center, transparent 54%, rgba(0, 0, 0, 0.28) 100%);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+.fillTechSignal::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.018) 0 1px,
+      transparent 1px 7px
+    );
+  opacity: 0.22;
 }
 
 .fillReveal {

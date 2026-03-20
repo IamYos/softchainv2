@@ -51,7 +51,7 @@ function HeroAndSections() {
         >
           <div className="relative min-h-[100svh] w-full overflow-hidden bg-[#202020]">
             <div className="absolute inset-0 z-20" style={{ backgroundColor: "#202020" }}>
-              <SFBlockBackground reveal />
+              <SFBlockBackground reveal variant="techSignal" />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">
                   <HeroParticleBubble active />

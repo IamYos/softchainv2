@@ -4,12 +4,14 @@ type SFBlockBackgroundProps = {
   className?: string;
   rounded?: boolean;
   reveal?: boolean;
+  variant?: "solid" | "techSignal";
 };
 
 export function SFBlockBackground({
   className,
   rounded = false,
   reveal = false,
+  variant = "solid",
 }: SFBlockBackgroundProps) {
   const rootClassName = [
     styles.root,
@@ -20,6 +22,7 @@ export function SFBlockBackground({
     .join(" ");
   const fillClassName = [
     styles.fill,
+    variant === "techSignal" ? styles.fillTechSignal : "",
     reveal ? styles.fillReveal : "",
   ]
     .filter(Boolean)
