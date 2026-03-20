@@ -7,8 +7,8 @@ import styles from "./SFPostFrame.module.css";
 import {
   SFArrowLeftIcon,
   SFArrowRightIcon,
-  SFDefaultIcon,
-  SFGlobeIcon,
+  SFShift5JumpIcon,
+  SFShift5WavesIcon,
   SFTriangleIcon,
 } from "./SFSourceIcons";
 
@@ -18,7 +18,7 @@ const SOLUTIONS = [
     description:
       "Custom software, internal systems, client platforms, ERP and workflow integrations, and native mobile delivery designed and built for real operational load.",
     href: "#sf-solutions",
-    icon: "globe" as const,
+    icon: "systems" as const,
     lines: 3,
   },
   {
@@ -34,7 +34,7 @@ const SOLUTIONS = [
     description:
       "Cloud, on-premise, and hybrid environments handled end to end, including networking, security posture, migrations, observability, and long-term operational stability.",
     href: "#closing-cta",
-    icon: "default" as const,
+    icon: "infrastructure" as const,
     lines: 3,
   },
   {
@@ -79,12 +79,12 @@ function SolutionLines({ count }: { count: number }) {
 }
 
 function SolutionIcon({ icon }: { icon: (typeof SOLUTIONS)[number]["icon"] }) {
-  if (icon === "globe") {
-    return <SFGlobeIcon className={styles.solutionIconShell} />;
+  if (icon === "systems") {
+    return <SFShift5WavesIcon className={styles.solutionIconShell} />;
   }
 
-  if (icon === "default") {
-    return <SFDefaultIcon className={styles.solutionIconShell} />;
+  if (icon === "infrastructure") {
+    return <SFShift5JumpIcon className={styles.solutionIconShell} />;
   }
 
   if (icon === "triangle") {
