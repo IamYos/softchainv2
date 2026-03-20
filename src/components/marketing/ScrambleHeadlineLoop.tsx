@@ -17,6 +17,7 @@ const DEFAULT_CONTAINER_CLASS = "flex w-full flex-col items-center justify-cente
 const DEFAULT_LINE_CLASS = "flex flex-nowrap items-center justify-center leading-[0.9]";
 
 type ScrambleLineProps = {
+  active: boolean;
   text: string;
   delayMs: number;
   charset: string;
@@ -27,6 +28,7 @@ type ScrambleLineProps = {
 };
 
 function ScrambleHeadlineLine({
+  active,
   text,
   delayMs,
   charset,
@@ -47,6 +49,10 @@ function ScrambleHeadlineLine({
   const tickRef = useRef(0);
 
   useEffect(() => {
+    if (!active) {
+      return;
+    }
+
     tickRef.current = 0;
 
     const timer = window.setTimeout(() => {
@@ -103,7 +109,7 @@ function ScrambleHeadlineLine({
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [charset, cleanText, delayMs, resolvedColor, scrambleColors]);
+  }, [active, charset, cleanText, delayMs, resolvedColor, scrambleColors]);
 
   return (
     <div className={lineClassName} style={{ letterSpacing }}>
@@ -188,6 +194,7 @@ function ScrambleHeadlineLine({
 }
 
 export type ScrambleHeadlineLoopProps = {
+  active?: boolean;
   lineSets: readonly (readonly string[])[];
   intervalMs?: number;
   lineDelayMs?: number;
@@ -200,6 +207,7 @@ export type ScrambleHeadlineLoopProps = {
 };
 
 export function ScrambleHeadlineLoop({
+  active = true,
   lineSets,
   intervalMs = 4000,
   lineDelayMs = 100,
@@ -216,7 +224,7 @@ export function ScrambleHeadlineLoop({
     scrambleColors.length > 0 ? scrambleColors : DEFAULT_SCRAMBLE_COLORS;
 
   useEffect(() => {
-    if (lineSets.length <= 1) {
+    if (!active || lineSets.length <= 1) {
       return;
     }
 
@@ -225,7 +233,7 @@ export function ScrambleHeadlineLoop({
     }, intervalMs);
 
     return () => window.clearInterval(timer);
-  }, [intervalMs, lineSets.length]);
+  }, [active, intervalMs, lineSets.length]);
 
   if (lineSets.length === 0) {
     return null;
@@ -238,6 +246,7 @@ export function ScrambleHeadlineLoop({
       {activeLineSet.map((line, lineIndex) => (
         <ScrambleHeadlineLine
           key={`${lineSetIndex}-${lineIndex}`}
+          active={active}
           text={line}
           delayMs={lineDelayMs * lineIndex}
           charset={safeCharset}

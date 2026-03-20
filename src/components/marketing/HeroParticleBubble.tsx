@@ -200,6 +200,10 @@ export function HeroParticleBubble({ active = true }: HeroParticleBubbleProps) {
     };
 
     const onPointerMove = (event: PointerEvent) => {
+      if (!activeRef.current) {
+        return;
+      }
+
       const bounds = wrapper.getBoundingClientRect();
 
       if (bounds.width <= 0 || bounds.height <= 0) {

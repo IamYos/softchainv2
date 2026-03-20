@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { CustomCursor } from "@/components/marketing/CustomCursor";
 import { Header } from "@/components/marketing/Header";
 import {
@@ -36,16 +36,46 @@ const HERO_SCRAMBLE_COLORS = [
   "#50C878",
 ] as const;
 const HERO_RESOLVED_COLOR = "#b9b9b9";
+const HERO_ACTIVE_THRESHOLD = 0.15;
 
 function HeroAndSections() {
   const lenis = useLenis();
   const { noCanvas } = useDevFlags();
+  const heroSectionRef = useRef<HTMLElement | null>(null);
+  const [isHeroActive, setIsHeroActive] = useState(true);
+
+  useEffect(() => {
+    const heroSection = heroSectionRef.current;
+    if (!heroSection || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) {
+          return;
+        }
+
+        setIsHeroActive(
+          entry.isIntersecting && entry.intersectionRatio >= HERO_ACTIVE_THRESHOLD,
+        );
+      },
+      {
+        threshold: [0, HERO_ACTIVE_THRESHOLD],
+      },
+    );
+
+    observer.observe(heroSection);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
       <main className="marketing-v2" data-header-theme="dark">
         <section
           id="hero-reveal"
+          ref={heroSectionRef}
           className="marketing-anchor relative min-h-[100svh] bg-[#202020]"
           style={{ ["--hero-layer-opacity" as string]: "1" } as CSSProperties}
         >
@@ -54,7 +84,7 @@ function HeroAndSections() {
               <SFBlockBackground reveal variant="techSignal" />
               {!noCanvas ? (
                 <PerfSection id="HeroParticleBubble">
-                  <HeroParticleBubble active />
+                  <HeroParticleBubble active={isHeroActive} />
                 </PerfSection>
               ) : null}
 
@@ -77,6 +107,7 @@ function HeroAndSections() {
                         architecture, delivery, and long term support.
                       </span>
                       <ScrambleHeadlineLoop
+                        active={isHeroActive}
                         lineSets={HERO_HEADLINE_LINES}
                         scrambleColors={HERO_SCRAMBLE_COLORS}
                         resolvedColor={HERO_RESOLVED_COLOR}
