@@ -6,276 +6,767 @@ import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReduce
 import gridStyles from "@/components/marketing/sf/SFPostFrame.module.css";
 import styles from "./AboutPixelGrid.module.css";
 
-type PixelValue = 0 | 1 | 2 | 3;
+const BOARD_WIDTH = 20;
+const BOARD_HEIGHT = 12;
+const TICK_MS = 110;
+const PLAN_LENGTH = 42;
+const SCRIPT_SEEDS = [11, 23, 37, 41, 53, 67] as const;
 
-type PixelPattern = {
-  cells: PixelValue[];
-  label: string;
+type CellTone = 0 | 1 | 2;
+type PieceKey = "I" | "J" | "L" | "O" | "S" | "T" | "Z";
+type Phase = "idle" | "falling" | "lock" | "clear" | "resolve" | "complete";
+type Coord = readonly [number, number];
+
+type ScriptStep = {
+  key: PieceKey;
+  rotation: number;
+  targetX: number;
 };
 
-function pattern(label: string, rows: string[]): PixelPattern {
+type ActivePiece = ScriptStep & {
+  x: number;
+  y: number;
+};
+
+type GameState = {
+  active: ActivePiece | null;
+  flashRows: number[];
+  flashCells: number[];
+  phase: Phase;
+  resolveCells: number[];
+  resolveProgress: number;
+  scriptIndex: number;
+  settled: number[];
+};
+
+type Placement = ScriptStep & {
+  board: number[];
+  clearedRows: number[];
+  score: number;
+};
+
+const PIECES: Record<PieceKey, readonly Coord[][]> = {
+  I: [
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ],
+  ],
+  J: [
+    [
+      [0, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [0, 2],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [2, 1],
+    ],
+    [
+      [1, 0],
+      [1, 1],
+      [0, 2],
+      [1, 2],
+    ],
+  ],
+  L: [
+    [
+      [2, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [1, 2],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [0, 1],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [1, 2],
+    ],
+  ],
+  O: [
+    [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ],
+  ],
+  S: [
+    [
+      [1, 0],
+      [2, 0],
+      [0, 1],
+      [1, 1],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [1, 1],
+      [1, 2],
+    ],
+  ],
+  T: [
+    [
+      [1, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [1, 1],
+      [0, 2],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [1, 1],
+    ],
+    [
+      [1, 0],
+      [0, 1],
+      [1, 1],
+      [1, 2],
+    ],
+  ],
+  Z: [
+    [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [2, 1],
+    ],
+    [
+      [1, 0],
+      [0, 1],
+      [1, 1],
+      [0, 2],
+    ],
+  ],
+};
+
+const PIECE_ORDER: readonly PieceKey[] = ["I", "J", "L", "O", "S", "T", "Z"];
+
+function createEmptyBoard() {
+  return Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => 0);
+}
+
+function createIdleGame(): GameState {
   return {
-    label,
-    cells: rows.join("").split("").map((value) => Number(value) as PixelValue),
+    active: null,
+    flashRows: [],
+    flashCells: [],
+    phase: "idle",
+    resolveCells: [],
+    resolveProgress: 0,
+    scriptIndex: 0,
+    settled: createEmptyBoard(),
   };
 }
 
-const PIXEL_PATTERNS: PixelPattern[] = [
-  pattern("Diamond", ["00100", "01110", "01210", "01110", "00300"]),
-  pattern("Frame", ["11111", "10001", "10201", "10001", "11111"]),
-  pattern("Pulse", ["01010", "11011", "00200", "11011", "01010"]),
-  pattern("Cross", ["10001", "01010", "00300", "01010", "10001"]),
-  pattern("Orbit", ["01110", "10001", "10301", "10001", "01110"]),
-  pattern("Bars", ["10000", "11000", "11300", "11110", "11111"]),
-  pattern("Arrow", ["00100", "00110", "11311", "00110", "00100"]),
-  pattern("Split", ["10101", "01010", "10301", "01010", "10101"]),
-  pattern("Wave", ["10010", "01001", "00300", "10010", "01001"]),
-  pattern("Node", ["00100", "01110", "11011", "01110", "00100"]),
-];
+function toIndex(x: number, y: number) {
+  return y * BOARD_WIDTH + x;
+}
 
-function shuffle<T>(arr: T[], seed: number): T[] {
-  const result = [...arr];
-  let currentSeed = seed;
+function getPieceCells(piece: ScriptStep) {
+  return PIECES[piece.key][piece.rotation % PIECES[piece.key].length];
+}
+
+function getPieceBounds(piece: ScriptStep) {
+  let maxX = 0;
+  let maxY = 0;
+
+  for (const [x, y] of getPieceCells(piece)) {
+    if (x > maxX) {
+      maxX = x;
+    }
+
+    if (y > maxY) {
+      maxY = y;
+    }
+  }
+
+  return { maxX, maxY };
+}
+
+function collides(board: readonly number[], piece: ActivePiece) {
+  for (const [dx, dy] of getPieceCells(piece)) {
+    const x = piece.x + dx;
+    const y = piece.y + dy;
+
+    if (x < 0 || x >= BOARD_WIDTH || y >= BOARD_HEIGHT) {
+      return true;
+    }
+
+    if (y >= 0 && board[toIndex(x, y)] !== 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function getPieceIndices(piece: ActivePiece) {
+  return getPieceCells(piece)
+    .map(([dx, dy]) => ({ x: piece.x + dx, y: piece.y + dy }))
+    .filter(({ x, y }) => x >= 0 && x < BOARD_WIDTH && y >= 0 && y < BOARD_HEIGHT)
+    .map(({ x, y }) => toIndex(x, y));
+}
+
+function mergePiece(board: readonly number[], piece: ActivePiece) {
+  const next = [...board];
+
+  for (const index of getPieceIndices(piece)) {
+    next[index] = 1;
+  }
+
+  return next;
+}
+
+function getFullRows(board: readonly number[]) {
+  const rows: number[] = [];
+
+  for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+    const start = row * BOARD_WIDTH;
+    const end = start + BOARD_WIDTH;
+
+    if (board.slice(start, end).every((cell) => cell !== 0)) {
+      rows.push(row);
+    }
+  }
+
+  return rows;
+}
+
+function clearRows(board: readonly number[], rowsToClear: readonly number[]) {
+  if (!rowsToClear.length) {
+    return [...board];
+  }
+
+  const rowSet = new Set(rowsToClear);
+  const remainingRows: number[][] = [];
+
+  for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+    if (!rowSet.has(row)) {
+      remainingRows.push(board.slice(row * BOARD_WIDTH, (row + 1) * BOARD_WIDTH));
+    }
+  }
+
+  while (remainingRows.length < BOARD_HEIGHT) {
+    remainingRows.unshift(Array.from({ length: BOARD_WIDTH }, () => 0));
+  }
+
+  return remainingRows.flat();
+}
+
+function createActivePiece(step: ScriptStep): ActivePiece {
+  const bounds = getPieceBounds(step);
+  const centeredX = Math.floor((BOARD_WIDTH - (bounds.maxX + 1)) / 2);
+
+  return {
+    ...step,
+    x: Math.max(0, Math.min(centeredX, BOARD_WIDTH - (bounds.maxX + 1))),
+    y: -bounds.maxY - 2,
+  };
+}
+
+function findLandingY(board: readonly number[], step: ScriptStep) {
+  const { maxY } = getPieceBounds(step);
+  let piece: ActivePiece = {
+    ...step,
+    x: step.targetX,
+    y: -maxY - 2,
+  };
+
+  if (collides(board, piece)) {
+    return null;
+  }
+
+  while (true) {
+    const dropped = { ...piece, y: piece.y + 1 };
+
+    if (collides(board, dropped)) {
+      return piece.y;
+    }
+
+    piece = dropped;
+  }
+}
+
+function seededShuffle<T>(items: readonly T[], seed: number) {
+  const result = [...items];
+  let state = seed;
 
   for (let index = result.length - 1; index > 0; index -= 1) {
-    currentSeed = (currentSeed * 1103515245 + 12345) & 0x7fffffff;
-    const targetIndex = currentSeed % (index + 1);
-    [result[index], result[targetIndex]] = [result[targetIndex], result[index]];
+    state = (state * 1664525 + 1013904223) >>> 0;
+    const swapIndex = state % (index + 1);
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
 
   return result;
 }
 
-const SHUFFLED_PATTERNS = shuffle(PIXEL_PATTERNS, 42);
+function createPieceQueue(seed: number, length: number) {
+  const queue: PieceKey[] = [];
+  let bagSeed = seed;
 
-function createSlots(slotCount: number) {
-  return Array.from({ length: slotCount }, (_, index) => ({
-    patternIndex: index % SHUFFLED_PATTERNS.length,
-    version: index,
-  }));
-}
-
-function getPixelClass(value: PixelValue) {
-  switch (value) {
-    case 1:
-      return styles.pixelCellGray;
-    case 2:
-      return styles.pixelCellOrange;
-    case 3:
-      return styles.pixelCellGreen;
-    default:
-      return styles.pixelCellOff;
+  while (queue.length < length) {
+    queue.push(...seededShuffle(PIECE_ORDER, bagSeed));
+    bagSeed += 1;
   }
+
+  return queue.slice(0, length);
 }
 
-function SwitchingGrid({
-  prefersReducedMotion,
-  slotCount,
-}: {
-  prefersReducedMotion: boolean;
-  slotCount: number;
-}) {
-  const [slots, setSlots] = useState(() => createSlots(slotCount));
-  const nextPatternIndexRef = useRef(slotCount);
-  const slotCursorRef = useRef(0);
-  const slotOrderRef = useRef(
-    shuffle(
-      Array.from({ length: slotCount }, (_, index) => index),
-      17 + slotCount,
-    ),
+function getColumnHeights(board: readonly number[]) {
+  const heights = Array.from({ length: BOARD_WIDTH }, () => 0);
+
+  for (let column = 0; column < BOARD_WIDTH; column += 1) {
+    for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+      if (board[toIndex(column, row)] !== 0) {
+        heights[column] = BOARD_HEIGHT - row;
+        break;
+      }
+    }
+  }
+
+  return heights;
+}
+
+function getHoleCount(board: readonly number[]) {
+  let holes = 0;
+
+  for (let column = 0; column < BOARD_WIDTH; column += 1) {
+    let seenBlock = false;
+
+    for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+      const filled = board[toIndex(column, row)] !== 0;
+
+      if (filled) {
+        seenBlock = true;
+      } else if (seenBlock) {
+        holes += 1;
+      }
+    }
+  }
+
+  return holes;
+}
+
+function evaluateBoard(board: readonly number[], clearedRows: number) {
+  const heights = getColumnHeights(board);
+  const aggregateHeight = heights.reduce((sum, value) => sum + value, 0);
+  const bumpiness = heights.reduce(
+    (sum, value, index) => (index === 0 ? sum : sum + Math.abs(value - heights[index - 1])),
+    0,
   );
+  const holes = getHoleCount(board);
+  const filledCells = board.reduce((sum, cell) => sum + cell, 0);
+
+  return (
+    clearedRows * 1400 +
+    filledCells * 1.2 -
+    aggregateHeight * 9 -
+    holes * 72 -
+    bumpiness * 4.5
+  );
+}
+
+function findBestPlacement(board: readonly number[], key: PieceKey): Placement | null {
+  let bestPlacement: Placement | null = null;
+  const rotations = PIECES[key];
+
+  for (let rotation = 0; rotation < rotations.length; rotation += 1) {
+    const step = { key, rotation, targetX: 0 };
+    const { maxX } = getPieceBounds(step);
+
+    for (let targetX = 0; targetX <= BOARD_WIDTH - (maxX + 1); targetX += 1) {
+      const candidateStep = { key, rotation, targetX };
+      const landingY = findLandingY(board, candidateStep);
+
+      if (landingY === null) {
+        continue;
+      }
+
+      const piece: ActivePiece = { ...candidateStep, x: targetX, y: landingY };
+      const merged = mergePiece(board, piece);
+      const clearedRows = getFullRows(merged);
+      const clearedBoard = clearRows(merged, clearedRows);
+      const score = evaluateBoard(clearedBoard, clearedRows.length);
+
+      if (!bestPlacement || score > bestPlacement.score) {
+        bestPlacement = {
+          ...candidateStep,
+          board: clearedBoard,
+          clearedRows,
+          score,
+        };
+      }
+    }
+  }
+
+  return bestPlacement;
+}
+
+function buildScript(seed: number) {
+  const queue = createPieceQueue(seed, PLAN_LENGTH);
+  const steps: ScriptStep[] = [];
+  let board = createEmptyBoard();
+
+  for (const key of queue) {
+    const placement = findBestPlacement(board, key);
+
+    if (!placement) {
+      break;
+    }
+
+    steps.push({
+      key: placement.key,
+      rotation: placement.rotation,
+      targetX: placement.targetX,
+    });
+
+    board = placement.board;
+  }
+
+  return steps;
+}
+
+const SCRIPT_LIBRARY = SCRIPT_SEEDS.map((seed) => buildScript(seed));
+
+function getResolveCells(board: readonly number[]) {
+  const cells: number[] = [];
+
+  for (let row = BOARD_HEIGHT - 1; row >= 0; row -= 1) {
+    for (let column = 0; column < BOARD_WIDTH; column += 1) {
+      const index = toIndex(column, row);
+      if (board[index] === 0) {
+        cells.push(index);
+      }
+    }
+  }
+
+  return cells;
+}
+
+function startResolve(board: readonly number[], scriptIndex: number): GameState {
+  return {
+    active: null,
+    flashCells: [],
+    flashRows: [],
+    phase: "resolve",
+    resolveCells: getResolveCells(board),
+    resolveProgress: 0,
+    scriptIndex,
+    settled: [...board],
+  };
+}
+
+function createGame(scriptId: number): GameState {
+  const script = SCRIPT_LIBRARY[scriptId];
+
+  if (script.length === 0) {
+    return startResolve(createEmptyBoard(), 0);
+  }
+
+  return {
+    active: createActivePiece(script[0]),
+    flashCells: [],
+    flashRows: [],
+    phase: "falling",
+    resolveCells: [],
+    resolveProgress: 0,
+    scriptIndex: 0,
+    settled: createEmptyBoard(),
+  };
+}
+
+function tickGame(state: GameState, scriptId: number): GameState {
+  const script = SCRIPT_LIBRARY[scriptId];
+
+  if (state.phase === "idle" || state.phase === "complete") {
+    return state;
+  }
+
+  if (state.phase === "resolve") {
+    const nextProgress = Math.min(state.resolveCells.length, state.resolveProgress + 10);
+
+    if (nextProgress >= state.resolveCells.length) {
+      return {
+        ...state,
+        phase: "complete",
+        resolveProgress: nextProgress,
+      };
+    }
+
+    return {
+      ...state,
+      resolveProgress: nextProgress,
+    };
+  }
+
+  if (state.phase === "lock") {
+    const nextIndex = state.scriptIndex + 1;
+
+    if (state.flashRows.length > 0) {
+      return {
+        ...state,
+        phase: "clear",
+      };
+    }
+
+    if (nextIndex >= script.length) {
+      return startResolve(state.settled, nextIndex);
+    }
+
+    return {
+      ...state,
+      active: createActivePiece(script[nextIndex]),
+      flashCells: [],
+      flashRows: [],
+      phase: "falling",
+      scriptIndex: nextIndex,
+    };
+  }
+
+  if (state.phase === "clear") {
+    const clearedBoard = clearRows(state.settled, state.flashRows);
+    const nextIndex = state.scriptIndex + 1;
+
+    if (nextIndex >= script.length) {
+      return startResolve(clearedBoard, nextIndex);
+    }
+
+    return {
+      active: createActivePiece(script[nextIndex]),
+      flashCells: [],
+      flashRows: [],
+      phase: "falling",
+      resolveCells: [],
+      resolveProgress: 0,
+      scriptIndex: nextIndex,
+      settled: clearedBoard,
+    };
+  }
+
+  if (!state.active) {
+    return state;
+  }
+
+  let nextPiece = state.active;
+
+  if (nextPiece.x !== nextPiece.targetX) {
+    const direction = nextPiece.x < nextPiece.targetX ? 1 : -1;
+    const shifted = { ...nextPiece, x: nextPiece.x + direction };
+
+    if (!collides(state.settled, shifted)) {
+      nextPiece = shifted;
+    }
+  }
+
+  const dropped = { ...nextPiece, y: nextPiece.y + 1 };
+  if (!collides(state.settled, dropped)) {
+    return {
+      ...state,
+      active: dropped,
+    };
+  }
+
+  const merged = mergePiece(state.settled, nextPiece);
+  const fullRows = getFullRows(merged);
+
+  return {
+    active: null,
+    flashCells: getPieceIndices(nextPiece),
+    flashRows: fullRows,
+    phase: "lock",
+    resolveCells: [],
+    resolveProgress: 0,
+    scriptIndex: state.scriptIndex,
+    settled: merged,
+  };
+}
+
+function buildCompletedGame(scriptId: number) {
+  let state = createGame(scriptId);
+  let guard = 0;
+
+  while (state.phase !== "complete" && guard < 6000) {
+    state = tickGame(state, scriptId);
+    guard += 1;
+  }
+
+  return state;
+}
+
+const REDUCED_MOTION_GAME = buildCompletedGame(0);
+
+function getRenderableCells(state: GameState) {
+  const cells = state.settled.map<CellTone>((cell) => (cell === 0 ? 0 : 1));
+
+  if (state.active) {
+    for (const index of getPieceIndices(state.active)) {
+      cells[index] = 1;
+    }
+  }
+
+  if (state.phase === "lock") {
+    for (const index of state.flashCells) {
+      cells[index] = 2;
+    }
+  }
+
+  if (state.phase === "clear") {
+    for (const row of state.flashRows) {
+      for (let column = 0; column < BOARD_WIDTH; column += 1) {
+        cells[toIndex(column, row)] = 2;
+      }
+    }
+  }
+
+  if (state.phase === "resolve" || state.phase === "complete") {
+    for (let index = 0; index < cells.length; index += 1) {
+      if (cells[index] !== 0) {
+        cells[index] = 2;
+      }
+    }
+
+    for (let index = 0; index < state.resolveProgress; index += 1) {
+      cells[state.resolveCells[index]] = 2;
+    }
+  }
+
+  if (state.phase === "complete") {
+    return cells.map(() => 2) as CellTone[];
+  }
+
+  return cells;
+}
+
+function getToneClass(tone: CellTone) {
+  if (tone === 2) {
+    return styles.pixelCellOrange;
+  }
+
+  if (tone === 1) {
+    return styles.pixelCellGray;
+  }
+
+  return styles.pixelCellOff;
+}
+
+export function AboutPixelGrid() {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [scriptId, setScriptId] = useState(0);
+  const [game, setGame] = useState<GameState>(() => createIdleGame());
+  const [isActive, setIsActive] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const wasInViewRef = useRef(false);
 
   useEffect(() => {
     if (prefersReducedMotion) {
       return;
     }
 
-    let timeoutId = 0;
-
-    const queueTick = () => {
-      const delay = 360 + (slotCursorRef.current % 6) * 78;
-
-      timeoutId = window.setTimeout(() => {
-        setSlots((current) => {
-          const targetSlot = slotOrderRef.current[slotCursorRef.current % slotCount];
-          let nextPatternIndex = nextPatternIndexRef.current % SHUFFLED_PATTERNS.length;
-
-          if (current[targetSlot].patternIndex === nextPatternIndex) {
-            nextPatternIndex = (nextPatternIndex + 1) % SHUFFLED_PATTERNS.length;
-          }
-
-          const nextSlots = [...current];
-          nextSlots[targetSlot] = {
-            patternIndex: nextPatternIndex,
-            version: current[targetSlot].version + 1,
-          };
-
-          return nextSlots;
-        });
-
-        slotCursorRef.current += 1;
-        nextPatternIndexRef.current += 1;
-
-        if (slotCursorRef.current % slotCount === 0) {
-          slotOrderRef.current = shuffle(slotOrderRef.current, slotCursorRef.current + 23);
-        }
-
-        queueTick();
-      }, delay);
-    };
-
-    queueTick();
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [prefersReducedMotion, slotCount]);
-
-  return (
-    <>
-      {slots.map((slot, index) => {
-        const activePattern = SHUFFLED_PATTERNS[slot.patternIndex];
-        const style = {
-          ["--tech-slot-delay" as string]: `${(index % 5) * 0.14}s`,
-          ["--tech-slot-duration" as string]: `${3.1 + (index % 4) * 0.38}s`,
-        } as CSSProperties;
-
-        return (
-          <div
-            key={`${index}-${slot.version}`}
-            className={gridStyles.techSignalSlot}
-            style={style}
-            title={activePattern.label}
-          >
-            <div className={styles.pixelGlyph} aria-hidden="true">
-              {activePattern.cells.map((value, cellIndex) => (
-                <span
-                  key={`${activePattern.label}-${cellIndex}`}
-                  className={`${styles.pixelCell} ${getPixelClass(value)}`}
-                  style={
-                    {
-                      ["--pixel-cell-delay" as string]: `${(cellIndex % 5) * 0.04}s`,
-                    } as CSSProperties
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </>
-  );
-}
-
-export function AboutPixelGrid() {
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const [slotCount, setSlotCount] = useState(20);
-  const pixelMatrixRef = useRef<HTMLDivElement | null>(null);
-  const activeSlotRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    let frameId = 0;
-
-    const updateSlotCount = () => {
-      setSlotCount(window.innerWidth >= 1025 ? 24 : 20);
-    };
-
-    frameId = window.requestAnimationFrame(updateSlotCount);
-    window.addEventListener("resize", updateSlotCount);
-
-    return () => {
-      if (frameId) {
-        window.cancelAnimationFrame(frameId);
-      }
-
-      window.removeEventListener("resize", updateSlotCount);
-    };
-  }, []);
-
-  useEffect(() => {
-    const pixelMatrix = pixelMatrixRef.current;
-    if (!pixelMatrix || prefersReducedMotion) {
+    const root = rootRef.current;
+    if (!root) {
       return;
     }
 
-    const clearActiveSlot = () => {
-      const activeSlot = activeSlotRef.current;
-      if (!activeSlot) {
-        return;
-      }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const inView = entry.isIntersecting && entry.intersectionRatio > 0.38;
 
-      activeSlot.classList.remove(gridStyles.techSignalSlotActive);
-      activeSlot.classList.remove(gridStyles.techSignalSlotPressed);
-      activeSlotRef.current = null;
-    };
+        if (inView && !wasInViewRef.current) {
+          const nextScriptId = Math.floor(Math.random() * SCRIPT_LIBRARY.length);
+          setScriptId(nextScriptId);
+          setGame(createGame(nextScriptId));
+          setIsActive(true);
+        }
 
-    const activateSlot = (slot: HTMLElement) => {
-      if (activeSlotRef.current && activeSlotRef.current !== slot) {
-        clearActiveSlot();
-      }
+        if (!inView) {
+          setIsActive(false);
+          setGame(createIdleGame());
+        }
 
-      activeSlotRef.current = slot;
-      slot.classList.add(gridStyles.techSignalSlotActive);
-      slot.classList.remove(gridStyles.techSignalSlotPressed);
-      void slot.offsetWidth;
-      slot.classList.add(gridStyles.techSignalSlotPressed);
-    };
+        wasInViewRef.current = inView;
+      },
+      {
+        threshold: [0.18, 0.38, 0.66],
+      },
+    );
 
-    const handleClick = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) {
-        return;
-      }
-
-      const slot = target.closest<HTMLElement>(`.${gridStyles.techSignalSlot}`);
-      if (!slot || !pixelMatrix.contains(slot)) {
-        return;
-      }
-
-      activateSlot(slot);
-    };
-
-    const handleDocumentClick = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) {
-        clearActiveSlot();
-        return;
-      }
-
-      const slot = target.closest(`.${gridStyles.techSignalSlot}`);
-      if (slot && pixelMatrix.contains(slot)) {
-        return;
-      }
-
-      clearActiveSlot();
-    };
-
-    const handleAnimationEnd = (event: AnimationEvent) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-
-      if (target.classList.contains(gridStyles.techSignalSlotPressed)) {
-        target.classList.remove(gridStyles.techSignalSlotPressed);
-      }
-    };
-
-    pixelMatrix.addEventListener("click", handleClick);
-    pixelMatrix.addEventListener("animationend", handleAnimationEnd);
-    document.addEventListener("click", handleDocumentClick);
+    observer.observe(root);
 
     return () => {
-      pixelMatrix.removeEventListener("click", handleClick);
-      pixelMatrix.removeEventListener("animationend", handleAnimationEnd);
-      document.removeEventListener("click", handleDocumentClick);
+      observer.disconnect();
     };
   }, [prefersReducedMotion]);
 
+  useEffect(() => {
+    if (prefersReducedMotion || !isActive || game.phase === "idle" || game.phase === "complete") {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setGame((current) => tickGame(current, scriptId));
+    }, TICK_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [game.phase, isActive, prefersReducedMotion, scriptId]);
+
+  const gameToRender = prefersReducedMotion ? REDUCED_MOTION_GAME : game;
+  const renderableCells = getRenderableCells(gameToRender);
+
   return (
-    <div className={gridStyles.techStackGrid} aria-label="Animated signal grid">
-      <div ref={pixelMatrixRef} className={gridStyles.techPixelMatrix}>
-        <SwitchingGrid key={slotCount} prefersReducedMotion={prefersReducedMotion} slotCount={slotCount} />
+    <div ref={rootRef} className={gridStyles.techStackGrid} aria-label="Autoplay Tetris field">
+      <div className={styles.stage}>
+        <div className={styles.board} aria-hidden="true">
+          {renderableCells.map((tone, index) => (
+            <span
+              key={index}
+              className={`${styles.pixelCell} ${getToneClass(tone)}`}
+              style={
+                {
+                  ["--pixel-cell-delay" as string]: `${((index % BOARD_WIDTH) + Math.floor(index / BOARD_WIDTH)) * 0.007}s`,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

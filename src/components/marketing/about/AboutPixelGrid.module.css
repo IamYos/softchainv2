@@ -1,138 +1,127 @@
-.pixelGlyph {
-  animation:
-    pixelGlyphSwap 460ms steps(6, end) 1,
-    pixelGlyphIdle var(--tech-slot-duration) steps(4, end) infinite;
-  animation-delay: 0s, var(--tech-slot-delay);
-  display: grid;
-  gap: 2px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-template-rows: repeat(5, minmax(0, 1fr));
-  height: 70%;
-  opacity: 0.56;
-  overflow: hidden;
-  padding: 2px;
+.stage {
+  height: 100%;
+  padding: 0;
   position: relative;
-  width: 70%;
+  width: 100%;
+  z-index: 1;
 }
 
-.pixelGlyph::after {
-  animation:
-    pixelScanSwap 460ms steps(6, end) 1,
-    pixelScanIdle var(--tech-slot-duration) steps(4, end) infinite;
-  animation-delay: 0s, var(--tech-slot-delay);
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(185, 185, 185, 0.14) 44%,
-    rgba(185, 185, 185, 0.32) 50%,
-    rgba(185, 185, 185, 0.1) 56%,
-    transparent 100%
-  );
+.board {
+  animation: boardDrift 5.2s ease-in-out infinite;
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  grid-template-rows: repeat(12, minmax(0, 1fr));
+  height: 100%;
+  padding: clamp(14px, 2vw, 18px);
+  position: relative;
+  width: 100%;
+}
+
+.board::before,
+.board::after {
   content: "";
   inset: 0;
-  opacity: 0.18;
   pointer-events: none;
   position: absolute;
 }
 
+.board::before {
+  background: radial-gradient(circle at center, rgba(185, 185, 185, 0.03), transparent 72%);
+  opacity: 0.9;
+}
+
+.board::after {
+  animation: boardScan 3.6s linear infinite;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(185, 185, 185, 0.03) 38%,
+    rgba(185, 185, 185, 0.1) 50%,
+    rgba(185, 185, 185, 0.03) 62%,
+    transparent 100%
+  );
+  opacity: 0.22;
+}
+
 .pixelCell {
-  animation: pixelCellPulse calc(var(--tech-slot-duration) * 0.9) steps(2, end) infinite;
-  animation-delay: calc(var(--tech-slot-delay) + var(--pixel-cell-delay));
+  animation: blockPulse 0.86s steps(2, end) infinite;
+  animation-delay: var(--pixel-cell-delay);
   border-radius: 1px;
   display: block;
 }
 
 .pixelCellOff {
-  background: rgba(185, 185, 185, 0.12);
-  opacity: 0.08;
+  background:
+    linear-gradient(180deg, rgba(185, 185, 185, 0.028), rgba(185, 185, 185, 0.012)),
+    rgba(255, 255, 255, 0.006);
+  border: 1px solid rgba(185, 185, 185, 0.026);
+  opacity: 0.68;
 }
 
 .pixelCellGray {
   background: #b9b9b9;
-  box-shadow: 0 0 8px rgba(185, 185, 185, 0.12);
-  opacity: 0.92;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 12px rgba(185, 185, 185, 0.16);
+  opacity: 0.96;
 }
 
 .pixelCellOrange {
   background: #ff5841;
-  box-shadow: 0 0 8px rgba(255, 88, 65, 0.22);
-  opacity: 0.94;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 18px rgba(255, 88, 65, 0.4);
+  opacity: 1;
 }
 
-.pixelCellGreen {
-  background: var(--mf-brand-paris-green);
-  box-shadow: 0 0 8px rgba(80, 200, 120, 0.24);
-  opacity: 0.94;
+@media screen and (max-width: 1024px) {
+  .board {
+    gap: 2px;
+    padding: 14px;
+  }
 }
 
-@media screen and (min-width: 750px) {
-  .pixelGlyph {
-    gap: 3px;
+@media screen and (max-width: 749px) {
+  .board {
+    gap: 2px;
+    padding: 10px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pixelGlyph,
-  .pixelGlyph::after,
+  .board,
+  .board::after,
   .pixelCell {
     animation: none;
   }
 }
 
-@keyframes pixelGlyphSwap {
-  0% {
-    opacity: 0.18;
-    transform: scale(0.88);
-  }
-
-  100% {
-    opacity: 0.56;
-    transform: scale(1);
-  }
-}
-
-@keyframes pixelGlyphIdle {
+@keyframes boardDrift {
   0%,
   100% {
-    opacity: 0.48;
     transform: translateY(0);
   }
 
   50% {
-    opacity: 0.62;
     transform: translateY(-1px);
   }
 }
 
-@keyframes pixelScanSwap {
+@keyframes boardScan {
   0% {
-    opacity: 0;
-    transform: translateY(-115%);
+    transform: translateY(-112%);
   }
 
   100% {
-    opacity: 0.14;
-    transform: translateY(115%);
+    transform: translateY(112%);
   }
 }
 
-@keyframes pixelScanIdle {
+@keyframes blockPulse {
   0%,
   100% {
-    opacity: 0.08;
-    transform: translateY(-80%);
-  }
-
-  50% {
-    opacity: 0.2;
-    transform: translateY(90%);
-  }
-}
-
-@keyframes pixelCellPulse {
-  0%,
-  100% {
-    opacity: 0.8;
+    opacity: 0.9;
   }
 
   50% {
