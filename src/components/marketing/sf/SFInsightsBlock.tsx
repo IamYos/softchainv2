@@ -1,3 +1,4 @@
+import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
 import styles from "./SFPostFrame.module.css";
 import { TechStackGrid } from "./TechStackGrid";
 
@@ -77,7 +78,14 @@ function FeaturedPanel() {
           <TechStackGrid />
         </div>
         <div className={styles.featureContent}>
-          <h2 className={`${styles.featureTitle} ${styles.t8}`}>{FEATURED_INSIGHT.title}</h2>
+          <ScrambleTextReveal
+            as="h2"
+            lines={[FEATURED_INSIGHT.title]}
+            className={`${styles.featureTitle} ${styles.t8}`}
+            lineClassName="block"
+            loopClassName="block"
+            resolvedColor="#b9b9b9"
+          />
           <p className={`${styles.featureDate} ${styles.p}`}>{FEATURED_INSIGHT.date}</p>
           <p className={`${styles.featureDescription} ${styles.p}`}>
             {FEATURED_INSIGHT.description}

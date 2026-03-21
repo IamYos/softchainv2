@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
 import {
   getHeaderNavHref,
   HEADER_MENU_SECONDARY_ITEMS,
@@ -89,22 +90,20 @@ export function SFFooter({ currentPage }: SFFooterProps) {
           </div>
 
           <div className={styles.footerTitle}>
-            <svg
-              viewBox="0 0 1000 180"
-              aria-hidden="true"
-              className={styles.footerWordmarkSvg}
-              preserveAspectRatio="xMinYMax meet"
-            >
-              <text
-                x="0"
-                y="148"
-                textLength="1000"
-                lengthAdjust="spacingAndGlyphs"
-                className={styles.footerWordmarkText}
-              >
-                SOFTCHAIN
-              </text>
-            </svg>
+            <ScrambleTextReveal
+              as="div"
+              lines={["SOFTCHAIN"]}
+              className={styles.footerWordmarkText}
+              loopClassName="w-full"
+              lineClassName="block whitespace-nowrap"
+              resolvedColor="#ff5841"
+              scrambleColors={["#ff5841", "#b9b9b9"]}
+              fitToContainer
+              fitMode="width"
+              minFontSizePx={56}
+              maxFontSizePx={280}
+              rootMargin="-5% 0px"
+            />
           </div>
 
           <div className={`${styles.footerCopy} ${styles.footerCopyDesktop}`}>

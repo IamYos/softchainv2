@@ -1395,13 +1395,17 @@
 }
 
 .footerWordmarkText {
-  fill: currentColor;
   font-family: var(--font-non-sans), Arial, sans-serif;
-  font-size: 170px;
+  font-size: var(--scramble-fit-font-size, 170px);
   font-weight: 700;
   letter-spacing: -0.045em;
+  line-height: 1;
   text-rendering: geometricPrecision;
   text-transform: uppercase;
+}
+
+.footerWordmarkText [data-scramble-word="true"] {
+  padding-bottom: 0.05em;
 }
 
 /* ── Footer copy (bottom bar) ── */

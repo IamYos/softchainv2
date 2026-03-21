@@ -16,6 +16,32 @@ const DEFAULT_SCRAMBLE_COLORS = [
 const DEFAULT_CONTAINER_CLASS = "flex w-full flex-col items-center justify-center gap-4";
 const DEFAULT_LINE_CLASS = "flex flex-nowrap items-center justify-center leading-[0.9]";
 
+function createPlaceholderGlyphs(text: string): ScrambleGlyph[] {
+  return text.split("").map(() => ({
+    char: " ",
+    color: "transparent",
+    resolved: false,
+  }));
+}
+
+function createResolvedGlyphs(text: string, resolvedColor: string): ScrambleGlyph[] {
+  return text.split("").map((char) => {
+    if (char === " ") {
+      return {
+        char: " ",
+        color: "transparent",
+        resolved: true,
+      };
+    }
+
+    return {
+      char,
+      color: resolvedColor,
+      resolved: true,
+    };
+  });
+}
+
 type ScrambleLineProps = {
   active: boolean;
   text: string;
@@ -38,18 +64,29 @@ function ScrambleHeadlineLine({
   letterSpacing,
 }: ScrambleLineProps) {
   const cleanText = text.replace(/~/g, "");
-  const [glyphs, setGlyphs] = useState<ScrambleGlyph[]>(
-    cleanText.split("").map(() => ({
-      char: " ",
-      color: "transparent",
-      resolved: false,
-    })),
-  );
+  const [glyphs, setGlyphs] = useState<ScrambleGlyph[]>(() => createPlaceholderGlyphs(cleanText));
   const rafRef = useRef<number | undefined>(undefined);
   const tickRef = useRef(0);
+  const lastTextRef = useRef(cleanText);
+  const hasAnimatedRef = useRef(false);
+
+  useEffect(() => {
+    if (lastTextRef.current === cleanText) {
+      return;
+    }
+
+    lastTextRef.current = cleanText;
+    hasAnimatedRef.current = false;
+    setGlyphs(createPlaceholderGlyphs(cleanText));
+  }, [cleanText]);
 
   useEffect(() => {
     if (!active) {
+      return;
+    }
+
+    if (hasAnimatedRef.current) {
+      setGlyphs(createResolvedGlyphs(cleanText, resolvedColor));
       return;
     }
 
@@ -96,7 +133,10 @@ function ScrambleHeadlineLine({
         if (tickRef.current < 2.5 * cleanText.length + 40) {
           tickRef.current += 1;
           rafRef.current = window.requestAnimationFrame(step);
+          return;
         }
+
+        hasAnimatedRef.current = true;
       };
 
       step();

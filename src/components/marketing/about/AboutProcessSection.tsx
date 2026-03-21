@@ -3,6 +3,7 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
 import { useScrollSceneProgress } from "@/components/marketing/useScrollSceneProgress";
+import { AboutScrambleHeading } from "./AboutScrambleHeading";
 import { ABOUT_PAGE_CONTENT } from "./aboutContent";
 import styles from "./AboutPage.module.css";
 
@@ -265,7 +266,12 @@ export function AboutProcessSection() {
       <div className={processSectionClassName}>
         <div className={styles.processTop}>
           <div className={styles.processIntro}>
-            <h2 className={styles.processHeading}>{ABOUT_PAGE_CONTENT.process.heading}</h2>
+            <AboutScrambleHeading
+              lines={[ABOUT_PAGE_CONTENT.process.heading]}
+              className={styles.processHeading}
+              lineClassName="block"
+              resolvedColor="#b9b9b9"
+            />
             <div className={styles.processCount}>
               <span className={styles.processCountCurrent}>
                 {formatStageIndex(activeStageIndex)}

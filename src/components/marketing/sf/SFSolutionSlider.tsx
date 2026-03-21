@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
 import { useScrollSceneProgress } from "@/components/marketing/useScrollSceneProgress";
 import styles from "./SFPostFrame.module.css";
@@ -255,9 +256,14 @@ export function SFSolutionSlider() {
       <div className={stageClassName}>
         <div className={styles.wrapper}>
           <div className={styles.solutionsHeader}>
-            <h2 className={`${styles.solutionsTitle} ${styles.t5}`}>
-              Core Craft.
-            </h2>
+            <ScrambleTextReveal
+              as="h2"
+              lines={["Core Craft."]}
+              className={`${styles.solutionsTitle} ${styles.t5}`}
+              lineClassName="block"
+              loopClassName="block"
+              resolvedColor="#202020"
+            />
             <div className={styles.solutionsControls}>
               <button
                 type="button"
@@ -303,7 +309,14 @@ export function SFSolutionSlider() {
                 <SolutionLines count={solution.lines} />
                 <div>
                   <SolutionIcon icon={solution.icon} />
-                  <h3 className={`${styles.solutionTitle} ${styles.p2}`}>{solution.title}</h3>
+                  <ScrambleTextReveal
+                    as="h3"
+                    lines={[solution.title]}
+                    className={`${styles.solutionTitle} ${styles.p2}`}
+                    lineClassName="block"
+                    loopClassName="block"
+                    resolvedColor="#202020"
+                  />
                   <p className={`${styles.solutionDescription} ${styles.p}`}>
                     {solution.description}
                   </p>
