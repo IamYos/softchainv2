@@ -38,9 +38,6 @@ export const ABOUT_PAGE_CONTENT = {
   principles: {
     eyebrow: "Operating Principles",
     title: "Delivery stays clearer when architecture, execution, and support are not split apart.",
-    description:
-      "The engagement model is structured around coherent scoping, implementation boundaries, and accountable delivery rather than fragmented handoffs.",
-    quote: "Architecture is defined before development starts.",
     items: [
       {
         label: "Lifecycle",
@@ -71,13 +68,7 @@ export const ABOUT_PAGE_CONTENT = {
   values: {
     eyebrow: "How We Work",
     title: "Constraint-led decisions across software, AI, infrastructure, and support.",
-    accent: "Architecture is defined before development starts.",
     items: [
-      {
-        title: "Architecture is defined before development starts.",
-        description:
-          "We do not start building before the stack, boundaries, and delivery plan are coherent.",
-      },
       {
         title: "AI belongs where it improves throughput, accuracy, or leverage.",
         description:

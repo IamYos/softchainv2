@@ -7,14 +7,11 @@
 }
 
 .heroSection::after {
-  content: "";
-  inset: 0;
-  pointer-events: none;
-  position: absolute;
+  display: none;
 }
 
 .heroContainer {
-  min-height: calc(100svh - clamp(84px, 10vw, 128px));
+  min-height: 100svh;
   padding-bottom: 0;
   padding-top: calc(var(--mf-header-height) + clamp(28px, 5vw, 56px));
   position: relative;
@@ -22,7 +19,7 @@
 }
 
 .heroInner {
-  min-height: calc(100svh - var(--mf-header-height) - clamp(120px, 14vw, 164px));
+  min-height: calc(100svh - var(--mf-header-height) - clamp(56px, 8vw, 88px));
   position: relative;
   width: 100%;
 }
@@ -64,8 +61,8 @@
   gap: 28px;
   padding: clamp(28px, 3.4vw, 40px);
   position: absolute;
-  right: clamp(0px, 1.2vw, 18px);
-  top: clamp(7%, 8vh, 12%);
+  right: clamp(8px, 1.8vw, 28px);
+  top: clamp(5%, 6vh, 10%);
   width: min(100%, 520px);
   z-index: 3;
 }
@@ -117,9 +114,8 @@
 }
 
 .heroWordWrap {
-  bottom: clamp(16px, 2vw, 32px);
+  bottom: clamp(34px, 4vw, 56px);
   left: 0;
-  margin-top: 24px;
   position: absolute;
   width: min(100%, 1040px);
   z-index: 2;
@@ -137,16 +133,13 @@
   transform: translate3d(0, 18%, 0);
 }
 
-.heroBottomBand {
-  background: #202020;
-  height: clamp(84px, 10vw, 128px);
-  position: relative;
-  z-index: 2;
+.scrambleHeading {
+  display: block;
 }
 
 .snapshotSection {
-  background: #b9b9b9;
-  color: #202020;
+  background: #202020;
+  color: #b9b9b9;
   padding: clamp(72px, 9vw, 120px) 0;
 }
 
@@ -182,18 +175,19 @@
 }
 
 .snapshotGrid {
-  border-left: 1px solid rgba(32, 32, 32, 0.16);
+  border-left: 1px solid rgba(185, 185, 185, 0.16);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .snapshotCard {
-  border-right: 1px solid rgba(32, 32, 32, 0.16);
+  border-right: 1px solid rgba(185, 185, 185, 0.16);
   min-height: 280px;
   padding: 28px 24px 24px;
 }
 
 .snapshotValue {
+  color: #b9b9b9;
   font-family: var(--font-non-sans), Arial, sans-serif;
   font-size: clamp(34px, 5vw, 72px);
   font-weight: 500;
@@ -203,6 +197,7 @@
 }
 
 .snapshotLabel {
+  color: rgba(185, 185, 185, 0.72);
   font-family: var(--font-aux-mono), monospace;
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -219,6 +214,11 @@
   font-size: 17px;
   letter-spacing: -0.018em;
   line-height: 1.45;
+}
+
+.snapshotDescription,
+.snapshotCopy {
+  color: rgba(185, 185, 185, 0.76);
 }
 
 .principlesSection {
@@ -385,7 +385,7 @@
 
   .snapshotCard:nth-child(1),
   .snapshotCard:nth-child(2) {
-    border-bottom: 1px solid rgba(32, 32, 32, 0.16);
+    border-bottom: 1px solid rgba(185, 185, 185, 0.16);
   }
 }
 
@@ -486,7 +486,7 @@
   }
 
   .snapshotCard {
-    border-bottom: 1px solid rgba(32, 32, 32, 0.16);
+    border-bottom: 1px solid rgba(185, 185, 185, 0.16);
     border-right: 0;
     min-height: auto;
     padding-left: 0;
@@ -494,7 +494,7 @@
   }
 
   .snapshotCard:first-child {
-    border-top: 1px solid rgba(32, 32, 32, 0.16);
+    border-top: 1px solid rgba(185, 185, 185, 0.16);
   }
 
   .principlesFrame {

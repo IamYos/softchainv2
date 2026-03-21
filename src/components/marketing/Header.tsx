@@ -168,7 +168,7 @@ export function Header({ currentPage }: HeaderProps) {
       body.style.width = "";
       window.scrollTo({ top: scrollLockYRef.current, behavior: "auto" });
     };
-  }, [mobileMenuOpen]);
+  }, [currentPage, mobileMenuOpen]);
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -184,7 +184,7 @@ export function Header({ currentPage }: HeaderProps) {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mobileMenuOpen]);
+  }, [currentPage, mobileMenuOpen]);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -253,6 +253,8 @@ export function Header({ currentPage }: HeaderProps) {
         heroReveal.dataset.headerPalette === "light"
           ? LIGHT_FRAME_HEADER_PALETTE
           : DARK_FRAME_HEADER_PALETTE;
+      const postHeroPalette =
+        currentPage === "about" ? DARK_FRAME_HEADER_PALETTE : LIGHT_FRAME_HEADER_PALETTE;
 
       if (showFrameOnePalette === isFrameOnePaletteRef.current) {
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
@@ -262,7 +264,7 @@ export function Header({ currentPage }: HeaderProps) {
       isFrameOnePaletteRef.current = showFrameOnePalette;
       applyHeaderPalette(
         header,
-        showFrameOnePalette ? heroPalette : LIGHT_FRAME_HEADER_PALETTE,
+        showFrameOnePalette ? heroPalette : postHeroPalette,
       );
       recordPerfSample("header-scroll-update", performance.now() - startedAt);
     };
@@ -286,7 +288,7 @@ export function Header({ currentPage }: HeaderProps) {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [mobileMenuOpen]);
+  }, [currentPage, mobileMenuOpen]);
 
   const queueOrRunScroll = (target: string | number, duration: number) => {
     if (mobileMenuOpen) {

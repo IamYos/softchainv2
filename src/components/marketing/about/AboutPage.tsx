@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/marketing/PageContainer";
 import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
 import { SFFooter } from "@/components/marketing/sf/SFFooter";
 import { TechStackGrid } from "@/components/marketing/sf/TechStackGrid";
+import { AboutScrambleHeading } from "./AboutScrambleHeading";
 import { ABOUT_PAGE_CONTENT } from "./aboutContent";
 import styles from "./AboutPage.module.css";
 
@@ -28,12 +29,18 @@ function AboutHero() {
 
           <div className={styles.heroWordWrap}>
             <div className={styles.heroLineMask}>
-              <h1 className={styles.heroWord}>{ABOUT_PAGE_CONTENT.hero.word}</h1>
+              <AboutScrambleHeading
+                as="h1"
+                lines={[ABOUT_PAGE_CONTENT.hero.word]}
+                className={styles.scrambleHeading}
+                lineClassName={styles.heroWord}
+                resolvedColor="#202020"
+                scrambleColors={["#202020", "#b9b9b9"]}
+              />
             </div>
           </div>
         </div>
       </PageContainer>
-      <div className={styles.heroBottomBand} aria-hidden="true" />
     </section>
   );
 }
@@ -44,11 +51,14 @@ function SnapshotSection() {
       <PageContainer className={styles.snapshotContainer}>
         <div className={styles.snapshotHeader}>
           <FadeIn>
-            <p className={styles.sectionEyebrow}>{ABOUT_PAGE_CONTENT.snapshot.eyebrow}</p>
+            <p className={styles.sectionEyebrowDark}>{ABOUT_PAGE_CONTENT.snapshot.eyebrow}</p>
           </FadeIn>
-          <FadeIn delayMs={80}>
-            <h2 className={styles.snapshotTitle}>{ABOUT_PAGE_CONTENT.snapshot.title}</h2>
-          </FadeIn>
+          <AboutScrambleHeading
+            lines={[ABOUT_PAGE_CONTENT.snapshot.title]}
+            className={styles.scrambleHeading}
+            lineClassName={styles.snapshotTitle}
+            resolvedColor="#b9b9b9"
+          />
           <FadeIn delayMs={140}>
             <p className={styles.snapshotDescription}>
               {ABOUT_PAGE_CONTENT.snapshot.description}
@@ -90,15 +100,12 @@ function PrinciplesSection() {
                 <p className={styles.sectionEyebrowDark}>
                   {ABOUT_PAGE_CONTENT.principles.eyebrow}
                 </p>
-                <h2 className={styles.principlesTitle}>
-                  {ABOUT_PAGE_CONTENT.principles.title}
-                </h2>
-                <p className={styles.principlesDescription}>
-                  {ABOUT_PAGE_CONTENT.principles.description}
-                </p>
-                <p className={styles.principlesQuote}>
-                  {ABOUT_PAGE_CONTENT.principles.quote}
-                </p>
+                <AboutScrambleHeading
+                  lines={[ABOUT_PAGE_CONTENT.principles.title]}
+                  className={styles.scrambleHeading}
+                  lineClassName={styles.principlesTitle}
+                  resolvedColor="#b9b9b9"
+                />
               </div>
             </div>
           </div>
@@ -128,12 +135,12 @@ function ValuesSection() {
           <FadeIn>
             <p className={styles.sectionEyebrowDark}>{ABOUT_PAGE_CONTENT.values.eyebrow}</p>
           </FadeIn>
-          <FadeIn delayMs={80}>
-            <h2 className={styles.valuesTitle}>{ABOUT_PAGE_CONTENT.values.title}</h2>
-          </FadeIn>
-          <FadeIn delayMs={160}>
-            <p className={styles.valuesAccent}>{ABOUT_PAGE_CONTENT.values.accent}</p>
-          </FadeIn>
+          <AboutScrambleHeading
+            lines={[ABOUT_PAGE_CONTENT.values.title]}
+            className={styles.scrambleHeading}
+            lineClassName={styles.valuesTitle}
+            resolvedColor="#b9b9b9"
+          />
         </div>
 
         <div className={styles.valuesList}>
