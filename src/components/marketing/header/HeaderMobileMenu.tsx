@@ -5,9 +5,12 @@ import {
   HEADER_MENU_SECONDARY_ITEMS,
   HEADER_MENU_SOLUTION_ITEMS,
   type HeaderNavItem,
+  type MarketingPageContext,
+  resolveHeaderNavItem,
 } from "@/components/marketing/header/navigation";
 
 type HeaderMobileMenuProps = {
+  currentPage: MarketingPageContext;
   isOpen: boolean;
   onClose: () => void;
   onItemClick: (item: HeaderNavItem) => void;
@@ -15,6 +18,7 @@ type HeaderMobileMenuProps = {
 };
 
 export function HeaderMobileMenu({
+  currentPage,
   isOpen,
   onClose,
   onItemClick,
@@ -41,6 +45,10 @@ export function HeaderMobileMenu({
   const toggleSection = (section: "solutions") => {
     setOpenSection((current) => (current === section ? null : section));
   };
+
+  const secondaryItems = HEADER_MENU_SECONDARY_ITEMS.map((item) =>
+    resolveHeaderNavItem(item, currentPage),
+  );
 
   return (
     <div
@@ -134,12 +142,15 @@ export function HeaderMobileMenu({
                 </div>
               </div>
 
-              {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
+              {secondaryItems.map((item) => (
                 <button
                   key={item.label}
                   type="button"
-                  className="w-fit cursor-pointer py-2 text-left text-[#202020] transition-opacity duration-200 hover:opacity-70"
+                  className={`w-fit cursor-pointer py-2 text-left transition-opacity duration-200 hover:opacity-70 ${
+                    item.isActive ? "text-[#ff5841] opacity-100" : "text-[#202020]"
+                  }`}
                   onClick={() => onItemClick(item)}
+                  aria-current={item.isActive ? "page" : undefined}
                 >
                   {item.label}
                 </button>

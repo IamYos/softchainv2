@@ -1,20 +1,17 @@
 "use client";
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { CustomCursor } from "@/components/marketing/CustomCursor";
-import { Header } from "@/components/marketing/Header";
 import {
   HERO_BUBBLE_CENTER_Y_RATIO,
   HeroParticleBubble,
 } from "@/components/marketing/HeroParticleBubble";
+import { MarketingPageShell } from "@/components/marketing/MarketingPageShell";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import {
-  MarketingPerfOverlay,
   PerfSection,
 } from "@/components/marketing/MarketingPerfDebug";
 import { ScrambleHeadlineLoop } from "@/components/marketing/ScrambleHeadlineLoop";
 import {
-  SmoothScroll,
   useLenis,
 } from "@/components/marketing/SmoothScroll";
 import { SFBlockBackground } from "@/components/marketing/SFBlockBackground";
@@ -149,7 +146,7 @@ function HeroAndSections() {
         </PerfSection>
 
         <PerfSection id="SFFooter">
-          <SFFooter />
+          <SFFooter currentPage="home" />
         </PerfSection>
       </main>
     </>
@@ -157,27 +154,11 @@ function HeroAndSections() {
 }
 
 export function LandingPage() {
-  const { noCursor } = useDevFlags();
-
   return (
-    <SmoothScroll
-      overlay={
-        <>
-          <PerfSection id="Header">
-            <Header />
-          </PerfSection>
-          {!noCursor ? (
-            <PerfSection id="CustomCursor">
-              <CustomCursor rgb="255, 88, 65" />
-            </PerfSection>
-          ) : null}
-          <MarketingPerfOverlay />
-        </>
-      }
-    >
+    <MarketingPageShell currentPage="home">
       <PerfSection id="HeroAndSections">
         <HeroAndSections />
       </PerfSection>
-    </SmoothScroll>
+    </MarketingPageShell>
   );
 }

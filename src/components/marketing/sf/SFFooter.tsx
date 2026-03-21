@@ -1,12 +1,18 @@
 "use client";
 
 import {
+  getHeaderNavHref,
   HEADER_MENU_SECONDARY_ITEMS,
   HEADER_MENU_SOLUTION_ITEMS,
+  type MarketingPageContext,
 } from "@/components/marketing/header/navigation";
 import styles from "./SFPostFrame.module.css";
 
-export function SFFooter() {
+type SFFooterProps = {
+  currentPage: MarketingPageContext;
+};
+
+export function SFFooter({ currentPage }: SFFooterProps) {
   return (
     <footer id="footer" className={`${styles.sectionRoot} ${styles.footerSection}`}>
       <div className={styles.wrapper} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
@@ -25,7 +31,7 @@ export function SFFooter() {
                   <ul className={styles.footerSubmenuList}>
                     {HEADER_MENU_SOLUTION_ITEMS.map((item) => (
                       <li key={item.label} className={`${styles.footerSubmenuItem} ${styles.p2}`}>
-                        <a href={`#${item.target}`}>{item.label}</a>
+                        <a href={getHeaderNavHref(item, currentPage)}>{item.label}</a>
                       </li>
                     ))}
                   </ul>
@@ -37,7 +43,7 @@ export function SFFooter() {
               <ul className={`${styles.footerNav} ${styles.footerNavSecondary}`}>
                 {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
                   <li key={item.label} className={`${styles.footerNavItem} ${styles.p2}`}>
-                    <a href={`#${item.target}`}>{item.label}</a>
+                    <a href={getHeaderNavHref(item, currentPage)}>{item.label}</a>
                   </li>
                 ))}
               </ul>

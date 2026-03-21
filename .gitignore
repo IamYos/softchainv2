@@ -1,8 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# brainstorming
-.superpowers/
-
 # dependencies
 /node_modules
 package-lock.json
@@ -51,3 +48,5 @@ docs
 .playwright-mcp
 
 .worktrees
+
+.superpowers/

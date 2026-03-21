@@ -1,13 +1,20 @@
 "use client";
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { recordPerfSample } from "@/components/marketing/MarketingPerfDebug";
 import { useLenis } from "@/components/marketing/SmoothScroll";
 import { HeaderLogoButton } from "@/components/marketing/header/HeaderLogoButton";
 import { HeaderMobileMenu } from "@/components/marketing/header/HeaderMobileMenu";
 import { HeaderMobileMenuButton } from "@/components/marketing/header/HeaderMobileMenuButton";
-import { type HeaderNavItem } from "@/components/marketing/header/navigation";
+import {
+  getContactDestination,
+  getLogoDestination,
+  type HeaderNavItem,
+  type MarketingPageContext,
+  resolveHeaderNavItem,
+} from "@/components/marketing/header/navigation";
 
 const LIGHT_FRAME_HEADER_PALETTE = {
   ["--header-text" as string]: "#202020",
@@ -113,12 +120,28 @@ function applyHeaderVisibility(header: HTMLElement, hidden: boolean) {
     : "translate3d(0, 0, 0)";
 }
 
-export function Header() {
+type HeaderProps = {
+  currentPage: MarketingPageContext;
+};
+
+export function Header({ currentPage }: HeaderProps) {
   const lenis = useLenis();
+  const router = useRouter();
   const headerRef = useRef<HTMLElement>(null);
   const isFrameOnePaletteRef = useRef<boolean | null>(null);
   const isFooterFullyVisibleRef = useRef<boolean | null>(null);
-  const pendingScrollRef = useRef<{ target: string | number; duration: number } | null>(null);
+  const pendingActionRef = useRef<
+    | {
+        kind: "scroll";
+        target: string | number;
+        duration: number;
+      }
+    | {
+        kind: "href";
+        href: string;
+      }
+    | null
+  >(null);
   const scrollLockYRef = useRef(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -168,16 +191,21 @@ export function Header() {
       return;
     }
 
-    const pendingScroll = pendingScrollRef.current;
-    if (!pendingScroll) {
+    const pendingAction = pendingActionRef.current;
+    if (!pendingAction) {
       return;
     }
 
-    pendingScrollRef.current = null;
+    pendingActionRef.current = null;
     window.requestAnimationFrame(() => {
-      lenis?.scrollTo(pendingScroll.target, { duration: pendingScroll.duration });
+      if (pendingAction.kind === "scroll") {
+        lenis?.scrollTo(pendingAction.target, { duration: pendingAction.duration });
+        return;
+      }
+
+      router.push(pendingAction.href);
     });
-  }, [lenis, mobileMenuOpen]);
+  }, [lenis, mobileMenuOpen, router]);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -221,6 +249,10 @@ export function Header() {
       const heroRect = heroReveal.getBoundingClientRect();
       // Hero is visible if its top is close to 0 (within snap threshold)
       const showFrameOnePalette = heroRect.top > -heroRect.height * 0.5;
+      const heroPalette =
+        heroReveal.dataset.headerPalette === "light"
+          ? LIGHT_FRAME_HEADER_PALETTE
+          : DARK_FRAME_HEADER_PALETTE;
 
       if (showFrameOnePalette === isFrameOnePaletteRef.current) {
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
@@ -230,7 +262,7 @@ export function Header() {
       isFrameOnePaletteRef.current = showFrameOnePalette;
       applyHeaderPalette(
         header,
-        showFrameOnePalette ? DARK_FRAME_HEADER_PALETTE : LIGHT_FRAME_HEADER_PALETTE,
+        showFrameOnePalette ? heroPalette : LIGHT_FRAME_HEADER_PALETTE,
       );
       recordPerfSample("header-scroll-update", performance.now() - startedAt);
     };
@@ -258,7 +290,7 @@ export function Header() {
 
   const queueOrRunScroll = (target: string | number, duration: number) => {
     if (mobileMenuOpen) {
-      pendingScrollRef.current = { target, duration };
+      pendingActionRef.current = { kind: "scroll", target, duration };
       setMobileMenuOpen(false);
       return;
     }
@@ -266,8 +298,14 @@ export function Header() {
     lenis?.scrollTo(target, { duration });
   };
 
-  const scrollToTop = () => {
-    queueOrRunScroll(0, 1);
+  const queueOrRunHref = (href: string) => {
+    if (mobileMenuOpen) {
+      pendingActionRef.current = { kind: "href", href };
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    router.push(href);
   };
 
   const scrollToTarget = (target: string) => {
@@ -275,7 +313,36 @@ export function Header() {
   };
 
   const handleNavItemClick = (item: HeaderNavItem) => {
-    scrollToTarget(item.target);
+    const resolvedItem = resolveHeaderNavItem(item, currentPage);
+
+    if (resolvedItem.kind === "scroll") {
+      scrollToTarget(resolvedItem.target);
+      return;
+    }
+
+    queueOrRunHref(resolvedItem.href);
+  };
+
+  const handleLogoClick = () => {
+    const destination = getLogoDestination(currentPage);
+
+    if (destination.kind === "scroll") {
+      queueOrRunScroll(destination.target, 1);
+      return;
+    }
+
+    queueOrRunHref(destination.href);
+  };
+
+  const handlePrimaryClick = () => {
+    const destination = getContactDestination(currentPage);
+
+    if (destination.kind === "scroll") {
+      scrollToTarget(destination.target);
+      return;
+    }
+
+    queueOrRunHref(destination.href);
   };
 
   return (
@@ -293,7 +360,10 @@ export function Header() {
         }}
       >
         <PageContainer className="relative z-10 mt-2 flex h-16 items-center justify-between">
-          <HeaderLogoButton onClick={scrollToTop} />
+          <HeaderLogoButton
+            onClick={handleLogoClick}
+            ariaLabel={currentPage === "home" ? "Scroll to top" : "Go to homepage"}
+          />
 
           <HeaderMobileMenuButton
             onClick={() => setMobileMenuOpen((open) => !open)}
@@ -303,10 +373,11 @@ export function Header() {
       </header>
 
       <HeaderMobileMenu
+        currentPage={currentPage}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         onItemClick={handleNavItemClick}
-        onPrimaryClick={() => scrollToTarget("closing-cta")}
+        onPrimaryClick={handlePrimaryClick}
       />
     </>
   );
