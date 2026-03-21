@@ -228,8 +228,8 @@
 }
 
 .principlesFrame {
-  margin: 0 auto;
-  max-width: var(--mf-content-width);
+  margin: 0;
+  max-width: none;
   width: 100%;
 }
 
@@ -430,11 +430,6 @@
     font-size: clamp(112px, 20vw, 220px);
   }
 
-  .principlesFrame {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-
   .principlesLayout,
   .valuesContainer,
   .valueRow {
@@ -500,11 +495,6 @@
 
   .snapshotCard:first-child {
     border-top: 1px solid rgba(185, 185, 185, 0.16);
-  }
-
-  .principlesFrame {
-    padding-left: 16px;
-    padding-right: 16px;
   }
 
   .principlesVisual {

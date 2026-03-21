@@ -291,13 +291,14 @@ function clearRows(board: readonly number[], rowsToClear: readonly number[]) {
 }
 
 function createActivePiece(step: ScriptStep): ActivePiece {
-  const bounds = getPieceBounds(step);
-  const centeredX = Math.floor((BOARD_WIDTH - (bounds.maxX + 1)) / 2);
+  const { maxX, maxY } = getPieceBounds(step);
 
   return {
     ...step,
-    x: Math.max(0, Math.min(centeredX, BOARD_WIDTH - (bounds.maxX + 1))),
-    y: -bounds.maxY - 2,
+    // Spawn directly in the solved lane so the replay cannot drift away
+    // from the precomputed winning placement while falling.
+    x: Math.max(0, Math.min(step.targetX, BOARD_WIDTH - (maxX + 1))),
+    y: -maxY - 2,
   };
 }
 
@@ -463,7 +464,26 @@ function buildScript(seed: number) {
   return steps;
 }
 
-const SCRIPT_LIBRARY = SCRIPT_SEEDS.map((seed) => buildScript(seed));
+function buildWinningScripts() {
+  const scripts: ScriptStep[][] = [];
+  let seedIndex = 0;
+  let seed = SCRIPT_SEEDS[0];
+
+  while (scripts.length < SCRIPT_SEEDS.length && seedIndex < 240) {
+    const script = buildScript(seed);
+
+    if (script.length === PLAN_LENGTH) {
+      scripts.push(script);
+    }
+
+    seed += 1;
+    seedIndex += 1;
+  }
+
+  return scripts.length > 0 ? scripts : [buildScript(SCRIPT_SEEDS[0])];
+}
+
+const SCRIPT_LIBRARY = buildWinningScripts();
 
 function getResolveCells(board: readonly number[]) {
   const cells: number[] = [];
@@ -752,7 +772,11 @@ export function AboutPixelGrid() {
   const renderableCells = getRenderableCells(gameToRender);
 
   return (
-    <div ref={rootRef} className={gridStyles.techStackGrid} aria-label="Autoplay Tetris field">
+    <div
+      ref={rootRef}
+      className={`${gridStyles.techStackGrid} ${styles.gridFill}`}
+      aria-label="Autoplay Tetris field"
+    >
       <div className={styles.stage}>
         <div className={styles.board} aria-hidden="true">
           {renderableCells.map((tone, index) => (
