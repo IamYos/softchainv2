@@ -12,6 +12,7 @@ type AboutScrambleHeadingProps = {
   resolvedColor: string;
   scrambleColors?: readonly string[];
   fitToContainer?: boolean;
+  fitMode?: "both" | "width";
   minFontSizePx?: number;
   maxFontSizePx?: number;
 };
@@ -24,6 +25,7 @@ export function AboutScrambleHeading({
   resolvedColor,
   scrambleColors = ["#ff5841", "#50C878"],
   fitToContainer = false,
+  fitMode = "both",
   minFontSizePx = 28,
   maxFontSizePx = 160,
 }: AboutScrambleHeadingProps) {
@@ -47,17 +49,56 @@ export function AboutScrambleHeading({
     let frameId = 0;
 
     const fit = () => {
+      const boundsElement = heading.parentElement ?? heading;
+      const lineElements = Array.from(
+        heading.querySelectorAll<HTMLElement>("[data-scramble-line='true']"),
+      );
+
+      const measureWidth = (element: HTMLElement) =>
+        Math.max(
+          element.scrollWidth,
+          element.offsetWidth,
+          Math.ceil(element.getBoundingClientRect().width),
+        );
+
+      const measureLineWidth = (line: HTMLElement) => {
+        const wordElements = Array.from(
+          line.querySelectorAll<HTMLElement>("[data-scramble-word='true']"),
+        );
+
+        if (wordElements.length === 0) {
+          return measureWidth(line);
+        }
+
+        return wordElements.reduce((total, word) => {
+          const wordWidth = measureWidth(word);
+          const marginRight = Number.parseFloat(window.getComputedStyle(word).marginRight) || 0;
+          return total + wordWidth + marginRight;
+        }, 0);
+      };
+
       let low = minFontSizePx;
       let high = maxFontSizePx;
       let best = minFontSizePx;
+      const availableWidth = Math.floor(boundsElement.getBoundingClientRect().width);
+
+      if (availableWidth <= 0) {
+        return;
+      }
 
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
         heading.style.setProperty("--about-fit-font-size", `${mid}px`);
 
-        const fits =
-          heading.scrollWidth <= heading.clientWidth + 1 &&
-          heading.scrollHeight <= heading.clientHeight + 1;
+        const widestLine =
+          lineElements.length > 0
+            ? Math.max(...lineElements.map((line) => measureLineWidth(line)))
+            : measureWidth(heading);
+
+        const fitsWidth = widestLine <= availableWidth + 1;
+        const fitsHeight =
+          fitMode === "width" || heading.scrollHeight <= heading.clientHeight + 1;
+        const fits = fitsWidth && fitsHeight;
 
         if (fits) {
           best = mid;
@@ -96,7 +137,7 @@ export function AboutScrambleHeading({
       observer.disconnect();
       window.cancelAnimationFrame(frameId);
     };
-  }, [fitToContainer, lines, maxFontSizePx, minFontSizePx]);
+  }, [fitMode, fitToContainer, lines, maxFontSizePx, minFontSizePx]);
 
   return (
     <Tag ref={ref} className={className}>

@@ -1,6 +1,6 @@
 export const ABOUT_PAGE_CONTENT = {
   hero: {
-    word: "About.",
+    word: "Company.",
     cardTitle: "Architecture first. Delivery end to end.",
     cardBody:
       "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",

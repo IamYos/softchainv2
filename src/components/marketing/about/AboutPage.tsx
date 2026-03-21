@@ -37,6 +37,10 @@ function AboutHero() {
                 lineClassName={styles.heroWord}
                 resolvedColor="#202020"
                 scrambleColors={["#202020", "#b9b9b9"]}
+                fitToContainer
+                fitMode="width"
+                minFontSizePx={52}
+                maxFontSizePx={360}
               />
             </div>
           </div>

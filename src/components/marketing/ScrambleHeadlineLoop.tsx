@@ -112,7 +112,7 @@ function ScrambleHeadlineLine({
   }, [active, charset, cleanText, delayMs, resolvedColor, scrambleColors]);
 
   return (
-    <div className={lineClassName} style={{ letterSpacing }}>
+    <div className={lineClassName} style={{ letterSpacing }} data-scramble-line="true">
       {(() => {
         const words: ReactNode[] = [];
         let currentWord: ReactNode[] = [];
@@ -161,6 +161,7 @@ function ScrambleHeadlineLine({
                 <span
                   key={`word-${wordIndex}`}
                   className="inline-flex"
+                  data-scramble-word="true"
                   style={hasTrailingSpace ? { marginRight: "0.25em" } : undefined}
                 >
                   {currentWord}
