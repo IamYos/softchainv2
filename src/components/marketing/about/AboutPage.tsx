@@ -106,7 +106,7 @@ function PrinciplesSection() {
                   lineClassName={styles.principlesTitle}
                   resolvedColor="#b9b9b9"
                   fitToContainer
-                  minFontSizePx={42}
+                  minFontSizePx={22}
                   maxFontSizePx={124}
                 />
               </div>

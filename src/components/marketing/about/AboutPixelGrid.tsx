@@ -11,10 +11,12 @@ const BOARD_HEIGHT = 12;
 const TICK_MS = 110;
 const PLAN_LENGTH = 42;
 const SCRIPT_SEEDS = [11, 23, 37, 41, 53, 67] as const;
+const COMPLETE_HOLD_MS = 5000;
+const BINARY_DURATION_MS = 2600;
 
 type CellTone = 0 | 1 | 2;
 type PieceKey = "I" | "J" | "L" | "O" | "S" | "T" | "Z";
-type Phase = "idle" | "falling" | "lock" | "clear" | "resolve" | "complete";
+type Phase = "idle" | "falling" | "lock" | "clear" | "resolve" | "complete" | "binary";
 type Coord = readonly [number, number];
 
 type ScriptStep = {
@@ -30,6 +32,7 @@ type ActivePiece = ScriptStep & {
 
 type GameState = {
   active: ActivePiece | null;
+  binaryFrame: number;
   flashRows: number[];
   flashCells: number[];
   phase: Phase;
@@ -177,6 +180,10 @@ const PIECES: Record<PieceKey, readonly Coord[][]> = {
 };
 
 const PIECE_ORDER: readonly PieceKey[] = ["I", "J", "L", "O", "S", "T", "Z"];
+const BINARY_GLYPHS = {
+  "0": ["111", "101", "101", "101", "111"],
+  "1": ["010", "110", "010", "010", "111"],
+} as const;
 
 function createEmptyBoard() {
   return Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => 0);
@@ -185,6 +192,7 @@ function createEmptyBoard() {
 function createIdleGame(): GameState {
   return {
     active: null,
+    binaryFrame: 0,
     flashRows: [],
     flashCells: [],
     phase: "idle",
@@ -503,6 +511,7 @@ function getResolveCells(board: readonly number[]) {
 function startResolve(board: readonly number[], scriptIndex: number): GameState {
   return {
     active: null,
+    binaryFrame: 0,
     flashCells: [],
     flashRows: [],
     phase: "resolve",
@@ -522,6 +531,7 @@ function createGame(scriptId: number): GameState {
 
   return {
     active: createActivePiece(script[0]),
+    binaryFrame: 0,
     flashCells: [],
     flashRows: [],
     phase: "falling",
@@ -532,11 +542,32 @@ function createGame(scriptId: number): GameState {
   };
 }
 
+function startBinaryReset(scriptIndex: number): GameState {
+  return {
+    active: null,
+    binaryFrame: 0,
+    flashCells: [],
+    flashRows: [],
+    phase: "binary",
+    resolveCells: [],
+    resolveProgress: 0,
+    scriptIndex,
+    settled: createEmptyBoard(),
+  };
+}
+
 function tickGame(state: GameState, scriptId: number): GameState {
   const script = SCRIPT_LIBRARY[scriptId];
 
   if (state.phase === "idle" || state.phase === "complete") {
     return state;
+  }
+
+  if (state.phase === "binary") {
+    return {
+      ...state,
+      binaryFrame: state.binaryFrame + 1,
+    };
   }
 
   if (state.phase === "resolve") {
@@ -573,6 +604,7 @@ function tickGame(state: GameState, scriptId: number): GameState {
     return {
       ...state,
       active: createActivePiece(script[nextIndex]),
+      binaryFrame: 0,
       flashCells: [],
       flashRows: [],
       phase: "falling",
@@ -590,6 +622,7 @@ function tickGame(state: GameState, scriptId: number): GameState {
 
     return {
       active: createActivePiece(script[nextIndex]),
+      binaryFrame: 0,
       flashCells: [],
       flashRows: [],
       phase: "falling",
@@ -628,6 +661,7 @@ function tickGame(state: GameState, scriptId: number): GameState {
 
   return {
     active: null,
+    binaryFrame: 0,
     flashCells: getPieceIndices(nextPiece),
     flashRows: fullRows,
     phase: "lock",
@@ -652,7 +686,56 @@ function buildCompletedGame(scriptId: number) {
 
 const REDUCED_MOTION_GAME = buildCompletedGame(0);
 
+function getBinaryDigits(frame: number, scriptId: number) {
+  const digits: Array<"0" | "1"> = [];
+  let seed = (SCRIPT_SEEDS[scriptId % SCRIPT_SEEDS.length] + 1) * 7919 + frame * 104729;
+
+  for (let index = 0; index < 10; index += 1) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    digits.push(((seed >> 30) & 1) === 1 ? "1" : "0");
+  }
+
+  return digits;
+}
+
+function getBinaryCells(frame: number, scriptId: number) {
+  const cells = Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => 0 as CellTone);
+  const digits = getBinaryDigits(frame, scriptId);
+  const rowStarts = [1, 7];
+  const digitWidth = 3;
+  const digitHeight = 5;
+  const gapX = 1;
+
+  for (let digitIndex = 0; digitIndex < digits.length; digitIndex += 1) {
+    const rowGroup = digitIndex < 5 ? 0 : 1;
+    const columnGroup = digitIndex % 5;
+    const glyph = BINARY_GLYPHS[digits[digitIndex]];
+    const offsetX = columnGroup * (digitWidth + gapX);
+    const offsetY = rowStarts[rowGroup];
+
+    for (let row = 0; row < digitHeight; row += 1) {
+      for (let column = 0; column < digitWidth; column += 1) {
+        if (glyph[row][column] === "1") {
+          cells[toIndex(offsetX + column, offsetY + row)] = 1;
+        }
+      }
+    }
+  }
+
+  for (let index = 0; index < 12; index += 1) {
+    const x = (frame * 3 + index * 7 + scriptId * 5) % BOARD_WIDTH;
+    const y = (frame + index * 5 + scriptId * 3) % BOARD_HEIGHT;
+    cells[toIndex(x, y)] = 1;
+  }
+
+  return cells;
+}
+
 function getRenderableCells(state: GameState) {
+  if (state.phase === "binary") {
+    return getBinaryCells(state.binaryFrame, state.scriptIndex);
+  }
+
   const cells = state.settled.map<CellTone>((cell) => (cell === 0 ? 0 : 1));
 
   if (state.active) {
@@ -765,6 +848,38 @@ export function AboutPixelGrid() {
 
     return () => {
       window.clearInterval(intervalId);
+    };
+  }, [game.phase, isActive, prefersReducedMotion, scriptId]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || !isActive || game.phase !== "complete") {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setGame((current) =>
+        current.phase === "complete" ? startBinaryReset(scriptId) : current,
+      );
+    }, COMPLETE_HOLD_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [game.phase, isActive, prefersReducedMotion, scriptId]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || !isActive || game.phase !== "binary") {
+      return;
+    }
+
+    const nextScriptId = (scriptId + 1) % SCRIPT_LIBRARY.length;
+    const timeoutId = window.setTimeout(() => {
+      setScriptId(nextScriptId);
+      setGame(createGame(nextScriptId));
+    }, BINARY_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
     };
   }, [game.phase, isActive, prefersReducedMotion, scriptId]);
 

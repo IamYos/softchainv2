@@ -135,6 +135,7 @@
 
 .scrambleHeading {
   display: block;
+  min-width: 0;
 }
 
 .snapshotSection {
@@ -242,6 +243,7 @@
 
 .principlesSticky {
   align-self: start;
+  min-width: 0;
   position: sticky;
   top: 0;
 }
@@ -252,11 +254,14 @@
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 100svh;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .principlesVisual {
   border-bottom: 1px solid rgba(185, 185, 185, 0.16);
   height: min(42svh, 420px);
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -266,6 +271,7 @@
   gap: 22px;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
+  min-width: 0;
   padding: clamp(28px, 4vw, 40px);
 }
 
@@ -273,6 +279,7 @@
   display: block;
   height: 100%;
   min-height: 0;
+  min-width: 0;
 }
 
 .principlesDescription {
@@ -457,6 +464,11 @@
     height: 320px;
   }
 
+  .principlesPanelContent {
+    gap: 18px;
+    padding: 24px 22px 28px;
+  }
+
   .principlesQuote,
   .valuesAccent {
     max-width: none;
@@ -507,6 +519,20 @@
 
   .principlesVisual {
     height: 260px;
+  }
+
+  .principlesPanelContent {
+    gap: 16px;
+    grid-template-rows: auto auto;
+    padding: 18px 16px 22px;
+  }
+
+  .principlesHeading {
+    height: auto;
+  }
+
+  .principlesTitle {
+    line-height: 0.92;
   }
 
   .principleCard {
