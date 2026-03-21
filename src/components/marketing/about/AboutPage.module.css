@@ -989,7 +989,7 @@
   }
 
   .processVisualField {
-    min-height: 280px;
+    min-height: 300px;
   }
 
   .processConnector {
@@ -1000,7 +1000,7 @@
     margin-left: auto;
     margin-right: auto;
     max-height: none;
-    width: 118%;
+    width: 128%;
   }
 
   .processCompactDetail {

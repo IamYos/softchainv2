@@ -178,8 +178,9 @@ export function AboutProcessSection() {
         ABOUT_PAGE_CONTENT.process.stages.length - 1,
         Math.round(progress * (ABOUT_PAGE_CONTENT.process.stages.length - 1)),
       );
-  const activeStageIndex =
-    hoveredStage ?? (isCompactViewport ? selectedStage : null) ?? scrollStage;
+  const activeStageIndex = isCompactViewport
+    ? (selectedStage ?? scrollStage)
+    : (hoveredStage ?? scrollStage);
   const activeStage = ABOUT_PAGE_CONTENT.process.stages[activeStageIndex];
   const isFirstCompactStage = activeStageIndex === 0;
   const isLastCompactStage = activeStageIndex === ABOUT_PAGE_CONTENT.process.stages.length - 1;
@@ -196,6 +197,7 @@ export function AboutProcessSection() {
     : styles.processSection;
 
   const selectCompactStage = (nextIndex: number) => {
+    setHoveredStage(null);
     setSelectedStage(clampStageIndex(nextIndex));
   };
 
@@ -370,7 +372,11 @@ export function AboutProcessSection() {
                         cx={coreCircle.cx}
                         cy={coreCircle.cy}
                         r={coreCircle.radius}
-                        onMouseEnter={() => setHoveredStage(index)}
+                        onMouseEnter={() => {
+                          if (!isCompactViewport) {
+                            setHoveredStage(index);
+                          }
+                        }}
                         onClick={() => setSelectedStage(index)}
                       />
                     );
@@ -382,7 +388,11 @@ export function AboutProcessSection() {
                       d={getStageFillPath(index, processAnchorX)}
                       fillRule="evenodd"
                       className={styles.processSvgHitArea}
-                      onMouseEnter={() => setHoveredStage(index)}
+                      onMouseEnter={() => {
+                        if (!isCompactViewport) {
+                          setHoveredStage(index);
+                        }
+                      }}
                       onClick={() => setSelectedStage(index)}
                     />
                   );
