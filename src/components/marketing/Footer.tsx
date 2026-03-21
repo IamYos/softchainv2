@@ -20,18 +20,13 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
           <div>
             <div className="relative h-[34px] w-[148px]">
-              <div
-                className="absolute inset-0"
-                style={{ filter: "brightness(0) invert(1)" }}
-              >
-                <Image
-                  src="/softchain-logo.png"
-                  alt="Softchain"
-                  fill
-                  sizes="148px"
-                  className="object-contain"
-                />
-              </div>
+              <Image
+                src="/softchain-logo-gray.png"
+                alt="Softchain"
+                fill
+                sizes="148px"
+                className="object-contain"
+              />
             </div>
             <p className="mt-6 max-w-[32ch] text-base leading-8 text-[var(--mf-text-body)]">
               Choose engineering excellence. Architecture defined. Systems delivered. Operations supported.

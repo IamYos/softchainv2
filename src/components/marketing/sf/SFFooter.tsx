@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   getHeaderNavHref,
   HEADER_MENU_SECONDARY_ITEMS,
@@ -21,6 +22,18 @@ export function SFFooter({ currentPage }: SFFooterProps) {
           data-header-hide-zone="footer"
           data-softchain-cursor-rgb="255, 88, 65"
         >
+          <div className={styles.footerBrandRow}>
+            <div className={styles.footerBrandLogo}>
+              <Image
+                src="/softchain-logo-orange.png"
+                alt="Softchain"
+                fill
+                sizes="148px"
+                className={styles.footerBrandLogoImage}
+              />
+            </div>
+          </div>
+
           <div className={styles.footerTopGrid}>
             <div className={styles.footerPrimaryColumn}>
               <ul className={`${styles.footerNav} ${styles.footerNavPrimary}`}>

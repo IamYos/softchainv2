@@ -18,7 +18,8 @@ import {
 
 const LIGHT_FRAME_HEADER_PALETTE = {
   ["--header-text" as string]: "#202020",
-  ["--header-logo-filter" as string]: "none",
+  ["--header-logo-dark-opacity" as string]: "1",
+  ["--header-logo-gray-opacity" as string]: "0",
   ["--header-secondary-border" as string]: "rgba(32, 32, 32, 0.28)",
   ["--header-secondary-bg" as string]: "rgba(255, 255, 255, 0)",
   ["--header-secondary-overlay" as string]: "rgba(0, 0, 0, 0.05)",
@@ -58,7 +59,8 @@ const LIGHT_FRAME_HEADER_PALETTE = {
 
 const DARK_FRAME_HEADER_PALETTE = {
   ["--header-text" as string]: "#ffffff",
-  ["--header-logo-filter" as string]: "brightness(0) invert(1)",
+  ["--header-logo-dark-opacity" as string]: "0",
+  ["--header-logo-gray-opacity" as string]: "1",
   ["--header-secondary-border" as string]: "rgba(255, 255, 255, 0.28)",
   ["--header-secondary-bg" as string]: "rgba(0, 0, 0, 0)",
   ["--header-secondary-overlay" as string]: "rgba(255, 255, 255, 0.06)",
@@ -99,7 +101,6 @@ const DARK_FRAME_HEADER_PALETTE = {
 const MENU_OPEN_HEADER_PALETTE = {
   ...LIGHT_FRAME_HEADER_PALETTE,
   ["--header-text" as string]: "#202020",
-  ["--header-logo-filter" as string]: "none",
   ["--header-menu-mobile-text" as string]: "#202020",
 } satisfies Record<string, string>;
 

@@ -1201,6 +1201,41 @@
   }
 }
 
+.footerBrandRow {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: clamp(28px, 3.5vw, 44px);
+  width: 100%;
+}
+
+.footerBrandLogo {
+  flex-shrink: 0;
+  height: clamp(28px, 2.7vw, 34px);
+  position: relative;
+  width: clamp(122px, 14vw, 148px);
+}
+
+.footerBrandLogoImage {
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (orientation: portrait) {
+  .footerBrandRow {
+    justify-content: flex-end;
+  }
+
+  .footerBrandLogoImage {
+    object-position: right center;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .footerBrandRow {
+    margin-bottom: 24px;
+  }
+}
+
 /* ── Footer top layout ── */
 
 .footerTopGrid {
