@@ -224,7 +224,7 @@
 .principlesSection {
   background: #b9b9b9;
   color: #202020;
-  padding-bottom: clamp(72px, 9vw, 120px);
+  padding-block: 0;
 }
 
 .principlesFrame {
@@ -234,20 +234,24 @@
 }
 
 .principlesLayout {
+  align-items: start;
   display: grid;
   grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  width: 100%;
 }
 
 .principlesSticky {
   align-self: start;
   position: sticky;
-  top: calc(var(--mf-header-height) + 12px);
+  top: 0;
 }
 
 .principlesPanel {
   background: #202020;
   color: #b9b9b9;
-  min-height: calc(100svh - var(--mf-header-height) - 12px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100svh;
 }
 
 .principlesVisual {
@@ -257,6 +261,7 @@
 }
 
 .principlesPanelContent {
+  align-content: start;
   display: grid;
   gap: 22px;
   padding: clamp(28px, 4vw, 40px);
