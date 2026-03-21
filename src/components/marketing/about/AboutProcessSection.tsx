@@ -9,9 +9,11 @@ import styles from "./AboutPage.module.css";
 const PROCESS_VIEWBOX = {
   width: 1080,
   height: 760,
-  anchorX: 430,
   anchorY: 712,
 } as const;
+
+const PROCESS_DESKTOP_ANCHOR_X = 430;
+const PROCESS_COMPACT_ANCHOR_X = PROCESS_VIEWBOX.width / 2;
 
 const PROCESS_STAGE_RADII = [82, 154, 226, 298, 350] as const;
 const PROCESS_LABEL_LINE_HEIGHT = 18;
@@ -37,11 +39,11 @@ function formatStageIndex(value: number) {
   return String(value + 1).padStart(2, "0");
 }
 
-function getStageCircle(index: number) {
+function getStageCircle(index: number, anchorX: number) {
   const radius = PROCESS_STAGE_RADII[index];
 
   return {
-    cx: PROCESS_VIEWBOX.anchorX,
+    cx: anchorX,
     cy: PROCESS_VIEWBOX.anchorY - radius,
     radius,
   };
@@ -56,14 +58,14 @@ function describeCirclePath(cx: number, cy: number, radius: number) {
   ].join(" ");
 }
 
-function getStageFillPath(index: number) {
-  const outerCircle = getStageCircle(index);
+function getStageFillPath(index: number, anchorX: number) {
+  const outerCircle = getStageCircle(index, anchorX);
 
   if (index === 0) {
     return describeCirclePath(outerCircle.cx, outerCircle.cy, outerCircle.radius);
   }
 
-  const innerCircle = getStageCircle(index - 1);
+  const innerCircle = getStageCircle(index - 1, anchorX);
 
   return [
     describeCirclePath(outerCircle.cx, outerCircle.cy, outerCircle.radius),
@@ -92,6 +94,10 @@ function getStageLabelLines(label: readonly string[]) {
   }));
 }
 
+function clampStageIndex(index: number) {
+  return Math.max(0, Math.min(ABOUT_PAGE_CONTENT.process.stages.length - 1, index));
+}
+
 export function AboutProcessSection() {
   const sceneRef = useRef<HTMLElement>(null);
   const processBodyRef = useRef<HTMLDivElement>(null);
@@ -100,6 +106,7 @@ export function AboutProcessSection() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [sceneDistance, setSceneDistance] = useState(0);
   const [hoveredStage, setHoveredStage] = useState<number | null>(null);
+  const [selectedStage, setSelectedStage] = useState<number | null>(null);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [isSceneVisible, setIsSceneVisible] = useState(true);
   const [binaryRows, setBinaryRows] = useState<string[]>(() => [...INITIAL_BINARY_ROWS]);
@@ -163,7 +170,7 @@ export function AboutProcessSection() {
     };
   }, [isSceneVisible, prefersReducedMotion]);
 
-  const scrollDisabled = prefersReducedMotion || sceneDistance === 0;
+  const scrollDisabled = prefersReducedMotion || sceneDistance === 0 || isCompactViewport;
   const { progress } = useScrollSceneProgress(sceneRef, sceneDistance, scrollDisabled);
   const scrollStage = scrollDisabled
     ? 0
@@ -171,8 +178,12 @@ export function AboutProcessSection() {
         ABOUT_PAGE_CONTENT.process.stages.length - 1,
         Math.round(progress * (ABOUT_PAGE_CONTENT.process.stages.length - 1)),
       );
-  const activeStageIndex = hoveredStage ?? scrollStage;
+  const activeStageIndex =
+    hoveredStage ?? (isCompactViewport ? selectedStage : null) ?? scrollStage;
   const activeStage = ABOUT_PAGE_CONTENT.process.stages[activeStageIndex];
+  const isFirstCompactStage = activeStageIndex === 0;
+  const isLastCompactStage = activeStageIndex === ABOUT_PAGE_CONTENT.process.stages.length - 1;
+  const processAnchorX = isCompactViewport ? PROCESS_COMPACT_ANCHOR_X : PROCESS_DESKTOP_ANCHOR_X;
 
   const sceneStyle = scrollDisabled
     ? undefined
@@ -184,12 +195,22 @@ export function AboutProcessSection() {
     ? `${styles.processSection} ${styles.processSectionReduced}`
     : styles.processSection;
 
+  const selectCompactStage = (nextIndex: number) => {
+    setSelectedStage(clampStageIndex(nextIndex));
+  };
+
   useEffect(() => {
     const processBody = processBodyRef.current;
     const processVisual = processVisualRef.current;
     const processDetail = processDetailRef.current;
 
-    if (!processBody || !processVisual || !processDetail || typeof ResizeObserver === "undefined") {
+    if (
+      isCompactViewport ||
+      !processBody ||
+      !processVisual ||
+      !processDetail ||
+      typeof ResizeObserver === "undefined"
+    ) {
       return;
     }
 
@@ -200,7 +221,7 @@ export function AboutProcessSection() {
       const connectorLeft =
         visualRect.left -
         bodyRect.left +
-        visualRect.width * (PROCESS_VIEWBOX.anchorX / PROCESS_VIEWBOX.width);
+        visualRect.width * (processAnchorX / PROCESS_VIEWBOX.width);
       const connectorTop =
         visualRect.top -
         bodyRect.top +
@@ -229,7 +250,7 @@ export function AboutProcessSection() {
       resizeObserver.disconnect();
       window.removeEventListener("resize", updateConnectorMetrics);
     };
-  }, [activeStageIndex]);
+  }, [activeStageIndex, isCompactViewport, processAnchorX]);
 
   return (
     <section
@@ -289,17 +310,17 @@ export function AboutProcessSection() {
                 ref={processVisualRef}
                 className={styles.processSvg}
                 viewBox={`0 0 ${PROCESS_VIEWBOX.width} ${PROCESS_VIEWBOX.height}`}
-                preserveAspectRatio="xMinYMax meet"
+                preserveAspectRatio={isCompactViewport ? "xMidYMax meet" : "xMinYMax meet"}
                 aria-hidden="true"
               >
                 <path
-                  d={getStageFillPath(activeStageIndex)}
+                  d={getStageFillPath(activeStageIndex, processAnchorX)}
                   fillRule="evenodd"
                   className={styles.processSvgActiveFill}
                 />
 
                 {ABOUT_PAGE_CONTENT.process.stages.map((stage, index) => {
-                  const circle = getStageCircle(index);
+                  const circle = getStageCircle(index, processAnchorX);
 
                   return (
                     <circle
@@ -324,7 +345,7 @@ export function AboutProcessSection() {
                       {labelLines.map(({ line, yOffset }) => (
                         <text
                           key={line}
-                          x={PROCESS_VIEWBOX.anchorX}
+                          x={processAnchorX}
                           y={labelY + yOffset}
                           textAnchor="middle"
                           className={`${styles.processSvgLabel} ${
@@ -340,7 +361,7 @@ export function AboutProcessSection() {
 
                 {ABOUT_PAGE_CONTENT.process.stages.map((stage, index) => {
                   if (index === 0) {
-                    const coreCircle = getStageCircle(index);
+                    const coreCircle = getStageCircle(index, processAnchorX);
 
                     return (
                       <circle
@@ -350,6 +371,7 @@ export function AboutProcessSection() {
                         cy={coreCircle.cy}
                         r={coreCircle.radius}
                         onMouseEnter={() => setHoveredStage(index)}
+                        onClick={() => setSelectedStage(index)}
                       />
                     );
                   }
@@ -357,10 +379,11 @@ export function AboutProcessSection() {
                   return (
                     <path
                       key={`${stage.title}-hit`}
-                      d={getStageFillPath(index)}
+                      d={getStageFillPath(index, processAnchorX)}
                       fillRule="evenodd"
                       className={styles.processSvgHitArea}
                       onMouseEnter={() => setHoveredStage(index)}
+                      onClick={() => setSelectedStage(index)}
                     />
                   );
                 })}
@@ -396,20 +419,43 @@ export function AboutProcessSection() {
         </div>
 
         {isCompactViewport ? (
-          <div className={styles.processCompactRail}>
-            {ABOUT_PAGE_CONTENT.process.stages.map((stage, index) => (
+          <div className={styles.processCompactDetail}>
+            <div className={styles.processCompactTabBar}>
               <button
-                key={`${stage.title}-compact`}
                 type="button"
-                className={`${styles.processCompactStage} ${
-                  index === activeStageIndex ? styles.processCompactStageActive : ""
-                }`}
-                onClick={() => setHoveredStage(index)}
+                className={styles.processCompactArrow}
+                onClick={() => selectCompactStage(activeStageIndex - 1)}
+                disabled={isFirstCompactStage}
+                aria-label="Previous stage"
               >
-                <span className={styles.processCompactStageIndex}>{formatStageIndex(index)}</span>
-                <span className={styles.processCompactStageLabel}>{stage.title}</span>
+                <span aria-hidden="true">←</span>
               </button>
-            ))}
+
+              <button
+                type="button"
+                className={`${styles.processCompactStage} ${styles.processCompactStageActive}`}
+                onClick={() => selectCompactStage(activeStageIndex)}
+                aria-pressed="true"
+              >
+                <span className={styles.processCompactStageIndex}>
+                  {formatStageIndex(activeStageIndex)} /{" "}
+                  {String(ABOUT_PAGE_CONTENT.process.stages.length).padStart(2, "0")}
+                </span>
+                <span className={styles.processCompactStageLabel}>{activeStage.title}</span>
+              </button>
+
+              <button
+                type="button"
+                className={styles.processCompactArrow}
+                onClick={() => selectCompactStage(activeStageIndex + 1)}
+                disabled={isLastCompactStage}
+                aria-label="Next stage"
+              >
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            <p className={styles.processCompactDetailBody}>{activeStage.description}</p>
           </div>
         ) : null}
       </div>
