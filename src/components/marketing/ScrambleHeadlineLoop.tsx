@@ -155,8 +155,14 @@ function ScrambleHeadlineLine({
 
           if (sourceIndex === text.length || character === " ") {
             if (currentWord.length > 0) {
+              const hasTrailingSpace = character === " ";
+
               words.push(
-                <span key={`word-${wordIndex}`} className="inline-flex">
+                <span
+                  key={`word-${wordIndex}`}
+                  className="inline-flex"
+                  style={hasTrailingSpace ? { marginRight: "0.25em" } : undefined}
+                >
                   {currentWord}
                 </span>,
               );
@@ -165,12 +171,6 @@ function ScrambleHeadlineLine({
             }
 
             if (character === " ") {
-              words.push(
-                <span
-                  key={`space-${sourceIndex}`}
-                  className="inline-flex w-[0.25em] shrink-0"
-                />,
-              );
               glyphIndex += 1;
             }
 

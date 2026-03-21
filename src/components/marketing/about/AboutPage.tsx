@@ -102,9 +102,12 @@ function PrinciplesSection() {
                 </p>
                 <AboutScrambleHeading
                   lines={[ABOUT_PAGE_CONTENT.principles.title]}
-                  className={styles.scrambleHeading}
+                  className={`${styles.scrambleHeading} ${styles.principlesHeading}`}
                   lineClassName={styles.principlesTitle}
                   resolvedColor="#b9b9b9"
+                  fitToContainer
+                  minFontSizePx={42}
+                  maxFontSizePx={124}
                 />
               </div>
             </div>
