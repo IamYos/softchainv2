@@ -1,0 +1,141 @@
+.pixelGlyph {
+  animation:
+    pixelGlyphSwap 460ms steps(6, end) 1,
+    pixelGlyphIdle var(--tech-slot-duration) steps(4, end) infinite;
+  animation-delay: 0s, var(--tech-slot-delay);
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  height: 70%;
+  opacity: 0.56;
+  overflow: hidden;
+  padding: 2px;
+  position: relative;
+  width: 70%;
+}
+
+.pixelGlyph::after {
+  animation:
+    pixelScanSwap 460ms steps(6, end) 1,
+    pixelScanIdle var(--tech-slot-duration) steps(4, end) infinite;
+  animation-delay: 0s, var(--tech-slot-delay);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(185, 185, 185, 0.14) 44%,
+    rgba(185, 185, 185, 0.32) 50%,
+    rgba(185, 185, 185, 0.1) 56%,
+    transparent 100%
+  );
+  content: "";
+  inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+  position: absolute;
+}
+
+.pixelCell {
+  animation: pixelCellPulse calc(var(--tech-slot-duration) * 0.9) steps(2, end) infinite;
+  animation-delay: calc(var(--tech-slot-delay) + var(--pixel-cell-delay));
+  border-radius: 1px;
+  display: block;
+}
+
+.pixelCellOff {
+  background: rgba(185, 185, 185, 0.12);
+  opacity: 0.08;
+}
+
+.pixelCellGray {
+  background: #b9b9b9;
+  box-shadow: 0 0 8px rgba(185, 185, 185, 0.12);
+  opacity: 0.92;
+}
+
+.pixelCellOrange {
+  background: #ff5841;
+  box-shadow: 0 0 8px rgba(255, 88, 65, 0.22);
+  opacity: 0.94;
+}
+
+.pixelCellGreen {
+  background: var(--mf-brand-paris-green);
+  box-shadow: 0 0 8px rgba(80, 200, 120, 0.24);
+  opacity: 0.94;
+}
+
+@media screen and (min-width: 750px) {
+  .pixelGlyph {
+    gap: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixelGlyph,
+  .pixelGlyph::after,
+  .pixelCell {
+    animation: none;
+  }
+}
+
+@keyframes pixelGlyphSwap {
+  0% {
+    opacity: 0.18;
+    transform: scale(0.88);
+  }
+
+  100% {
+    opacity: 0.56;
+    transform: scale(1);
+  }
+}
+
+@keyframes pixelGlyphIdle {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.62;
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes pixelScanSwap {
+  0% {
+    opacity: 0;
+    transform: translateY(-115%);
+  }
+
+  100% {
+    opacity: 0.14;
+    transform: translateY(115%);
+  }
+}
+
+@keyframes pixelScanIdle {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: translateY(-80%);
+  }
+
+  50% {
+    opacity: 0.2;
+    transform: translateY(90%);
+  }
+}
+
+@keyframes pixelCellPulse {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

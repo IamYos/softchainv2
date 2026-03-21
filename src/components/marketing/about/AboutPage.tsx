@@ -3,8 +3,8 @@ import { MarketingPageShell } from "@/components/marketing/MarketingPageShell";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
 import { SFFooter } from "@/components/marketing/sf/SFFooter";
-import { TechStackGrid } from "@/components/marketing/sf/TechStackGrid";
 import { AboutScrambleHeading } from "./AboutScrambleHeading";
+import { AboutPixelGrid } from "./AboutPixelGrid";
 import { ABOUT_PAGE_CONTENT } from "./aboutContent";
 import styles from "./AboutPage.module.css";
 
@@ -93,7 +93,7 @@ function PrinciplesSection() {
           <div className={styles.principlesSticky}>
             <div className={styles.principlesPanel}>
               <div className={styles.principlesVisual}>
-                <TechStackGrid />
+                <AboutPixelGrid />
               </div>
 
               <div className={styles.principlesPanelContent}>
