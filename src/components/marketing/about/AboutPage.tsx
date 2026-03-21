@@ -3,6 +3,7 @@ import { MarketingPageShell } from "@/components/marketing/MarketingPageShell";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { SFContactForm } from "@/components/marketing/sf/SFContactForm";
 import { SFFooter } from "@/components/marketing/sf/SFFooter";
+import { AboutProcessSection } from "./AboutProcessSection";
 import { AboutScrambleHeading } from "./AboutScrambleHeading";
 import { AboutPixelGrid } from "./AboutPixelGrid";
 import { ABOUT_PAGE_CONTENT } from "./aboutContent";
@@ -39,43 +40,6 @@ function AboutHero() {
               />
             </div>
           </div>
-        </div>
-      </PageContainer>
-    </section>
-  );
-}
-
-function SnapshotSection() {
-  return (
-    <section id="about-snapshot" className={`${styles.snapshotSection} marketing-anchor`}>
-      <PageContainer className={styles.snapshotContainer}>
-        <div className={styles.snapshotHeader}>
-          <FadeIn>
-            <p className={styles.sectionEyebrowDark}>{ABOUT_PAGE_CONTENT.snapshot.eyebrow}</p>
-          </FadeIn>
-          <AboutScrambleHeading
-            lines={[ABOUT_PAGE_CONTENT.snapshot.title]}
-            className={styles.scrambleHeading}
-            lineClassName={styles.snapshotTitle}
-            resolvedColor="#b9b9b9"
-          />
-          <FadeIn delayMs={140}>
-            <p className={styles.snapshotDescription}>
-              {ABOUT_PAGE_CONTENT.snapshot.description}
-            </p>
-          </FadeIn>
-        </div>
-
-        <div className={styles.snapshotGrid}>
-          {ABOUT_PAGE_CONTENT.snapshot.items.map((item, index) => (
-            <FadeIn key={item.label} delayMs={index * 70}>
-              <article className={styles.snapshotCard}>
-                <p className={styles.snapshotValue}>{item.value}</p>
-                <h3 className={styles.snapshotLabel}>{item.label}</h3>
-                <p className={styles.snapshotCopy}>{item.description}</p>
-              </article>
-            </FadeIn>
-          ))}
         </div>
       </PageContainer>
     </section>
@@ -156,6 +120,30 @@ function ValuesSection() {
             </FadeIn>
           ))}
         </div>
+
+        <div className={styles.valuesSnapshot}>
+          <FadeIn>
+            <p className={styles.sectionEyebrowDark}>{ABOUT_PAGE_CONTENT.snapshot.eyebrow}</p>
+          </FadeIn>
+
+          <FadeIn delayMs={80}>
+            <p className={styles.valuesSnapshotDescription}>
+              {ABOUT_PAGE_CONTENT.snapshot.description}
+            </p>
+          </FadeIn>
+
+          <div className={styles.valuesSnapshotGrid}>
+            {ABOUT_PAGE_CONTENT.snapshot.items.map((item, index) => (
+              <FadeIn key={item.label} delayMs={index * 60}>
+                <article className={styles.valuesSnapshotCard}>
+                  <p className={styles.valuesSnapshotValue}>{item.value}</p>
+                  <p className={styles.valuesSnapshotLabel}>{item.label}</p>
+                  <p className={styles.valuesSnapshotCopy}>{item.description}</p>
+                </article>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
       </PageContainer>
     </section>
   );
@@ -166,7 +154,7 @@ export function AboutPage() {
     <MarketingPageShell currentPage="about">
       <main className="marketing-v2" data-header-theme="dark">
         <AboutHero />
-        <SnapshotSection />
+        <AboutProcessSection />
         <PrinciplesSection />
         <ValuesSection />
         <SFContactForm />

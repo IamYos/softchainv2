@@ -5,6 +5,43 @@ export const ABOUT_PAGE_CONTENT = {
     cardBody:
       "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",
   },
+  process: {
+    heading: "How we work.",
+    description:
+      "Softchain scopes, designs, builds, integrates, and supports systems through one continuous delivery path so strategy, execution, and long-term ownership stay aligned.",
+    stages: [
+      {
+        title: "Discovery",
+        visualLabel: ["Discovery"],
+        description:
+          "We start with the business context, delivery constraints, existing systems, and the operational outcome the project needs to reach before any architecture is locked in.",
+      },
+      {
+        title: "Architecture",
+        visualLabel: ["Architecture"],
+        description:
+          "The working model, system boundaries, data flow, integrations, and implementation plan are shaped before the build begins so the delivery path stays coherent.",
+      },
+      {
+        title: "Build",
+        visualLabel: ["Build"],
+        description:
+          "Software, AI workflows, infrastructure components, and automation are implemented against the agreed architecture with delivery quality controlled inside one team.",
+      },
+      {
+        title: "Integration",
+        visualLabel: ["Integration"],
+        description:
+          "Deployments, environment setup, testing, observability, and third-party or internal connections are handled as part of the same system rather than separate handoffs.",
+      },
+      {
+        title: "Ongoing Support",
+        visualLabel: ["Ongoing", "Support"],
+        description:
+          "After launch, Softchain can continue through managed updates, retained engineering, infrastructure operations, and long-term technical support where required.",
+      },
+    ],
+  },
   snapshot: {
     eyebrow: "Company Snapshot",
     title: "Businesses get senior execution without building oversized teams.",
