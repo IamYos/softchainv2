@@ -1,0 +1,25 @@
+.stage {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: #252423;
+}
+
+.frame {
+  width: min(78vw, 36rem);
+  aspect-ratio: 1;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 24px rgb(255 75 75 / 0.08));
+}
+
+@media (max-width: 640px) {
+  .frame {
+    width: min(84vw, 28rem);
+  }
+}
