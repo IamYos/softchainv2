@@ -4,7 +4,7 @@ export default function SolutionsPage() {
       style={{
         minHeight: "100svh",
         padding: "0",
-        background: "#252423",
+        background: "#202020",
       }}
     >
       <iframe
@@ -15,7 +15,7 @@ export default function SolutionsPage() {
           width: "100%",
           height: "100svh",
           border: "0",
-          background: "#252423",
+          background: "#202020",
         }}
       />
     </main>

@@ -18,7 +18,37 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="./media/pages/home/d77f271f80-1769440551/generated-og-image.en.png">
   <meta name="twitter:description" content="A fast, multipurpose and lightweight JavaScript animation library">
-  <link href="./assets/css/styles.css?v=4.3.5-6" rel="stylesheet"></head>
+  <link href="./assets/css/styles.css?v=4.3.5-6" rel="stylesheet">
+  <style>
+    :root {
+      --hex-black-1: #202020;
+      --hex-black-2: #202020;
+      --hex-black-3: #202020;
+      --hex-black-4: #262626;
+      --hex-black-5: #262626;
+      --hex-black-6: #303030;
+      --hex-black-7: #404040;
+      --hex-black-8: #4a4a4a;
+      --hex-bg-1: #202020;
+      --hex-bg-2: #262626;
+      --hex-bg-3: #303030;
+      --hex-bg-4: #404040;
+      --hex-bg-5: #4a4a4a;
+      --hex-bg-6: #555555;
+      --hex-bg-7: #626262;
+      --hex-bg-8: #6f6f6f;
+      --backgroundColor: #202020;
+    }
+
+    html,
+    body,
+    .page,
+    #site-header,
+    #site-footer {
+      background-color: #202020 !important;
+    }
+  </style>
+</head>
 <script>
   window.paths = {
   demos: './documentation-demos.html',
@@ -841,13 +871,49 @@ createTimeline()
   </div>
 <script src="./assets/js/scripts.js?v=4.3.5-6"></script><script>
   window.addEventListener('load', () => {
-    const jumpToSponsors = () => {
-      const sponsors = document.getElementById('sponsors');
-      if (sponsors) sponsors.scrollIntoView({ behavior: 'auto', block: 'start' });
+    const root = document.scrollingElement || document.documentElement;
+    const startSection = document.getElementById('intuitive');
+    const endSection = document.getElementById('modules');
+
+    if (!root || !startSection || !endSection) return;
+
+    let minScroll = 0;
+    let maxScroll = 0;
+    let ticking = false;
+
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+    const enforceBounds = () => {
+      const clamped = clamp(root.scrollTop, minScroll, maxScroll);
+      if (root.scrollTop !== clamped) {
+        root.scrollTop = clamped;
+      }
     };
-    jumpToSponsors();
-    setTimeout(jumpToSponsors, 350);
-    setTimeout(jumpToSponsors, 1100);
+
+    const scheduleEnforce = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        enforceBounds();
+      });
+    };
+
+    const updateBounds = () => {
+      minScroll = Math.max(0, startSection.offsetTop);
+      maxScroll = Math.max(minScroll, endSection.offsetTop - window.innerHeight);
+      enforceBounds();
+    };
+
+    updateBounds();
+    root.scrollTop = minScroll;
+
+    window.addEventListener('resize', updateBounds);
+    window.addEventListener('scroll', scheduleEnforce, { passive: true });
+
+    requestAnimationFrame(updateBounds);
+    setTimeout(updateBounds, 350);
+    setTimeout(updateBounds, 1100);
   });
 </script></body>
 </html>
