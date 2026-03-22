@@ -89,7 +89,7 @@ export function SFFooter({ currentPage }: SFFooterProps) {
               scrambleColors={["#ff5841", "#b9b9b9"]}
               fitToContainer
               fitMode="width"
-              minFontSizePx={56}
+              minFontSizePx={36}
               maxFontSizePx={280}
               rootMargin="-5% 0px"
             />
