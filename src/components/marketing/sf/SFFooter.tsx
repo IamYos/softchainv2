@@ -78,24 +78,13 @@ export function SFFooter({ currentPage }: SFFooterProps) {
             </div>
           </div>
 
-          <div className={`${styles.footerCopy} ${styles.footerCopyMobile}`}>
-            <p className={`${styles.footerCopyItem} ${styles.p}`}>&copy;2026 Softchain.</p>
-            <a className={`${styles.footerCopyItem} ${styles.p}`} href="#footer">
-              Privacy Policy
-            </a>
-            <a className={`${styles.footerCopyItem} ${styles.p}`} href="#footer">
-              Terms of Use
-            </a>
-            <span className={`${styles.footerCopyItem} ${styles.p}`}>Global delivery</span>
-          </div>
-
           <div className={styles.footerTitle}>
             <ScrambleTextReveal
               as="div"
               lines={["SOFTCHAIN"]}
               className={styles.footerWordmarkText}
-              loopClassName="w-full"
-              lineClassName="block whitespace-nowrap"
+              loopClassName="block w-full"
+              lineClassName="block max-w-full whitespace-nowrap"
               resolvedColor="#ff5841"
               scrambleColors={["#ff5841", "#b9b9b9"]}
               fitToContainer
@@ -106,7 +95,7 @@ export function SFFooter({ currentPage }: SFFooterProps) {
             />
           </div>
 
-          <div className={`${styles.footerCopy} ${styles.footerCopyDesktop}`}>
+          <div className={styles.footerCopy}>
             <p className={`${styles.footerCopyItem} ${styles.p}`}>&copy;2026 Softchain.</p>
             <a className={`${styles.footerCopyItem} ${styles.p}`} href="#footer">
               Privacy Policy

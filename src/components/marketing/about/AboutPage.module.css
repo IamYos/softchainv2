@@ -961,6 +961,10 @@
   .heroCard {
     margin-top: clamp(32px, 6svh, 72px);
   }
+
+  .principlesPanel {
+    min-height: max(88svh, 42rem);
+  }
 }
 
 @media screen and (max-width: 749px) {

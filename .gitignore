@@ -50,3 +50,4 @@ docs
 .worktrees
 
 .superpowers/
+.venv-pdf

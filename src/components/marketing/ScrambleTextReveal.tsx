@@ -85,6 +85,13 @@ export function ScrambleTextReveal({
         );
 
       const measureLineWidth = (line: HTMLElement) => {
+        const whiteSpace = window.getComputedStyle(line).whiteSpace;
+        const treatsTextAsSingleLine = whiteSpace.includes("nowrap");
+
+        if (!treatsTextAsSingleLine) {
+          return measureWidth(line);
+        }
+
         const wordElements = Array.from(
           line.querySelectorAll<HTMLElement>("[data-scramble-word='true']"),
         );

@@ -121,6 +121,19 @@ function applyHeaderVisibility(header: HTMLElement, hidden: boolean) {
     : "translate3d(0, 0, 0)";
 }
 
+function isFooterHideZoneActive(footerRect: DOMRect | undefined, viewportHeight: number) {
+  if (!footerRect || footerRect.height <= 0 || viewportHeight <= 0) {
+    return false;
+  }
+
+  const visibleTop = Math.max(footerRect.top, 0);
+  const visibleBottom = Math.min(footerRect.bottom, viewportHeight);
+  const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+  const maxVisibleHeight = Math.min(footerRect.height, viewportHeight);
+
+  return visibleHeight >= maxVisibleHeight - 1;
+}
+
 type HeaderProps = {
   currentPage: MarketingPageContext;
 };
@@ -130,7 +143,7 @@ export function Header({ currentPage }: HeaderProps) {
   const router = useRouter();
   const headerRef = useRef<HTMLElement>(null);
   const isFrameOnePaletteRef = useRef<boolean | null>(null);
-  const isFooterFullyVisibleRef = useRef<boolean | null>(null);
+  const isFooterHideZoneActiveRef = useRef<boolean | null>(null);
   const pendingActionRef = useRef<
     | {
         kind: "scroll";
@@ -223,7 +236,7 @@ export function Header({ currentPage }: HeaderProps) {
       frame = 0;
       if (mobileMenuOpen) {
         isFrameOnePaletteRef.current = null;
-        isFooterFullyVisibleRef.current = null;
+        isFooterHideZoneActiveRef.current = null;
         applyHeaderPalette(header, MENU_OPEN_HEADER_PALETTE);
         applyHeaderVisibility(header, false);
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
@@ -231,13 +244,12 @@ export function Header({ currentPage }: HeaderProps) {
       }
 
       const footerRect = footerHideZone?.getBoundingClientRect();
-      const isFooterFullyVisible = footerRect
-        ? footerRect.top >= 0 && footerRect.bottom <= window.innerHeight
-        : false;
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const isFooterHideZoneVisible = isFooterHideZoneActive(footerRect, viewportHeight);
 
-      if (isFooterFullyVisible !== isFooterFullyVisibleRef.current) {
-        isFooterFullyVisibleRef.current = isFooterFullyVisible;
-        applyHeaderVisibility(header, isFooterFullyVisible);
+      if (isFooterHideZoneVisible !== isFooterHideZoneActiveRef.current) {
+        isFooterHideZoneActiveRef.current = isFooterHideZoneVisible;
+        applyHeaderVisibility(header, isFooterHideZoneVisible);
       }
 
       // Check if hero section is the currently visible snap section
