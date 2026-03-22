@@ -8,11 +8,11 @@ import styles from "./AboutPixelGrid.module.css";
 
 const BOARD_WIDTH = 20;
 const BOARD_HEIGHT = 12;
-const TICK_MS = 110;
+const TICK_MS = 55;
 const PLAN_LENGTH = 42;
 const SCRIPT_SEEDS = [11, 23, 37, 41, 53, 67] as const;
-const COMPLETE_HOLD_MS = 5000;
-const BINARY_DURATION_MS = 2600;
+const COMPLETE_HOLD_MS = 2500;
+const BINARY_DURATION_MS = 1300;
 
 type CellTone = 0 | 1 | 2;
 type PieceKey = "I" | "J" | "L" | "O" | "S" | "T" | "Z";

@@ -121,17 +121,12 @@ function applyHeaderVisibility(header: HTMLElement, hidden: boolean) {
     : "translate3d(0, 0, 0)";
 }
 
-function isFooterHideZoneActive(footerRect: DOMRect | undefined, viewportHeight: number) {
-  if (!footerRect || footerRect.height <= 0 || viewportHeight <= 0) {
+function isFooterHideZoneActive(footerRect: DOMRect | undefined, thresholdTop: number) {
+  if (!footerRect || footerRect.height <= 0) {
     return false;
   }
 
-  const visibleTop = Math.max(footerRect.top, 0);
-  const visibleBottom = Math.min(footerRect.bottom, viewportHeight);
-  const visibleHeight = Math.max(0, visibleBottom - visibleTop);
-  const maxVisibleHeight = Math.min(footerRect.height, viewportHeight);
-
-  return visibleHeight >= maxVisibleHeight - 1;
+  return footerRect.top <= thresholdTop && footerRect.bottom > thresholdTop;
 }
 
 type HeaderProps = {
@@ -244,8 +239,8 @@ export function Header({ currentPage }: HeaderProps) {
       }
 
       const footerRect = footerHideZone?.getBoundingClientRect();
-      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      const isFooterHideZoneVisible = isFooterHideZoneActive(footerRect, viewportHeight);
+      const headerThreshold = header.getBoundingClientRect().height;
+      const isFooterHideZoneVisible = isFooterHideZoneActive(footerRect, headerThreshold);
 
       if (isFooterHideZoneVisible !== isFooterHideZoneActiveRef.current) {
         isFooterHideZoneActiveRef.current = isFooterHideZoneVisible;

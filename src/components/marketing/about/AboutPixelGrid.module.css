@@ -11,7 +11,7 @@
 }
 
 .board {
-  animation: boardDrift 5.2s ease-in-out infinite;
+  animation: boardDrift 2.6s ease-in-out infinite;
   display: grid;
   gap: 3px;
   grid-template-columns: repeat(20, minmax(0, 1fr));
@@ -36,7 +36,7 @@
 }
 
 .board::after {
-  animation: boardScan 3.6s linear infinite;
+  animation: boardScan 1.8s linear infinite;
   background: linear-gradient(
     180deg,
     transparent 0%,
@@ -49,7 +49,7 @@
 }
 
 .pixelCell {
-  animation: blockPulse 0.86s steps(2, end) infinite;
+  animation: blockPulse 0.43s steps(2, end) infinite;
   animation-delay: var(--pixel-cell-delay);
   border-radius: 1px;
   display: block;
