@@ -137,7 +137,7 @@ export function Header({ currentPage }: HeaderProps) {
   const lenis = useLenis();
   const router = useRouter();
   const headerRef = useRef<HTMLElement>(null);
-  const isFrameOnePaletteRef = useRef<boolean | null>(null);
+  const paletteZoneRef = useRef<"hero" | "engine" | "post" | null>(null);
   const isFooterHideZoneActiveRef = useRef<boolean | null>(null);
   const pendingActionRef = useRef<
     | {
@@ -230,7 +230,7 @@ export function Header({ currentPage }: HeaderProps) {
       const startedAt = performance.now();
       frame = 0;
       if (mobileMenuOpen) {
-        isFrameOnePaletteRef.current = null;
+        paletteZoneRef.current = null;
         isFooterHideZoneActiveRef.current = null;
         applyHeaderPalette(header, MENU_OPEN_HEADER_PALETTE);
         applyHeaderVisibility(header, false);
@@ -264,16 +264,35 @@ export function Header({ currentPage }: HeaderProps) {
       const postHeroPalette =
         currentPage === "about" ? DARK_FRAME_HEADER_PALETTE : LIGHT_FRAME_HEADER_PALETTE;
 
-      if (showFrameOnePalette === isFrameOnePaletteRef.current) {
+      // Engine section override: while the solutions features iframe fills
+      // the viewport (i.e. the sticky pin is engaged), force the dark palette
+      // so the header shows the gray logo on top of the dark scene.
+      const engineSection = document.getElementById("solutions-engine");
+      const engineFillsViewport = (() => {
+        if (!engineSection) return false;
+        const rect = engineSection.getBoundingClientRect();
+        return rect.top <= 0 && rect.bottom >= window.innerHeight;
+      })();
+
+      const zone: "hero" | "engine" | "post" = showFrameOnePalette
+        ? "hero"
+        : engineFillsViewport
+          ? "engine"
+          : "post";
+
+      if (zone === paletteZoneRef.current) {
         recordPerfSample("header-scroll-update", performance.now() - startedAt);
         return;
       }
 
-      isFrameOnePaletteRef.current = showFrameOnePalette;
-      applyHeaderPalette(
-        header,
-        showFrameOnePalette ? heroPalette : postHeroPalette,
-      );
+      paletteZoneRef.current = zone;
+      const palette =
+        zone === "hero"
+          ? heroPalette
+          : zone === "engine"
+            ? DARK_FRAME_HEADER_PALETTE
+            : postHeroPalette;
+      applyHeaderPalette(header, palette);
       recordPerfSample("header-scroll-update", performance.now() - startedAt);
     };
 
