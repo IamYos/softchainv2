@@ -51,6 +51,21 @@
     }
 
     /*
+     * Hard-pin the engine to dark. The bundled scripts.js listens to
+     * `(prefers-color-scheme: light)` and, when it fires (e.g. when the OS
+     * auto-toggles light mode by time of day), the 3D scene reads these
+     * "light" shader vars via getComputedStyle and paints with them —
+     * producing the #DAD5D0 background flash. Forcing the light vars to
+     * dark values means the engine gets dark paint in any scheme.
+     */
+    :root {
+      color-scheme: dark only;
+      --worldColorLight1: #202020 !important;
+      --outlineColorLight: #202020 !important;
+      --backgroundColor: #202020 !important;
+    }
+
+    /*
      * Slice the demo to the feature-section range (#intuitive → #responsive).
      * Removing these from layout means the document's natural scroll height
      * already equals the range we want — no scroll-clamp listener required,
@@ -64,6 +79,96 @@
     #get-started,
     #site-footer {
       display: none !important;
+    }
+
+    /*
+     * Softchain brand recolor — remap the anime.js chapter palette (red /
+     * orange / yellow / lime / green / turquoise / cyan / sky / king / etc.)
+     * onto brand ramps derived from three tokens: orange (#ff5841), green
+     * (#50c878), and gray (#b9b9b9). Ramp shade 1 is the bright accent,
+     * shade 8 is near-bg — matching the original anime.js shade semantics
+     * so all downstream usages of `--hex-current-*` keep their visual role.
+     */
+    :root {
+      --sc-orange-1: #ff5841;
+      --sc-orange-2: #d44936;
+      --sc-orange-3: #8b3a2d;
+      --sc-orange-4: #723128;
+      --sc-orange-5: #5d2b25;
+      --sc-orange-6: #4a2722;
+      --sc-orange-7: #3b241f;
+      --sc-orange-8: #2d221e;
+
+      --sc-green-1: #50c878;
+      --sc-green-2: #3fa25f;
+      --sc-green-3: #2a6c40;
+      --sc-green-4: #265c38;
+      --sc-green-5: #224d30;
+      --sc-green-6: #1e3f29;
+      --sc-green-7: #1a3222;
+      --sc-green-8: #1d2820;
+
+      --sc-gray-1: #b9b9b9;
+      --sc-gray-2: #989898;
+      --sc-gray-3: #666666;
+      --sc-gray-4: #565656;
+      --sc-gray-5: #474747;
+      --sc-gray-6: #3a3a3a;
+      --sc-gray-7: #2f2f2f;
+      --sc-gray-8: #282828;
+    }
+
+    /*
+     * Explicit per-chapter assignment, in the order they appear on the page:
+     *   1. intuitive   (.color-getting-started) → orange
+     *   2. composition (.color-animation)       → gray
+     *   3. scroll      (.color-turquoise)       → green
+     *   4. staggering  (.color-utils)           → gray
+     *   5. svgUtils    (.color-svg)             → orange
+     *   6. draggable   (.color-draggable)       → gray
+     *   7. clockwork   (.color-timeline)        → green
+     *   8. responsive  (.color-green)           → gray
+     */
+
+    /* Orange chapters: intuitive, svgUtils */
+    .color-getting-started,
+    .color-svg {
+      --hex-current-1: var(--sc-orange-1);
+      --hex-current-2: var(--sc-orange-2);
+      --hex-current-3: var(--sc-orange-3);
+      --hex-current-4: var(--sc-orange-4);
+      --hex-current-5: var(--sc-orange-5);
+      --hex-current-6: var(--sc-orange-6);
+      --hex-current-7: var(--sc-orange-7);
+      --hex-current-8: var(--sc-orange-8);
+    }
+
+    /* Gray chapters: composition, staggering, draggable, responsive */
+    .color-animation,
+    .color-utils,
+    .color-draggable,
+    .color-green {
+      --hex-current-1: var(--sc-gray-1);
+      --hex-current-2: var(--sc-gray-2);
+      --hex-current-3: var(--sc-gray-3);
+      --hex-current-4: var(--sc-gray-4);
+      --hex-current-5: var(--sc-gray-5);
+      --hex-current-6: var(--sc-gray-6);
+      --hex-current-7: var(--sc-gray-7);
+      --hex-current-8: var(--sc-gray-8);
+    }
+
+    /* Green chapters: scroll, clockwork */
+    .color-turquoise,
+    .color-timeline {
+      --hex-current-1: var(--sc-green-1);
+      --hex-current-2: var(--sc-green-2);
+      --hex-current-3: var(--sc-green-3);
+      --hex-current-4: var(--sc-green-4);
+      --hex-current-5: var(--sc-green-5);
+      --hex-current-6: var(--sc-green-6);
+      --hex-current-7: var(--sc-green-7);
+      --hex-current-8: var(--sc-green-8);
     }
   </style>
 </head>
