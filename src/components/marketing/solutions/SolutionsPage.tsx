@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MarketingPageShell } from "@/components/marketing/MarketingPageShell";
 import { PageContainer } from "@/components/marketing/PageContainer";
 import { AboutScrambleHeading } from "@/components/marketing/about/AboutScrambleHeading";
@@ -52,16 +55,95 @@ function SolutionsHero() {
 }
 
 function SolutionsEngine() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const internalRunwayRef = useRef(0);
+  const [sectionHeight, setSectionHeight] = useState("100svh");
+
+  const measureRunway = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return 0;
+    const doc = iframe.contentDocument;
+    if (!doc) return 0;
+    const scrollEl = doc.scrollingElement ?? doc.documentElement;
+    const runway = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    internalRunwayRef.current = runway;
+    setSectionHeight(runway > 0 ? `calc(100svh + ${runway}px)` : "100svh");
+    return runway;
+  }, []);
+
+  const syncScroll = useCallback(() => {
+    const section = sectionRef.current;
+    const iframe = iframeRef.current;
+    if (!section || !iframe) return;
+    const win = iframe.contentWindow;
+    if (!win) return;
+    const rect = section.getBoundingClientRect();
+    const outerRunway = section.offsetHeight - window.innerHeight;
+    if (outerRunway <= 0 || internalRunwayRef.current <= 0) {
+      win.scrollTo(0, 0);
+      return;
+    }
+    const scrolled = Math.max(0, Math.min(outerRunway, -rect.top));
+    const progress = scrolled / outerRunway;
+    win.scrollTo(0, progress * internalRunwayRef.current);
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const doc = iframe.contentDocument;
+    if (doc) {
+      const style = doc.createElement("style");
+      style.textContent = [
+        "html { scrollbar-width: none; -ms-overflow-style: none; }",
+        "html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }",
+      ].join("\n");
+      doc.head.appendChild(style);
+    }
+    measureRunway();
+    syncScroll();
+  }, [measureRunway, syncScroll]);
+
+  useEffect(() => {
+    const onScroll = () => syncScroll();
+    const onResize = () => {
+      measureRunway();
+      syncScroll();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+
+    const settleTimeouts = [350, 1100, 2200].map((delay) =>
+      window.setTimeout(() => {
+        measureRunway();
+        syncScroll();
+      }, delay),
+    );
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      settleTimeouts.forEach((id) => window.clearTimeout(id));
+    };
+  }, [measureRunway, syncScroll]);
+
   return (
     <section
       id="solutions-engine"
+      ref={sectionRef}
       className={`${styles.engineSection} marketing-anchor`}
+      style={{ height: sectionHeight }}
     >
-      <iframe
-        title="Anime.js homepage solutions"
-        src="/solutions/home.html"
-        className={styles.engineFrame}
-      />
+      <div className={styles.engineSticky}>
+        <iframe
+          ref={iframeRef}
+          title="Anime.js homepage solutions"
+          src="/solutions/home.html"
+          className={styles.engineFrame}
+          onLoad={handleLoad}
+        />
+      </div>
     </section>
   );
 }

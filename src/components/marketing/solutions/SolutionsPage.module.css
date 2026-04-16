@@ -128,11 +128,19 @@
   width: 100%;
 }
 
+.engineSticky {
+  height: 100svh;
+  position: sticky;
+  top: 0;
+  width: 100%;
+}
+
 .engineFrame {
   background: #202020;
   border: 0;
   display: block;
-  height: 100svh;
+  height: 100%;
+  pointer-events: none;
   width: 100%;
 }
 
