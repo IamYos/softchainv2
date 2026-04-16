@@ -1,0 +1,243 @@
+.heroSection {
+  background: #b9b9b9;
+  color: #202020;
+  min-height: 100svh;
+  overflow: clip;
+  position: relative;
+}
+
+.heroContainer {
+  min-height: 100svh;
+  padding-bottom: 0;
+  padding-top: calc(var(--mf-header-height) + clamp(28px, 5vw, 56px));
+  position: relative;
+  z-index: 2;
+}
+
+.heroInner {
+  min-height: calc(100svh - var(--mf-header-height) - clamp(56px, 8vw, 88px));
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
+.heroLineMask {
+  min-width: 0;
+  overflow: hidden;
+  padding-bottom: 0.16em;
+  width: 100%;
+}
+
+.heroCard {
+  animation: solutionsHeroCardIn 920ms cubic-bezier(0.2, 0.95, 0.24, 1) 280ms both;
+  background: #ff5841;
+  color: #202020;
+  display: grid;
+  gap: 28px;
+  padding: clamp(28px, 3.4vw, 40px);
+  position: absolute;
+  right: clamp(8px, 1.8vw, 28px);
+  top: clamp(5%, 6vh, 10%);
+  width: min(100%, 520px);
+  z-index: 3;
+}
+
+.heroCardGlyph {
+  display: grid;
+  gap: 8px;
+  width: 60px;
+}
+
+.heroCardGlyph span {
+  background: #202020;
+  display: block;
+  height: 2px;
+  transform-origin: left center;
+}
+
+.heroCardGlyph span:nth-child(1) {
+  width: 18px;
+}
+
+.heroCardGlyph span:nth-child(2) {
+  width: 34px;
+}
+
+.heroCardGlyph span:nth-child(3) {
+  width: 48px;
+}
+
+.heroCardTitle {
+  font-family: var(--font-non-sans), Arial, sans-serif;
+  font-size: clamp(36px, 4vw, 60px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+  margin: 0;
+  max-width: 10ch;
+}
+
+.heroCardBody {
+  color: #202020;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.48;
+  margin: 0;
+  max-width: 32ch;
+  text-transform: uppercase;
+}
+
+.heroWordWrap {
+  bottom: clamp(34px, 4vw, 56px);
+  left: 0;
+  min-width: 0;
+  position: absolute;
+  width: min(100%, 1040px);
+  z-index: 2;
+}
+
+.heroWord {
+  animation: solutionsHeroWordIn 1100ms cubic-bezier(0.2, 0.95, 0.24, 1) 120ms both;
+  color: #202020;
+  font-family: var(--font-non-sans), Arial, sans-serif;
+  font-size: var(--about-fit-font-size, clamp(52px, 17vw, 360px));
+  font-weight: 500;
+  letter-spacing: -0.095em;
+  line-height: 1;
+  margin: 0;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  transform: translate3d(0, 18%, 0);
+}
+
+.heroWord [data-scramble-word="true"] {
+  padding-bottom: 0.08em;
+}
+
+.scrambleHeading {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+.engineSection {
+  background: #202020;
+  position: relative;
+  width: 100%;
+}
+
+.engineFrame {
+  background: #202020;
+  border: 0;
+  display: block;
+  height: 100svh;
+  width: 100%;
+}
+
+@media screen and (max-width: 1024px) {
+  .heroContainer {
+    min-height: auto;
+    padding-bottom: clamp(36px, 7vw, 56px);
+  }
+
+  .heroInner {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+  }
+
+  .heroCard,
+  .heroWordWrap {
+    position: relative;
+  }
+
+  .heroCard {
+    justify-self: end;
+    margin-left: auto;
+    right: auto;
+    top: auto;
+    width: min(100%, 520px);
+  }
+
+  .heroWordWrap {
+    bottom: auto;
+    margin-bottom: 12px;
+    margin-top: 20px;
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 1024px) and (orientation: portrait) {
+  .heroInner {
+    padding-top: 15svh;
+  }
+
+  .heroWordWrap {
+    margin-bottom: 0;
+    margin-top: 0;
+    order: -1;
+  }
+
+  .heroCard {
+    margin-top: clamp(32px, 6svh, 72px);
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .heroContainer {
+    padding-top: calc(var(--mf-header-height) + 20px);
+  }
+
+  .heroInner {
+    gap: 24px;
+    min-height: auto;
+  }
+
+  .heroCard {
+    gap: 22px;
+    justify-self: stretch;
+    padding: 24px 20px;
+    width: 100%;
+  }
+
+  .heroCardTitle {
+    font-size: clamp(30px, 9vw, 42px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroCard,
+  .heroWord {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes solutionsHeroCardIn {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes solutionsHeroWordIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18%, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}

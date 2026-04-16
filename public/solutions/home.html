@@ -49,6 +49,22 @@
     #site-footer {
       background-color: #202020 !important;
     }
+
+    /*
+     * Slice the demo to the feature-section range (#intuitive → #responsive).
+     * Removing these from layout means the document's natural scroll height
+     * already equals the range we want — no scroll-clamp listener required,
+     * and no boundary bounce when hitting the edges on trackpads.
+     */
+    #site-header,
+    #intro,
+    #toolbox,
+    #modules,
+    #sponsors,
+    #get-started,
+    #site-footer {
+      display: none !important;
+    }
   </style>
 </head>
 <script>
@@ -871,51 +887,5 @@ createTimeline()
 </main>
 <div id="engine"></div>
   </div>
-<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions"></script><script>
-  window.addEventListener('load', () => {
-    const root = document.scrollingElement || document.documentElement;
-    const startSection = document.getElementById('intuitive');
-    const endSection = document.getElementById('modules');
-
-    if (!root || !startSection || !endSection) return;
-
-    let minScroll = 0;
-    let maxScroll = 0;
-    let ticking = false;
-
-    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-    const enforceBounds = () => {
-      const clamped = clamp(root.scrollTop, minScroll, maxScroll);
-      if (root.scrollTop !== clamped) {
-        root.scrollTop = clamped;
-      }
-    };
-
-    const scheduleEnforce = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        enforceBounds();
-      });
-    };
-
-    const updateBounds = () => {
-      minScroll = Math.max(0, startSection.offsetTop);
-      maxScroll = Math.max(minScroll, endSection.offsetTop - window.innerHeight);
-      enforceBounds();
-    };
-
-    updateBounds();
-    root.scrollTop = minScroll;
-
-    window.addEventListener('resize', updateBounds);
-    window.addEventListener('scroll', scheduleEnforce, { passive: true });
-
-    requestAnimationFrame(updateBounds);
-    setTimeout(updateBounds, 350);
-    setTimeout(updateBounds, 1100);
-  });
-</script></body>
+<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions"></script></body>
 </html>
