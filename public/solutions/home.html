@@ -119,34 +119,44 @@
     }
 
     /*
-     * Explicit per-chapter assignment, in the order they appear on the page:
-     *   1. intuitive   (.color-getting-started) → orange
-     *   2. composition (.color-animation)       → gray
-     *   3. scroll      (.color-turquoise)       → green
-     *   4. staggering  (.color-utils)           → gray
-     *   5. svgUtils    (.color-svg)             → orange
-     *   6. draggable   (.color-draggable)       → gray
-     *   7. clockwork   (.color-timeline)        → green
-     *   8. responsive  (.color-green)           → gray
+     * Catch-all: remap every non-gray base ramp to gray, so anything in the
+     * engine that reads raw `--hex-red-*`, `--hex-orange-*`, etc. (e.g. the
+     * pre-first and post-last transition frames that don't go through the
+     * chapter class system) also paints in brand gray.
      */
-
-    /* Orange chapters: intuitive, svgUtils */
-    .color-getting-started,
-    .color-svg {
-      --hex-current-1: var(--sc-orange-1);
-      --hex-current-2: var(--sc-orange-2);
-      --hex-current-3: var(--sc-orange-3);
-      --hex-current-4: var(--sc-orange-4);
-      --hex-current-5: var(--sc-orange-5);
-      --hex-current-6: var(--sc-orange-6);
-      --hex-current-7: var(--sc-orange-7);
-      --hex-current-8: var(--sc-orange-8);
+    :root {
+      --hex-red-1: var(--sc-gray-1); --hex-red-2: var(--sc-gray-2); --hex-red-3: var(--sc-gray-3); --hex-red-4: var(--sc-gray-4); --hex-red-5: var(--sc-gray-5); --hex-red-6: var(--sc-gray-6); --hex-red-7: var(--sc-gray-7); --hex-red-8: var(--sc-gray-8);
+      --hex-corail-1: var(--sc-gray-1); --hex-corail-2: var(--sc-gray-2); --hex-corail-3: var(--sc-gray-3); --hex-corail-4: var(--sc-gray-4); --hex-corail-5: var(--sc-gray-5); --hex-corail-6: var(--sc-gray-6); --hex-corail-7: var(--sc-gray-7); --hex-corail-8: var(--sc-gray-8);
+      --hex-orange-1: var(--sc-gray-1); --hex-orange-2: var(--sc-gray-2); --hex-orange-3: var(--sc-gray-3); --hex-orange-4: var(--sc-gray-4); --hex-orange-5: var(--sc-gray-5); --hex-orange-6: var(--sc-gray-6); --hex-orange-7: var(--sc-gray-7); --hex-orange-8: var(--sc-gray-8);
+      --hex-yellow-1: var(--sc-gray-1); --hex-yellow-2: var(--sc-gray-2); --hex-yellow-3: var(--sc-gray-3); --hex-yellow-4: var(--sc-gray-4); --hex-yellow-5: var(--sc-gray-5); --hex-yellow-6: var(--sc-gray-6); --hex-yellow-7: var(--sc-gray-7); --hex-yellow-8: var(--sc-gray-8);
+      --hex-citrus-1: var(--sc-gray-1); --hex-citrus-2: var(--sc-gray-2); --hex-citrus-3: var(--sc-gray-3); --hex-citrus-4: var(--sc-gray-4); --hex-citrus-5: var(--sc-gray-5); --hex-citrus-6: var(--sc-gray-6); --hex-citrus-7: var(--sc-gray-7); --hex-citrus-8: var(--sc-gray-8);
+      --hex-lime-1: var(--sc-gray-1); --hex-lime-2: var(--sc-gray-2); --hex-lime-3: var(--sc-gray-3); --hex-lime-4: var(--sc-gray-4); --hex-lime-5: var(--sc-gray-5); --hex-lime-6: var(--sc-gray-6); --hex-lime-7: var(--sc-gray-7); --hex-lime-8: var(--sc-gray-8);
+      --hex-green-1: var(--sc-gray-1); --hex-green-2: var(--sc-gray-2); --hex-green-3: var(--sc-gray-3); --hex-green-4: var(--sc-gray-4); --hex-green-5: var(--sc-gray-5); --hex-green-6: var(--sc-gray-6); --hex-green-7: var(--sc-gray-7); --hex-green-8: var(--sc-gray-8);
+      --hex-turquoise-1: var(--sc-gray-1); --hex-turquoise-2: var(--sc-gray-2); --hex-turquoise-3: var(--sc-gray-3); --hex-turquoise-4: var(--sc-gray-4); --hex-turquoise-5: var(--sc-gray-5); --hex-turquoise-6: var(--sc-gray-6); --hex-turquoise-7: var(--sc-gray-7); --hex-turquoise-8: var(--sc-gray-8);
+      --hex-cyan-1: var(--sc-gray-1); --hex-cyan-2: var(--sc-gray-2); --hex-cyan-3: var(--sc-gray-3); --hex-cyan-4: var(--sc-gray-4); --hex-cyan-5: var(--sc-gray-5); --hex-cyan-6: var(--sc-gray-6); --hex-cyan-7: var(--sc-gray-7); --hex-cyan-8: var(--sc-gray-8);
+      --hex-sky-1: var(--sc-gray-1); --hex-sky-2: var(--sc-gray-2); --hex-sky-3: var(--sc-gray-3); --hex-sky-4: var(--sc-gray-4); --hex-sky-5: var(--sc-gray-5); --hex-sky-6: var(--sc-gray-6); --hex-sky-7: var(--sc-gray-7); --hex-sky-8: var(--sc-gray-8);
+      --hex-sega-1: var(--sc-gray-1); --hex-sega-2: var(--sc-gray-2); --hex-sega-3: var(--sc-gray-3); --hex-sega-4: var(--sc-gray-4); --hex-sega-5: var(--sc-gray-5); --hex-sega-6: var(--sc-gray-6); --hex-sega-7: var(--sc-gray-7); --hex-sega-8: var(--sc-gray-8);
+      --hex-king-1: var(--sc-gray-1); --hex-king-2: var(--sc-gray-2); --hex-king-3: var(--sc-gray-3); --hex-king-4: var(--sc-gray-4); --hex-king-5: var(--sc-gray-5); --hex-king-6: var(--sc-gray-6); --hex-king-7: var(--sc-gray-7); --hex-king-8: var(--sc-gray-8);
+      --hex-indigo-1: var(--sc-gray-1); --hex-indigo-2: var(--sc-gray-2); --hex-indigo-3: var(--sc-gray-3); --hex-indigo-4: var(--sc-gray-4); --hex-indigo-5: var(--sc-gray-5); --hex-indigo-6: var(--sc-gray-6); --hex-indigo-7: var(--sc-gray-7); --hex-indigo-8: var(--sc-gray-8);
+      --hex-lavender-1: var(--sc-gray-1); --hex-lavender-2: var(--sc-gray-2); --hex-lavender-3: var(--sc-gray-3); --hex-lavender-4: var(--sc-gray-4); --hex-lavender-5: var(--sc-gray-5); --hex-lavender-6: var(--sc-gray-6); --hex-lavender-7: var(--sc-gray-7); --hex-lavender-8: var(--sc-gray-8);
+      --hex-purple-1: var(--sc-gray-1); --hex-purple-2: var(--sc-gray-2); --hex-purple-3: var(--sc-gray-3); --hex-purple-4: var(--sc-gray-4); --hex-purple-5: var(--sc-gray-5); --hex-purple-6: var(--sc-gray-6); --hex-purple-7: var(--sc-gray-7); --hex-purple-8: var(--sc-gray-8);
+      --hex-magenta-1: var(--sc-gray-1); --hex-magenta-2: var(--sc-gray-2); --hex-magenta-3: var(--sc-gray-3); --hex-magenta-4: var(--sc-gray-4); --hex-magenta-5: var(--sc-gray-5); --hex-magenta-6: var(--sc-gray-6); --hex-magenta-7: var(--sc-gray-7); --hex-magenta-8: var(--sc-gray-8);
+      --hex-pink-1: var(--sc-gray-1); --hex-pink-2: var(--sc-gray-2); --hex-pink-3: var(--sc-gray-3); --hex-pink-4: var(--sc-gray-4); --hex-pink-5: var(--sc-gray-5); --hex-pink-6: var(--sc-gray-6); --hex-pink-7: var(--sc-gray-7); --hex-pink-8: var(--sc-gray-8);
     }
 
-    /* Gray chapters: composition, staggering, draggable, responsive */
+    /*
+     * Every chapter adopts the gray ramp — intuitive, composition, scroll,
+     * staggering, svgUtils, draggable, clockwork, responsive all resolve
+     * `--hex-current-*` to the brand gray so the feature sections read as
+     * one uniform palette.
+     */
+    .color-getting-started,
     .color-animation,
+    .color-turquoise,
     .color-utils,
+    .color-svg,
     .color-draggable,
+    .color-timeline,
     .color-green {
       --hex-current-1: var(--sc-gray-1);
       --hex-current-2: var(--sc-gray-2);
@@ -156,19 +166,6 @@
       --hex-current-6: var(--sc-gray-6);
       --hex-current-7: var(--sc-gray-7);
       --hex-current-8: var(--sc-gray-8);
-    }
-
-    /* Green chapters: scroll, clockwork */
-    .color-turquoise,
-    .color-timeline {
-      --hex-current-1: var(--sc-green-1);
-      --hex-current-2: var(--sc-green-2);
-      --hex-current-3: var(--sc-green-3);
-      --hex-current-4: var(--sc-green-4);
-      --hex-current-5: var(--sc-green-5);
-      --hex-current-6: var(--sc-green-6);
-      --hex-current-7: var(--sc-green-7);
-      --hex-current-8: var(--sc-green-8);
     }
   </style>
 </head>
