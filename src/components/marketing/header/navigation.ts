@@ -18,30 +18,12 @@ export type ResolvedHeaderNavItem =
       target: string;
     });
 
-export const HEADER_MENU_SOLUTION_ITEMS: HeaderNavItem[] = [
-  {
-    label: "Software Design & Engineering",
-    href: "/#sf-solutions",
-    homeTarget: "sf-solutions",
-  },
-  {
-    label: "AI Systems",
-    href: "/#sf-solutions",
-    homeTarget: "sf-solutions",
-  },
-  {
-    label: "IT Infrastructure",
-    href: "/#sf-solutions",
-    homeTarget: "sf-solutions",
-  },
-  {
-    label: "Technology Management",
-    href: "/#sf-solutions",
-    homeTarget: "sf-solutions",
-  },
-];
-
 export const HEADER_MENU_SECONDARY_ITEMS: HeaderNavItem[] = [
+  {
+    label: "Solutions",
+    href: "/solutions",
+    activeOn: "solutions",
+  },
   {
     label: "About",
     href: "/about",

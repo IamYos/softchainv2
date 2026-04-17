@@ -5,7 +5,6 @@ import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
 import {
   getHeaderNavHref,
   HEADER_MENU_SECONDARY_ITEMS,
-  HEADER_MENU_SOLUTION_ITEMS,
   type MarketingPageContext,
 } from "@/components/marketing/header/navigation";
 import styles from "./SFPostFrame.module.css";
@@ -36,23 +35,6 @@ export function SFFooter({ currentPage }: SFFooterProps) {
           </div>
 
           <div className={styles.footerTopGrid}>
-            <div className={styles.footerPrimaryColumn}>
-              <ul className={`${styles.footerNav} ${styles.footerNavPrimary}`}>
-                <li className={`${styles.footerNavItem} ${styles.p2}`}>
-                  <h4 className={styles.footerSubmenuTitle} aria-level={4}>
-                    Solutions<sup>{HEADER_MENU_SOLUTION_ITEMS.length}</sup>
-                  </h4>
-                  <ul className={styles.footerSubmenuList}>
-                    {HEADER_MENU_SOLUTION_ITEMS.map((item) => (
-                      <li key={item.label} className={`${styles.footerSubmenuItem} ${styles.p2}`}>
-                        <a href={getHeaderNavHref(item, currentPage)}>{item.label}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              </ul>
-            </div>
-
             <div className={styles.footerSecondaryColumn}>
               <ul className={`${styles.footerNav} ${styles.footerNavSecondary}`}>
                 {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
