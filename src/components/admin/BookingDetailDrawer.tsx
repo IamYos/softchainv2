@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RescheduleModal } from "./RescheduleModal";
 
 export type AdminBooking = {
   id: string;
@@ -22,14 +23,16 @@ export type AdminBooking = {
 
 type Props = {
   booking: AdminBooking | null;
+  ownerTimezone: string;
   onClose: () => void;
   onRefresh: () => Promise<void>;
 };
 
-export function BookingDetailDrawer({ booking, onClose, onRefresh }: Props) {
+export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh }: Props) {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
 
   useEffect(() => {
     setNotes(booking?.adminNotes ?? "");
@@ -139,6 +142,13 @@ export function BookingDetailDrawer({ booking, onClose, onRefresh }: Props) {
 
       {booking.status === "confirmed" && (
         <section style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={() => setRescheduleOpen(true)}
+            style={{ padding: "0.4rem 0.9rem", border: "1px solid currentColor", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
+          >
+            Reschedule
+          </button>
           <button type="button" onClick={toggleNoShow} style={{ padding: "0.4rem 0.9rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}>
             {booking.noShow ? "Unmark no-show" : "Mark no-show"}
           </button>
@@ -153,6 +163,20 @@ export function BookingDetailDrawer({ booking, onClose, onRefresh }: Props) {
       )}
 
       {err && <p style={{ color: "#f60", marginTop: "1rem", fontSize: "0.85rem" }}>{err}</p>}
+
+      {rescheduleOpen && (
+        <RescheduleModal
+          bookingId={booking.id}
+          visitorName={booking.visitorName}
+          visitorTimezone={booking.visitorTimezone}
+          ownerTimezone={ownerTimezone}
+          currentStartAtIso={booking.startAt}
+          onClose={() => setRescheduleOpen(false)}
+          onDone={async () => {
+            await onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -5,7 +5,11 @@ import { BookingDetailDrawer, type AdminBooking } from "./BookingDetailDrawer";
 
 type Tab = "upcoming" | "past" | "cancelled";
 
-export function BookingsTable() {
+type Props = {
+  ownerTimezone: string;
+};
+
+export function BookingsTable({ ownerTimezone }: Props) {
   const [tab, setTab] = useState<Tab>("upcoming");
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,6 +105,7 @@ export function BookingsTable() {
 
       <BookingDetailDrawer
         booking={openBooking}
+        ownerTimezone={ownerTimezone}
         onClose={() => setOpenId(null)}
         onRefresh={() => load(tab)}
       />
