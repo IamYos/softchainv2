@@ -37,8 +37,8 @@ export async function GET(req: Request): Promise<Response> {
     status: b.status,
     noShow: b.noShow,
     adminNotes: b.adminNotes,
-    rescheduleToken: b.rescheduleToken,
-    cancelToken: b.cancelToken,
+    // Visitor tokens intentionally omitted — admin flow uses booking id, not
+    // tokens. Exposing them would let any admin forge visitor cancel URLs.
     createdAt: b.createdAt.toDate().toISOString(),
     updatedAt: b.updatedAt.toDate().toISOString(),
   }));

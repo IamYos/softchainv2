@@ -16,8 +16,6 @@ export type AdminBooking = {
   status: "confirmed" | "cancelled";
   noShow: boolean;
   adminNotes: string | null;
-  rescheduleToken: string;
-  cancelToken: string;
   createdAt: string;
   updatedAt: string;
 };
