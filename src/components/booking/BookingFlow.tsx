@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import styles from "@/components/marketing/sf/SFPostFrame.module.css";
 import { useBookingState } from "./useBookingState";
+import { useAvailableSlots } from "./useAvailableSlots";
 import { StepSummaryStack } from "./StepSummaryStack";
 import { StepEmail } from "./steps/StepEmail";
 import { StepName } from "./steps/StepName";
@@ -15,30 +15,19 @@ import { StepPhone } from "./steps/StepPhone";
 import { StepTopic } from "./steps/StepTopic";
 import { StepSubmit } from "./steps/StepSubmit";
 import { BookingConfirmationCard } from "./BookingConfirmationCard";
-import { useVisitorTimezone } from "./useVisitorTimezone";
+
+const LOOKAHEAD_DAYS = 14;
 
 export function BookingFlow() {
   const [state, dispatch] = useBookingState();
-  const detected = useVisitorTimezone();
-  const [ownerTimezone, setOwnerTimezone] = useState("Asia/Dubai");
-
-  // Fetch owner timezone once so the confirmation card can show "= Dubai".
-  useEffect(() => {
-    if (!detected) return;
-    const fromIso = new Date().toISOString().slice(0, 10);
-    const toDate = new Date(Date.now() + 86400 * 1000);
-    const toIso = toDate.toISOString().slice(0, 10);
-    fetch(`/api/slots?from=${fromIso}&to=${toIso}&tz=${encodeURIComponent(detected)}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((body: { ownerTimezone?: string } | null) => {
-        if (body?.ownerTimezone) setOwnerTimezone(body.ownerTimezone);
-      })
-      .catch(() => {
-        /* non-fatal — keep the default */
-      });
-  }, [detected]);
-
   const { currentStep, data, stepError, isSubmitting, result, completedSteps } = state;
+
+  // Single slots fetch for the whole flow. Idle until visitorTimezone is set,
+  // then /api/slots is hit once; StepDate/StepTime read from this shared state.
+  // Also serves as the source of truth for ownerTimezone (used by the
+  // confirmation card) — no separate fetch needed.
+  const slots = useAvailableSlots(data.visitorTimezone, LOOKAHEAD_DAYS);
+  const ownerTimezone = slots.status === "ready" ? slots.ownerTimezone : "Asia/Dubai";
 
   const showStack = currentStep !== "email" && currentStep !== "confirmation";
 
@@ -80,6 +69,7 @@ export function BookingFlow() {
           selectedDate={data.selectedDate}
           error={stepError}
           dispatch={dispatch}
+          slots={slots}
         />
       )}
       {currentStep === "time" && (
@@ -89,6 +79,7 @@ export function BookingFlow() {
           startAtIso={data.startAtIso}
           error={stepError}
           dispatch={dispatch}
+          slots={slots}
         />
       )}
       {currentStep === "contactMethod" && (

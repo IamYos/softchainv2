@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { utcToIsoDateInTz } from "@/lib/booking/timezone";
 import type { SlotIso } from "./groupSlotsByDate";
 
-type FetchState =
+export type SlotsFetchState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ready"; slots: SlotIso[]; visitorTimezone: string; ownerTimezone: string }
   | { status: "error"; message: string };
 
-export function useAvailableSlots(timezone: string, days: number): FetchState {
-  const [state, setState] = useState<FetchState>({ status: "idle" });
+export function useAvailableSlots(timezone: string, days: number): SlotsFetchState {
+  const [state, setState] = useState<SlotsFetchState>({ status: "idle" });
 
   useEffect(() => {
     if (!timezone) return;

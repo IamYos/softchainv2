@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { StepShell } from "../StepShell";
 import { TimeGrid } from "../SlotPicker/TimeGrid";
-import { useAvailableSlots } from "../useAvailableSlots";
 import { groupSlotsByDate } from "../groupSlotsByDate";
+import type { SlotsFetchState } from "../useAvailableSlots";
 import type { Action } from "../useBookingState";
 import type { Dispatch } from "react";
 
@@ -14,31 +14,28 @@ type Props = {
   startAtIso: string;
   error: string | null;
   dispatch: Dispatch<Action>;
+  slots: SlotsFetchState;
 };
 
-const LOOKAHEAD_DAYS = 14;
-
-export function StepTime({ timezone, selectedDate, startAtIso, error, dispatch }: Props) {
-  const state = useAvailableSlots(timezone, LOOKAHEAD_DAYS);
+export function StepTime({ timezone, selectedDate, startAtIso, error, dispatch, slots }: Props) {
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Auto-focus the first slot button once slots load, if none is selected.
   useEffect(() => {
-    if (state.status !== "ready" || startAtIso) return;
+    if (slots.status !== "ready" || startAtIso) return;
     const first = gridRef.current?.querySelector<HTMLButtonElement>(
       "button:not([disabled])"
     );
     first?.focus();
-  }, [state.status, selectedDate, startAtIso]);
+  }, [slots.status, selectedDate, startAtIso]);
 
-  const { slots, ownerTz } = useMemo(() => {
-    if (state.status !== "ready") return { slots: [], ownerTz: "Asia/Dubai" };
-    const grouped = groupSlotsByDate(state.slots, timezone);
+  const { daySlots, ownerTz } = useMemo(() => {
+    if (slots.status !== "ready") return { daySlots: [], ownerTz: "Asia/Dubai" };
+    const grouped = groupSlotsByDate(slots.slots, timezone);
     return {
-      slots: grouped[selectedDate] ?? [],
-      ownerTz: state.ownerTimezone,
+      daySlots: grouped[selectedDate] ?? [],
+      ownerTz: slots.ownerTimezone,
     };
-  }, [state, timezone, selectedDate]);
+  }, [slots, timezone, selectedDate]);
 
   return (
     <StepShell
@@ -46,9 +43,9 @@ export function StepTime({ timezone, selectedDate, startAtIso, error, dispatch }
       canContinue={startAtIso.length > 0}
       onContinue={() => dispatch({ type: "advance" })}
       onBack={() => dispatch({ type: "back" })}
-      error={error ?? (state.status === "error" ? state.message : null)}
+      error={error ?? (slots.status === "error" ? slots.message : null)}
       footnote={
-        state.status === "loading"
+        slots.status === "loading"
           ? "Loading times…"
           : timezone === ownerTz
             ? "All slots are 30 minutes."
@@ -57,7 +54,7 @@ export function StepTime({ timezone, selectedDate, startAtIso, error, dispatch }
     >
       <div ref={gridRef} style={{ width: "100%" }}>
         <TimeGrid
-          slots={slots}
+          slots={daySlots}
           selectedStartIso={startAtIso}
           onSelect={(iso) => dispatch({ type: "setField", field: "startAtIso", value: iso })}
           timezone={timezone}
