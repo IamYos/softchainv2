@@ -57,6 +57,7 @@ export function StepTimezone({ value, error, dispatch }: Props) {
         id="book-tz"
         type="text"
         autoComplete="off"
+        autoFocus
         className={styles.emailInput}
         placeholder="Search timezone (e.g. Dubai, New York)"
         value={query}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import styles from "@/components/marketing/sf/SFPostFrame.module.css";
 import { StepShell } from "../StepShell";
 import type { Action, ContactMethod } from "../useBookingState";
@@ -19,6 +20,12 @@ const OPTIONS: Array<{ value: ContactMethod; label: string }> = [
 ];
 
 export function StepContactMethod({ value, error, dispatch }: Props) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (value) return;
+    gridRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [value]);
+
   return (
     <StepShell
       label="How should we talk?"
@@ -29,6 +36,7 @@ export function StepContactMethod({ value, error, dispatch }: Props) {
       footnote="For WhatsApp we'll message you at the time; for others we'll send a meeting link."
     >
       <div
+        ref={gridRef}
         role="radiogroup"
         aria-label="Contact method"
         style={{

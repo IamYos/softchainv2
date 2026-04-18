@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { utcToIsoDateInTz } from "@/lib/booking/timezone";
 import styles from "@/components/marketing/sf/SFPostFrame.module.css";
 import { StepShell } from "../StepShell";
@@ -21,6 +21,16 @@ const LOOKAHEAD_DAYS = 14;
 
 export function StepDate({ timezone, selectedDate, error, dispatch }: Props) {
   const state = useAvailableSlots(timezone, LOOKAHEAD_DAYS);
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  // Auto-focus the first available day button once slots load.
+  useEffect(() => {
+    if (state.status !== "ready" || selectedDate) return;
+    const first = stripRef.current?.querySelector<HTMLButtonElement>(
+      "button:not([disabled])"
+    );
+    first?.focus();
+  }, [state.status, selectedDate]);
 
   const { days, availability } = useMemo(() => {
     const out: string[] = [];
@@ -49,7 +59,7 @@ export function StepDate({ timezone, selectedDate, error, dispatch }: Props) {
         state.status === "loading" ? "Finding available days…" : "Pick a day with open slots."
       }
     >
-      <div className={styles.p} style={{ width: "100%", overflowX: "auto" }}>
+      <div ref={stripRef} className={styles.p} style={{ width: "100%", overflowX: "auto" }}>
         <DateStrip
           days={days}
           availability={availability}

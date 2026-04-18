@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { StepShell } from "../StepShell";
 import { TimeGrid } from "../SlotPicker/TimeGrid";
 import { useAvailableSlots } from "../useAvailableSlots";
@@ -20,6 +20,16 @@ const LOOKAHEAD_DAYS = 14;
 
 export function StepTime({ timezone, selectedDate, startAtIso, error, dispatch }: Props) {
   const state = useAvailableSlots(timezone, LOOKAHEAD_DAYS);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Auto-focus the first slot button once slots load, if none is selected.
+  useEffect(() => {
+    if (state.status !== "ready" || startAtIso) return;
+    const first = gridRef.current?.querySelector<HTMLButtonElement>(
+      "button:not([disabled])"
+    );
+    first?.focus();
+  }, [state.status, selectedDate, startAtIso]);
 
   const { slots, ownerTz } = useMemo(() => {
     if (state.status !== "ready") return { slots: [], ownerTz: "Asia/Dubai" };
@@ -45,13 +55,15 @@ export function StepTime({ timezone, selectedDate, startAtIso, error, dispatch }
             : "All slots are 30 minutes. Times in your local zone; Dubai shown below."
       }
     >
-      <TimeGrid
-        slots={slots}
-        selectedStartIso={startAtIso}
-        onSelect={(iso) => dispatch({ type: "setField", field: "startAtIso", value: iso })}
-        timezone={timezone}
-        ownerTimezone={ownerTz}
-      />
+      <div ref={gridRef} style={{ width: "100%" }}>
+        <TimeGrid
+          slots={slots}
+          selectedStartIso={startAtIso}
+          onSelect={(iso) => dispatch({ type: "setField", field: "startAtIso", value: iso })}
+          timezone={timezone}
+          ownerTimezone={ownerTz}
+        />
+      </div>
     </StepShell>
   );
 }
