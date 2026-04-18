@@ -25,7 +25,7 @@ export default function LoginPage() {
       }}
     >
       <div style={{ position: "relative", width: "160px", height: "36px" }}>
-        <Image src="/softchain-logo.png" alt="Softchain" fill sizes="160px" style={{ objectFit: "contain" }} priority />
+        <Image src="/softchain-logo-gray.png" alt="Softchain" fill sizes="160px" style={{ objectFit: "contain" }} priority />
       </div>
       <div style={{ textAlign: "center" }}>
         <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Admin</h1>

@@ -51,7 +51,7 @@ export function AdminNav({ onNavigate }: Props) {
         style={{ display: "block", marginBottom: "0.75rem", position: "relative", height: "28px", width: "130px" }}
         aria-label="Softchain admin home"
       >
-        <Image src="/softchain-logo.png" alt="Softchain" fill sizes="130px" style={{ objectFit: "contain", objectPosition: "left" }} />
+        <Image src="/softchain-logo-gray.png" alt="Softchain" fill sizes="130px" priority style={{ objectFit: "contain", objectPosition: "left" }} />
       </Link>
       <p style={{ fontSize: "0.7rem", opacity: 0.5, letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 0.25rem" }}>
         Admin
