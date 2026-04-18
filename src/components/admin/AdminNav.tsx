@@ -68,7 +68,7 @@ export function AdminNav({ onNavigate }: Props) {
               padding: "0.6rem 0.75rem",
               borderRadius: "8px",
               textDecoration: "none",
-              background: active ? "rgba(0,0,0,0.08)" : "transparent",
+              background: active ? "var(--sc-admin-surface-hover)" : "transparent",
               color: "inherit",
               fontSize: "0.95rem",
               display: "flex",
@@ -78,7 +78,7 @@ export function AdminNav({ onNavigate }: Props) {
           >
             <span>{l.label}</span>
             {showBadge && (
-              <span style={{ background: "#f60", color: "white", borderRadius: "999px", fontSize: "0.7rem", padding: "0.1rem 0.45rem" }}>
+              <span style={{ background: "var(--sc-admin-accent)", color: "white", borderRadius: "999px", fontSize: "0.7rem", padding: "0.1rem 0.45rem" }}>
                 {unread}
               </span>
             )}
@@ -92,7 +92,8 @@ export function AdminNav({ onNavigate }: Props) {
         style={{
           padding: "0.55rem 0.75rem",
           background: "transparent",
-          border: "1px solid rgba(0,0,0,0.1)",
+          border: "1px solid var(--sc-admin-border-subtle)",
+          color: "inherit",
           borderRadius: "8px",
           cursor: "pointer",
           fontSize: "0.85rem",

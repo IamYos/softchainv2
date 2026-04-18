@@ -104,7 +104,7 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
         right: 0,
         bottom: 0,
         width: "min(32rem, 100vw)",
-        background: "var(--color-background, white)",
+        background: "var(--sc-admin-surface)",
         borderLeft: "1px solid rgba(0,0,0,0.15)",
         padding: "1.5rem",
         overflowY: "auto",

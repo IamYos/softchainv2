@@ -247,7 +247,7 @@ function DayPopover({
           width: "min(28rem, 95vw)",
           maxHeight: "90vh",
           overflowY: "auto",
-          background: "var(--color-background, white)",
+          background: "var(--sc-admin-surface)",
           borderRadius: "12px",
           padding: "1.25rem",
           zIndex: 70,
