@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildIcs } from "./ics";
+import { buildIcs, buildIcsFeed } from "./ics";
 
 describe("buildIcs", () => {
   it("produces a REQUEST method ICS with correct UID and SEQUENCE", () => {
@@ -45,5 +45,44 @@ describe("buildIcs", () => {
     expect(ics).toContain("METHOD:CANCEL");
     expect(ics).toContain("SEQUENCE:2");
     expect(ics).toContain("STATUS:CANCELLED");
+  });
+});
+
+describe("buildIcsFeed", () => {
+  it("wraps multiple events in one VCALENDAR with METHOD:PUBLISH", () => {
+    const feed = buildIcsFeed([
+      {
+        uid: "a@softchain.ae",
+        sequence: 0,
+        startUtc: new Date("2026-05-04T06:00:00Z"),
+        endUtc: new Date("2026-05-04T06:30:00Z"),
+        summary: "Call: Jane",
+        description: "topic a",
+        location: "",
+      },
+      {
+        uid: "b@softchain.ae",
+        sequence: 1,
+        startUtc: new Date("2026-05-05T10:00:00Z"),
+        endUtc: new Date("2026-05-05T10:30:00Z"),
+        summary: "Call: Kai",
+        description: "topic b",
+        location: "",
+      },
+    ]);
+    expect(feed).toContain("METHOD:PUBLISH");
+    expect(feed.match(/BEGIN:VEVENT/g)?.length).toBe(2);
+    expect(feed.match(/END:VEVENT/g)?.length).toBe(2);
+    expect(feed).toContain("UID:a@softchain.ae");
+    expect(feed).toContain("UID:b@softchain.ae");
+    expect(feed).toContain("DTSTART:20260504T060000Z");
+    expect(feed).toContain("DTSTART:20260505T100000Z");
+  });
+
+  it("produces a valid empty calendar when no events", () => {
+    const feed = buildIcsFeed([]);
+    expect(feed).toContain("BEGIN:VCALENDAR");
+    expect(feed).toContain("END:VCALENDAR");
+    expect(feed).not.toContain("BEGIN:VEVENT");
   });
 });

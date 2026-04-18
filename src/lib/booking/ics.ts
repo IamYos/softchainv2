@@ -69,3 +69,43 @@ export function buildIcs(args: Args): string {
 
   return lines.join("\r\n");
 }
+
+export type FeedEvent = {
+  uid: string;
+  sequence: number;
+  startUtc: Date;
+  endUtc: Date;
+  summary: string;
+  description: string;
+  location: string;
+  status?: "CONFIRMED" | "CANCELLED";
+};
+
+// Public ICS feed: multiple VEVENTs wrapped in one VCALENDAR with METHOD:PUBLISH.
+// No ORGANIZER/ATTENDEE — the feed is read-only subscription, not an invite.
+export function buildIcsFeed(events: FeedEvent[]): string {
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Softchain//Book a Call Feed//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+  ];
+  for (const e of events) {
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${e.uid}`,
+      `SEQUENCE:${e.sequence}`,
+      `DTSTAMP:${toIcsDate(new Date())}`,
+      `DTSTART:${toIcsDate(e.startUtc)}`,
+      `DTEND:${toIcsDate(e.endUtc)}`,
+      `SUMMARY:${escape(e.summary)}`,
+      `DESCRIPTION:${escape(e.description)}`,
+      `LOCATION:${escape(e.location)}`,
+      `STATUS:${e.status ?? "CONFIRMED"}`,
+      "END:VEVENT"
+    );
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
