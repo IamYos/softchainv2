@@ -36,7 +36,7 @@ export const createBookingInputSchema = z
     visitorTimezone: timezoneSchema,
     startAtIso: utcIsoSchema,
     turnstileToken: z.string().min(1),
-    honeypot: z.string().max(500).optional().default(""),
+    website_url: z.string().max(500).optional().default(""),
   })
   .refine(
     (d) => d.contactMethod !== "whatsapp" || !!d.visitorPhone,

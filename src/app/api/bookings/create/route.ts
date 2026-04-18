@@ -41,7 +41,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   const input = parsed.data;
 
-  if (input.honeypot && input.honeypot.trim().length > 0) {
+  if (input.website_url && input.website_url.trim().length > 0) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
@@ -56,7 +56,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const turnstileOk = await verifyTurnstile(input.turnstileToken, ip);
   if (!turnstileOk) {
-    return NextResponse.json({ error: "Captcha verification failed" }, { status: 400 });
+    return NextResponse.json({ error: "Captcha verification failed" }, { status: 403 });
   }
 
   const settings = await getSettings();

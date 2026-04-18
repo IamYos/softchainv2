@@ -16,7 +16,7 @@ type Props = {
 
 export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [honeypot, setHoneypot] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
 
   const canSubmit = turnstileToken.length > 0 && !isSubmitting;
 
@@ -37,7 +37,7 @@ export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
           visitorTimezone: data.visitorTimezone,
           startAtIso: data.startAtIso,
           turnstileToken,
-          honeypot,
+          website_url: websiteUrl,
         }),
       });
 
@@ -64,15 +64,17 @@ export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
       error={error}
       footnote="We'll email a confirmation with the calendar invite."
     >
-      {/* Hidden honeypot field — bots fill this, humans don't see it. */}
-      <label className={styles.srOnly} htmlFor="book-website">Leave this empty</label>
+      {/* Hidden honeypot field — bots fill this, humans don't see it. The
+          `website_url` name matches the field shape bots look for. */}
+      <label className={styles.srOnly} htmlFor="book-website-url">Leave this empty</label>
       <input
-        id="book-website"
+        id="book-website-url"
+        name="website_url"
         type="text"
         tabIndex={-1}
         autoComplete="off"
-        value={honeypot}
-        onChange={(e) => setHoneypot(e.target.value)}
+        value={websiteUrl}
+        onChange={(e) => setWebsiteUrl(e.target.value)}
         style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
         aria-hidden="true"
       />
