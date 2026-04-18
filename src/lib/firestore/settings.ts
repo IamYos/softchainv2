@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { firestoreAdmin } from "../firebase/admin";
 import type { SettingsDoc } from "../booking/types";
 import { FieldValue } from "firebase-admin/firestore";
@@ -21,6 +22,15 @@ export async function updateSettings(patch: SettingsPatch): Promise<void> {
     .collection("settings")
     .doc("config")
     .update({ ...patch, updatedAt: FieldValue.serverTimestamp() });
+}
+
+export async function regenerateIcsFeedSecret(): Promise<string> {
+  const secret = randomBytes(32).toString("hex");
+  await firestoreAdmin()
+    .collection("settings")
+    .doc("config")
+    .update({ icsFeedSecret: secret, updatedAt: FieldValue.serverTimestamp() });
+  return secret;
 }
 
 function normalize(email: string): string {

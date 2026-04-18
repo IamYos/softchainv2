@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { SettingsDoc } from "@/lib/booking/types";
+import { TIMEZONE_OPTIONS } from "@/components/booking/timezoneOptions";
 
-type Props = { initial: SettingsDoc };
+type Props = { initial: SettingsDoc; siteUrl: string };
 
 const DAY_LABELS: Array<{ key: keyof SettingsDoc["defaultHours"]; label: string }> = [
   { key: "mon", label: "Mon" },
@@ -15,10 +16,45 @@ const DAY_LABELS: Array<{ key: keyof SettingsDoc["defaultHours"]; label: string 
   { key: "sun", label: "Sun" },
 ];
 
-export function SettingsForm({ initial }: Props) {
+export function SettingsForm({ initial, siteUrl }: Props) {
   const [settings, setSettings] = useState(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [feedCopied, setFeedCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+
+  const feedUrl = `${siteUrl.replace(/\/$/, "")}/api/calendar/${settings.icsFeedSecret}`;
+
+  const copyFeed = async () => {
+    try {
+      await navigator.clipboard.writeText(feedUrl);
+      setFeedCopied(true);
+      window.setTimeout(() => setFeedCopied(false), 1500);
+    } catch {
+      window.prompt("Copy this URL:", feedUrl);
+    }
+  };
+
+  const regenerate = async () => {
+    if (!confirm("Regenerate the feed URL? The old link will stop working.")) return;
+    setRegenerating(true);
+    const res = await fetch("/api/admin/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ regenerateIcsFeedSecret: true }),
+    });
+    setRegenerating(false);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setStatus("error");
+      setMessage(body.error ?? `HTTP ${res.status}`);
+      return;
+    }
+    const updated = (await res.json()) as SettingsDoc;
+    setSettings(updated);
+    setStatus("saved");
+    setMessage("New feed URL generated.");
+  };
 
   const save = async () => {
     setStatus("saving");
@@ -47,6 +83,23 @@ export function SettingsForm({ initial }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: "44rem" }}>
+      <section>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Owner timezone</h2>
+        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.5rem" }}>
+          <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>timezone (IANA)</span>
+          <select
+            value={settings.ownerTimezone}
+            onChange={(e) => setSettings((s) => ({ ...s, ownerTimezone: e.target.value }))}
+            style={{ padding: "0.5rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", fontFamily: "inherit" }}
+          >
+            {TIMEZONE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </label>
+        <p style={{ fontSize: "0.8rem", opacity: 0.6 }}>All weekly default hours are interpreted in this timezone.</p>
+      </section>
+
       <section>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Contact links</h2>
         {(["zoom", "meet", "teams", "whatsappNumber"] as const).map((k) => (
@@ -148,6 +201,44 @@ export function SettingsForm({ initial }: Props) {
           />
         </label>
         <p style={{ opacity: 0.5, fontSize: "0.85rem" }}>Slot duration is fixed at 30 minutes.</p>
+      </section>
+
+      <section>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>ICS calendar feed</h2>
+        <p style={{ fontSize: "0.85rem", opacity: 0.7, marginBottom: "0.75rem" }}>
+          Subscribe in Google Calendar / Apple Calendar so new bookings appear automatically.
+          Anyone with this URL can read your schedule — regenerate if it leaks.
+        </p>
+        <code
+          style={{
+            display: "block",
+            padding: "0.6rem 0.75rem",
+            background: "rgba(0,0,0,0.04)",
+            borderRadius: "6px",
+            fontSize: "0.8rem",
+            wordBreak: "break-all",
+            marginBottom: "0.5rem",
+          }}
+        >
+          {feedUrl}
+        </code>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={copyFeed}
+            style={{ padding: "0.35rem 0.9rem", border: "1px solid rgba(0,0,0,0.2)", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit", fontSize: "0.85rem" }}
+          >
+            {feedCopied ? "Copied" : "Copy"}
+          </button>
+          <button
+            type="button"
+            onClick={regenerate}
+            disabled={regenerating}
+            style={{ padding: "0.35rem 0.9rem", border: "1px solid #f60", color: "#f60", borderRadius: "999px", background: "transparent", cursor: regenerating ? "default" : "pointer", fontFamily: "inherit", fontSize: "0.85rem" }}
+          >
+            {regenerating ? "Regenerating…" : "Regenerate"}
+          </button>
+        </div>
       </section>
 
       <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>

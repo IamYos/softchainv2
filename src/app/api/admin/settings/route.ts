@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/adminSession";
-import { getSettings, updateSettings } from "@/lib/firestore/settings";
+import { getSettings, updateSettings, regenerateIcsFeedSecret } from "@/lib/firestore/settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +39,7 @@ const patchSchema = z.object({
     })
     .optional(),
   ownerTimezone: z.string().min(1).optional(),
+  regenerateIcsFeedSecret: z.literal(true).optional(),
 });
 
 export async function GET(): Promise<Response> {
@@ -65,7 +66,18 @@ export async function PATCH(req: Request): Promise<Response> {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
   }
-  await updateSettings(parsed.data);
+
+  // Separate side-channel: regenerate feed secret before applying other fields.
+  if (parsed.data.regenerateIcsFeedSecret) {
+    await regenerateIcsFeedSecret();
+  }
+
+  const { regenerateIcsFeedSecret: _discard, ...fieldPatch } = parsed.data;
+  void _discard;
+  // Only call updateSettings if there are real fields to patch.
+  if (Object.keys(fieldPatch).length > 0) {
+    await updateSettings(fieldPatch);
+  }
   const updated = await getSettings();
   return NextResponse.json(updated);
 }
