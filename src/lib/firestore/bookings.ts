@@ -6,13 +6,16 @@ export async function listConfirmedBookingsInRange(
   startUtc: Date,
   endUtc: Date
 ): Promise<Array<Pick<Booking, "startAt" | "endAt" | "visitorEmail">>> {
+  // Single-field range query avoids needing a composite index. Status filter
+  // runs in memory — fine for low volume; add a composite index if it grows.
   const snap = await firestoreAdmin()
     .collection("bookings")
-    .where("status", "==", "confirmed")
     .where("startAt", ">=", Timestamp.fromDate(startUtc))
     .where("startAt", "<", Timestamp.fromDate(endUtc))
     .get();
-  return snap.docs.map((d) => d.data() as Booking);
+  return snap.docs
+    .map((d) => d.data() as Booking)
+    .filter((b) => b.status === "confirmed");
 }
 
 export async function findActiveBookingForEmail(
@@ -20,16 +23,18 @@ export async function findActiveBookingForEmail(
   now: Date,
   tx?: Transaction
 ): Promise<Booking | null> {
+  // Query on single field (email) to avoid composite index; filter the rest in memory.
   const normalized = email.toLowerCase().trim();
   const query = firestoreAdmin()
     .collection("bookings")
-    .where("visitorEmail", "==", normalized)
-    .where("status", "==", "confirmed")
-    .where("endAt", ">", Timestamp.fromDate(now))
-    .limit(1);
+    .where("visitorEmail", "==", normalized);
   const snap = tx ? await tx.get(query) : await query.get();
   if (snap.empty) return null;
-  return snap.docs[0].data() as Booking;
+  const nowMs = now.getTime();
+  const active = snap.docs
+    .map((d) => d.data() as Booking)
+    .find((b) => b.status === "confirmed" && b.endAt.toMillis() > nowMs);
+  return active ?? null;
 }
 
 export async function findBookingByRescheduleToken(token: string): Promise<(Booking & { id: string }) | null> {
