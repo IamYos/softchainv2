@@ -61,7 +61,27 @@ export async function POST(req: Request): Promise<Response> {
 
   const settings = await getSettings();
   const startUtc = new Date(input.startAtIso);
-  const endUtc = new Date(startUtc.getTime() + settings.rules.slotDurationMinutes * 60 * 1000);
+  const alignMs = settings.rules.slotDurationMinutes * 60 * 1000;
+
+  // Slot must be aligned to the configured duration (default 30 min). Prevents
+  // clients bypassing the UI and booking arbitrary timestamps like 13:07:00Z.
+  if (startUtc.getTime() % alignMs !== 0) {
+    return NextResponse.json({ error: "Slot must be aligned to the slot duration" }, { status: 400 });
+  }
+
+  // Enforce minNoticeHours / maxLookaheadDays — the slot engine applies these
+  // in /api/slots; here we defend against direct POSTs bypassing the UI.
+  const now = Date.now();
+  const minStart = now + settings.rules.minNoticeHours * 3600 * 1000;
+  const maxStart = now + settings.rules.maxLookaheadDays * 86400 * 1000;
+  if (startUtc.getTime() < minStart) {
+    return NextResponse.json({ error: "Slot is too soon" }, { status: 400 });
+  }
+  if (startUtc.getTime() > maxStart) {
+    return NextResponse.json({ error: "Slot is beyond the booking window" }, { status: 400 });
+  }
+
+  const endUtc = new Date(startUtc.getTime() + alignMs);
 
   const outcome = await createBookingTransaction({
     visitorName: input.visitorName,
