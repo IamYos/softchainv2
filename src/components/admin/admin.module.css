@@ -2,6 +2,98 @@
    Use these classnames instead of hand-rolled inline rgba borders so the
    admin UI stays legible on the dark brand palette. */
 
+/* --- Shell layout (moved out of inline styles so media queries actually win) --- */
+
+.shell {
+  min-height: 100vh;
+  font-family: inherit;
+  background: var(--sc-admin-bg);
+  color: var(--sc-admin-text);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 13rem;
+  border-right: 1px solid var(--sc-admin-border);
+  background: var(--sc-admin-surface);
+  z-index: 20;
+}
+
+.mobileBar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--sc-admin-border);
+  background: var(--sc-admin-surface);
+}
+
+.mobileBarTitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.mobileBarButton {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--sc-admin-border-subtle);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.main {
+  margin-left: 13rem;
+  padding: 1.5rem 2rem;
+  min-height: 100vh;
+  max-width: 100%;
+}
+
+.mainInner {
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.mobileDrawerBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 40;
+}
+
+.mobileDrawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(18rem, 85vw);
+  background: var(--sc-admin-surface);
+  border-right: 1px solid var(--sc-admin-border);
+  z-index: 50;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .mobileBar {
+    display: flex;
+  }
+  .main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+}
+
 .card {
   padding: 1rem;
   background: var(--sc-admin-surface);
