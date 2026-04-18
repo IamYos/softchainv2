@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RescheduleModal } from "./RescheduleModal";
+import { useFocusTrap } from "./useFocusTrap";
 
 export type AdminBooking = {
   id: string;
@@ -34,11 +35,16 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setNotes(booking?.adminNotes ?? "");
     setErr(null);
   }, [booking]);
+
+  // Focus trap + Esc while the drawer is open. Disabled when the reschedule
+  // modal is stacked on top of it — the modal manages its own focus.
+  useFocusTrap(drawerRef, !!booking && !rescheduleOpen, () => onClose());
 
   if (!booking) return null;
 
@@ -87,8 +93,11 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
 
   return (
     <div
+      ref={drawerRef}
       role="dialog"
-      aria-label="Booking detail"
+      aria-modal="true"
+      aria-label={`Booking detail — ${booking.visitorName}`}
+      tabIndex={-1}
       style={{
         position: "fixed",
         top: 0,
