@@ -8,7 +8,10 @@ export default async function BookingsPage() {
   return (
     <div>
       <h1 style={{ fontSize: "1.25rem", marginBottom: "1rem" }}>Bookings</h1>
-      <BookingsTable ownerTimezone={settings.ownerTimezone} />
+      <BookingsTable
+        ownerTimezone={settings.ownerTimezone}
+        contactLinks={settings.contactLinks}
+      />
     </div>
   );
 }
