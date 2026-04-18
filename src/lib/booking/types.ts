@@ -29,6 +29,7 @@ export type SettingsDoc = {
   contactLinks: ContactLinks;
   rules: BookingRules;
   icsFeedSecret: string;
+  admins?: string[];
 };
 
 export type AvailabilityException = {

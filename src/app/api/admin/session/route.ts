@@ -2,13 +2,30 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSession, SESSION_COOKIE_NAME, SESSION_EXPIRES_MS } from "@/lib/auth/adminSession";
 import { cookies } from "next/headers";
+import { checkRateLimit } from "@/lib/ratelimit";
+import { extractIp } from "@/lib/http/ip";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const createSchema = z.object({ idToken: z.string().min(100) });
 
+const LOGIN_MAX = 10;
+const LOGIN_WINDOW_MS = 10 * 60 * 1000;
+
 export async function POST(req: Request): Promise<Response> {
+  const ip = extractIp(req);
+  const rl = checkRateLimit(`admin-login:${ip}`, LOGIN_MAX, LOGIN_WINDOW_MS);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many sign-in attempts. Try again in a few minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": Math.ceil(rl.retryAfterMs / 1000).toString() },
+      }
+    );
+  }
+
   let json: unknown;
   try {
     json = await req.json();

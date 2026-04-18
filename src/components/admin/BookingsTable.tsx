@@ -71,7 +71,8 @@ export function BookingsTable() {
       {!loading && !error && bookings.length === 0 && <p style={{ opacity: 0.6 }}>No bookings.</p>}
 
       {bookings.length > 0 && (
-        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.9rem" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "720px", fontSize: "0.9rem" }}>
           <thead>
             <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(0,0,0,0.1)" }}>
               <th style={{ padding: "0.5rem" }}>when</th>
@@ -95,6 +96,7 @@ export function BookingsTable() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <BookingDetailDrawer

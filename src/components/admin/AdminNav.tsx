@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -8,9 +9,14 @@ const LINKS = [
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/availability", label: "Availability" },
   { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/users", label: "Team" },
 ];
 
-export function AdminNav() {
+type Props = {
+  onNavigate?: () => void;
+};
+
+export function AdminNav({ onNavigate }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [unread, setUnread] = useState(0);
@@ -35,13 +41,20 @@ export function AdminNav() {
         flexDirection: "column",
         gap: "0.5rem",
         padding: "1rem",
-        borderRight: "1px solid rgba(0,0,0,0.1)",
-        minWidth: "12rem",
+        height: "100%",
         fontFamily: "inherit",
       }}
     >
-      <p style={{ fontSize: "0.75rem", opacity: 0.5, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-        Softchain Admin
+      <Link
+        href="/admin/bookings"
+        onClick={onNavigate}
+        style={{ display: "block", marginBottom: "0.75rem", position: "relative", height: "28px", width: "130px" }}
+        aria-label="Softchain admin home"
+      >
+        <Image src="/softchain-logo.png" alt="Softchain" fill sizes="130px" style={{ objectFit: "contain", objectPosition: "left" }} />
+      </Link>
+      <p style={{ fontSize: "0.7rem", opacity: 0.5, letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 0.25rem" }}>
+        Admin
       </p>
       {LINKS.map((l) => {
         const active = pathname === l.href || pathname.startsWith(l.href + "/");
@@ -50,8 +63,9 @@ export function AdminNav() {
           <Link
             key={l.href}
             href={l.href}
+            onClick={onNavigate}
             style={{
-              padding: "0.5rem 0.75rem",
+              padding: "0.6rem 0.75rem",
               borderRadius: "8px",
               textDecoration: "none",
               background: active ? "rgba(0,0,0,0.08)" : "transparent",
@@ -64,13 +78,7 @@ export function AdminNav() {
           >
             <span>{l.label}</span>
             {showBadge && (
-              <span style={{
-                background: "#f60",
-                color: "white",
-                borderRadius: "999px",
-                fontSize: "0.7rem",
-                padding: "0.1rem 0.45rem",
-              }}>
+              <span style={{ background: "#f60", color: "white", borderRadius: "999px", fontSize: "0.7rem", padding: "0.1rem 0.45rem" }}>
                 {unread}
               </span>
             )}
@@ -82,8 +90,7 @@ export function AdminNav() {
         type="button"
         onClick={signOut}
         style={{
-          marginTop: "auto",
-          padding: "0.5rem 0.75rem",
+          padding: "0.55rem 0.75rem",
           background: "transparent",
           border: "1px solid rgba(0,0,0,0.1)",
           borderRadius: "8px",

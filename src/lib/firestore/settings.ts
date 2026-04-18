@@ -22,3 +22,30 @@ export async function updateSettings(patch: SettingsPatch): Promise<void> {
     .doc("config")
     .update({ ...patch, updatedAt: FieldValue.serverTimestamp() });
 }
+
+function normalize(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export async function addAdmin(email: string): Promise<void> {
+  const e = normalize(email);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("Invalid email");
+  await firestoreAdmin()
+    .collection("settings")
+    .doc("config")
+    .update({ admins: FieldValue.arrayUnion(e), updatedAt: FieldValue.serverTimestamp() });
+}
+
+export async function removeAdmin(email: string): Promise<void> {
+  const e = normalize(email);
+  const settings = await getSettings();
+  if (normalize(settings.ownerEmail) === e) {
+    const err = new Error("Cannot remove the owner") as Error & { status?: number };
+    err.status = 403;
+    throw err;
+  }
+  await firestoreAdmin()
+    .collection("settings")
+    .doc("config")
+    .update({ admins: FieldValue.arrayRemove(e), updatedAt: FieldValue.serverTimestamp() });
+}

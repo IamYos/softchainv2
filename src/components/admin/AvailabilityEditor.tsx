@@ -122,7 +122,8 @@ export function AvailabilityEditor() {
         {error && <p style={{ color: "#f60" }}>{error}</p>}
         {!loading && exceptions.length === 0 && <p style={{ opacity: 0.6 }}>No exceptions — weekly defaults apply.</p>}
         {exceptions.length > 0 && (
-          <table style={{ borderCollapse: "collapse", width: "100%" }}>
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "560px" }}>
             <thead>
               <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(0,0,0,0.1)" }}>
                 <th style={{ padding: "0.5rem" }}>type</th>
@@ -154,6 +155,7 @@ export function AvailabilityEditor() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>
