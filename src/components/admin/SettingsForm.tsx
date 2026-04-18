@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SettingsDoc } from "@/lib/booking/types";
 import { TIMEZONE_OPTIONS } from "@/components/booking/timezoneOptions";
+
+type ResendStatus = {
+  domain: string | null;
+  status: "pending" | "verified" | "failed" | "temporary_failure" | "not_started" | "not_found" | "unknown";
+  reason?: string;
+};
 
 type Props = { initial: SettingsDoc; siteUrl: string };
 
@@ -22,6 +28,14 @@ export function SettingsForm({ initial, siteUrl }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [feedCopied, setFeedCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [resendStatus, setResendStatus] = useState<ResendStatus | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/admin/resend-status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body: ResendStatus | null) => setResendStatus(body))
+      .catch(() => setResendStatus(null));
+  }, []);
 
   const feedUrl = `${siteUrl.replace(/\/$/, "")}/api/calendar/${settings.icsFeedSecret}`;
 
@@ -83,6 +97,34 @@ export function SettingsForm({ initial, siteUrl }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: "44rem" }}>
+      <section>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Email sending</h2>
+        {resendStatus ? (
+          <p style={{ fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                width: "0.65rem",
+                height: "0.65rem",
+                borderRadius: "50%",
+                background:
+                  resendStatus.status === "verified" ? "#2da44e"
+                  : resendStatus.status === "pending" || resendStatus.status === "temporary_failure" ? "#d4a72c"
+                  : resendStatus.status === "failed" || resendStatus.status === "not_found" ? "#f60"
+                  : "#999",
+              }}
+            />
+            <span>
+              {resendStatus.domain ? `${resendStatus.domain} — ` : ""}
+              <strong>{resendStatus.status.replace(/_/g, " ")}</strong>
+            </span>
+          </p>
+        ) : (
+          <p style={{ fontSize: "0.9rem", opacity: 0.6, margin: 0 }}>Checking Resend domain status…</p>
+        )}
+      </section>
+
       <section>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Owner timezone</h2>
         <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.5rem" }}>
