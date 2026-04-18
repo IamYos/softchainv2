@@ -4,9 +4,19 @@ import { generateToken } from "./tokens";
 import {
   bookingsCollectionRef,
   findActiveBookingForEmail,
-  listConfirmedBookingsInRange,
 } from "../firestore/bookings";
 import type { Booking, ContactMethod } from "./types";
+
+// Deterministic slot-hold collection ensures race-safe slot uniqueness without
+// a composite Firestore index. A doc at activeSlots/{slotId} exists while a
+// booking is confirmed; it's deleted on cancel so the slot can be rebooked.
+// The bookings collection itself keeps full history (including cancelled).
+export const ACTIVE_SLOTS_COLLECTION = "activeSlots";
+
+export function slotIdFromStart(startUtc: Date): string {
+  // e.g. "2026-05-04T13:00:00Z" — deterministic, minute-precise, URL-safe.
+  return startUtc.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
 
 export type BookingInput = {
   visitorName: string;
@@ -61,20 +71,29 @@ export async function createBookingTransaction(input: BookingInput): Promise<Cre
   const now = new Date();
 
   return db.runTransaction(async (tx: Transaction): Promise<CreateOutcome> => {
+    // 1. One-active-booking-per-visitor check — race-safe via tx.get.
     const existing = await findActiveBookingForEmail(doc.visitorEmail, now, tx);
     if (existing) {
       return { kind: "already_booked", existingStartUtc: existing.startAt.toDate() };
     }
 
-    // Non-transactional overlap check: acceptable for low-volume booking.
-    // Upgrade to transactional by wrapping via tx.get if high contention emerges.
-    const overlaps = await listConfirmedBookingsInRange(input.startUtc, input.endUtc);
-    if (overlaps.length > 0) {
+    // 2. Slot uniqueness via activeSlots/{slotId} — race-safe single-doc read.
+    const slotRef = db.collection(ACTIVE_SLOTS_COLLECTION).doc(slotIdFromStart(input.startUtc));
+    const slotSnap = await tx.get(slotRef);
+    if (slotSnap.exists) {
       return { kind: "slot_taken" };
     }
 
-    const ref = bookingsCollectionRef().doc();
-    tx.set(ref, doc);
-    return { kind: "created", booking: { id: ref.id, ...doc } };
+    // 3. Write booking (auto id) + slot hold.
+    const bookingRef = bookingsCollectionRef().doc();
+    tx.set(bookingRef, doc);
+    tx.set(slotRef, {
+      bookingId: bookingRef.id,
+      startAt: doc.startAt,
+      endAt: doc.endAt,
+      createdAt: doc.createdAt,
+    });
+
+    return { kind: "created", booking: { id: bookingRef.id, ...doc } };
   });
 }
