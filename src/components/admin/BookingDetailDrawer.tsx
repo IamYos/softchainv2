@@ -17,6 +17,7 @@ export type AdminBooking = {
   status: "confirmed" | "cancelled";
   noShow: boolean;
   adminNotes: string | null;
+  previousSlots: Array<{ startAt: string; endAt: string }>;
   createdAt: string;
   updatedAt: string;
 };
@@ -121,6 +122,19 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
         <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6, marginBottom: "0.5rem" }}>Topic</h3>
         <p style={{ whiteSpace: "pre-wrap" }}>{booking.topic}</p>
       </section>
+
+      {booking.previousSlots.length > 0 && (
+        <section style={{ marginBottom: "1.5rem" }}>
+          <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6, marginBottom: "0.5rem" }}>Reschedule history</h3>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "0.85rem" }}>
+            {booking.previousSlots.map((p, i) => (
+              <li key={i} style={{ opacity: 0.7, padding: "0.1rem 0" }}>
+                {new Date(p.startAt).toLocaleString()} — moved
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section style={{ marginBottom: "1.5rem" }}>
         <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6, marginBottom: "0.5rem" }}>Admin notes</h3>

@@ -39,6 +39,10 @@ export async function GET(req: Request): Promise<Response> {
     adminNotes: b.adminNotes,
     // Visitor tokens intentionally omitted — admin flow uses booking id, not
     // tokens. Exposing them would let any admin forge visitor cancel URLs.
+    previousSlots: (b.previousSlots ?? []).map((p) => ({
+      startAt: p.startAt.toDate().toISOString(),
+      endAt: p.endAt.toDate().toISOString(),
+    })),
     createdAt: b.createdAt.toDate().toISOString(),
     updatedAt: b.updatedAt.toDate().toISOString(),
   }));
