@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "@/components/marketing/sf/SFPostFrame.module.css";
+import gridStyles from "./TimeGrid.module.css";
 import type { SlotIso } from "../groupSlotsByDate";
 
 type TimeGridProps = {
@@ -29,22 +30,14 @@ export function TimeGrid({ slots, selectedStartIso, onSelect, timezone, ownerTim
     );
   }
 
+  const showOwnerHint = timezone !== ownerTimezone;
+
   return (
-    <div
-      role="radiogroup"
-      aria-label="Pick a time"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(5rem, 1fr))",
-        gap: "0.5rem",
-        width: "100%",
-      }}
-    >
+    <div role="radiogroup" aria-label="Pick a time" className={gridStyles.grid}>
       {slots.map((s) => {
         const label = fmtHHMM(s.startUtc, timezone);
         const ownerLabel = fmtHHMM(s.startUtc, ownerTimezone);
         const isSelected = s.startUtc === selectedStartIso;
-        const showOwnerHint = timezone !== ownerTimezone;
         return (
           <button
             key={s.startUtc}
@@ -66,11 +59,13 @@ export function TimeGrid({ slots, selectedStartIso, onSelect, timezone, ownerTim
               alignItems: "center",
               lineHeight: 1.1,
             }}
-            title={showOwnerHint ? `= ${ownerLabel} Dubai` : undefined}
+            title={showOwnerHint ? `= ${ownerLabel} ${ownerTimezone}` : undefined}
           >
             <span style={{ fontSize: "1rem", fontWeight: 500 }}>{label}</span>
             {showOwnerHint && (
-              <span style={{ fontSize: "0.7rem", opacity: 0.6 }}>{ownerLabel} DXB</span>
+              <span style={{ fontSize: "0.7rem", opacity: 0.6 }}>
+                = {ownerLabel} {ownerTimezone}
+              </span>
             )}
           </button>
         );
