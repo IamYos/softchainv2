@@ -38,25 +38,30 @@ export async function findActiveBookingForEmail(
 }
 
 export async function findBookingByRescheduleToken(token: string): Promise<(Booking & { id: string }) | null> {
+  // Status filter runs in memory — single-field query avoids composite index.
   const snap = await firestoreAdmin()
     .collection("bookings")
     .where("rescheduleToken", "==", token)
-    .limit(1)
+    .limit(2)
     .get();
   if (snap.empty) return null;
-  const doc = snap.docs[0];
-  return { id: doc.id, ...(doc.data() as Booking) };
+  const match = snap.docs
+    .map((d) => ({ id: d.id, ...(d.data() as Booking) }))
+    .find((b) => b.status === "confirmed");
+  return match ?? null;
 }
 
 export async function findBookingByCancelToken(token: string): Promise<(Booking & { id: string }) | null> {
   const snap = await firestoreAdmin()
     .collection("bookings")
     .where("cancelToken", "==", token)
-    .limit(1)
+    .limit(2)
     .get();
   if (snap.empty) return null;
-  const doc = snap.docs[0];
-  return { id: doc.id, ...(doc.data() as Booking) };
+  const match = snap.docs
+    .map((d) => ({ id: d.id, ...(d.data() as Booking) }))
+    .find((b) => b.status === "confirmed");
+  return match ?? null;
 }
 
 export async function getBookingById(id: string): Promise<(Booking & { id: string }) | null> {
