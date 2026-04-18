@@ -1,3 +1,7 @@
+// Admin cancel path. The visitor-facing equivalent lives at /api/bookings/cancel
+// and hits the same cancelBooking() engine. Split is intentional: admin uses
+// session cookie + booking id; visitors use a token in the body.
+
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/adminSession";
 import { cancelBooking } from "@/lib/booking/cancel";
