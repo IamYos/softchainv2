@@ -21,7 +21,14 @@ export async function GET(): Promise<Response> {
     .collection("bookings")
     .where("createdAt", ">", Timestamp.fromDate(since))
     .get();
-  return NextResponse.json({ count: snap.size });
+  // Exclude cancelled bookings so spam/test bookings that were immediately
+  // cancelled don't inflate the badge. In-memory filter avoids a composite
+  // index on (createdAt, status).
+  const count = snap.docs.filter((d) => {
+    const data = d.data() as { status?: string };
+    return data.status === "confirmed";
+  }).length;
+  return NextResponse.json({ count });
 }
 
 export async function POST(): Promise<Response> {
