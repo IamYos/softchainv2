@@ -4,6 +4,7 @@ import { getSettings } from "@/lib/firestore/settings";
 import { listExceptions } from "@/lib/firestore/availability";
 import { listConfirmedBookingsInRange } from "@/lib/firestore/bookings";
 import { computeAvailableSlots } from "@/lib/booking/slots";
+import { localDateTimeToUtc } from "@/lib/booking/timezone";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,8 +33,14 @@ export async function GET(req: Request): Promise<Response> {
   }
 
   const settings = await getSettings();
-  const rangeStart = new Date(`${parsed.data.fromIso}T00:00:00Z`);
-  const rangeEnd = new Date(`${parsed.data.toIso}T00:00:00Z`);
+  // Parse as midnight in owner timezone so the last day's afternoon slots
+  // aren't clipped at UTC midnight. toIso is treated as inclusive-end-day —
+  // advance one day so endOfDay in owner TZ is captured.
+  const rangeStart = localDateTimeToUtc(parsed.data.fromIso, "00:00", settings.ownerTimezone);
+  const toPlusOne = new Date(`${parsed.data.toIso}T00:00:00Z`);
+  toPlusOne.setUTCDate(toPlusOne.getUTCDate() + 1);
+  const toIsoNext = toPlusOne.toISOString().slice(0, 10);
+  const rangeEnd = localDateTimeToUtc(toIsoNext, "00:00", settings.ownerTimezone);
   if (rangeEnd <= rangeStart) {
     return NextResponse.json({ error: "to must be after from" }, { status: 400 });
   }
