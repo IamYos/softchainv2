@@ -16,6 +16,10 @@ export function SignInButton() {
     setBusy(true);
     setError(null);
     try {
+      // Force the Google account picker every time so admins with multiple
+      // Google accounts can pick the one that's on the allow-list rather than
+      // getting auto-signed-in with the wrong account and then rejected.
+      googleProvider.setCustomParameters({ prompt: "select_account" });
       const cred = await signInWithPopup(clientAuth(), googleProvider);
       const idToken = await cred.user.getIdToken();
       const res = await fetch("/api/admin/session", {
