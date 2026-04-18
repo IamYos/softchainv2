@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { AvailabilityException } from "@/lib/booking/types";
+import { AvailabilityCalendar } from "./AvailabilityCalendar";
 
 type ExceptionRow = AvailabilityException & { id: string };
+
+type Props = {
+  ownerTimezone: string;
+};
 
 function rangeIso(daysAhead: number): { from: string; to: string } {
   const now = new Date();
@@ -12,16 +17,22 @@ function rangeIso(daysAhead: number): { from: string; to: string } {
   return { from, to };
 }
 
-export function AvailabilityEditor() {
+function formatNextAvailable(iso: string, tz: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    timeZone: tz,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export function AvailabilityEditor({ ownerTimezone }: Props) {
   const [exceptions, setExceptions] = useState<ExceptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [formType, setFormType] = useState<"block" | "extra">("block");
-  const [formDate, setFormDate] = useState("");
-  const [formStart, setFormStart] = useState("");
-  const [formEnd, setFormEnd] = useState("");
-  const [formNote, setFormNote] = useState("");
+  const [nextAvailable, setNextAvailable] = useState<string | null>(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -35,37 +46,49 @@ export function AvailabilityEditor() {
       return;
     }
     const body = (await res.json()) as { exceptions: ExceptionRow[] };
-    setExceptions(body.exceptions.sort((a, b) => a.date.localeCompare(b.date)));
+    setExceptions(body.exceptions);
     setLoading(false);
   };
 
-  useEffect(() => { void refresh(); }, []);
+  const refreshNextAvailable = async () => {
+    const { from, to } = rangeIso(14);
+    const params = new URLSearchParams({ from, to, tz: ownerTimezone });
+    try {
+      const res = await fetch(`/api/slots?${params.toString()}`);
+      if (!res.ok) return;
+      const body = (await res.json()) as { slots: Array<{ startUtc: string }> };
+      setNextAvailable(body.slots[0]?.startUtc ?? null);
+    } catch {
+      /* ignore */
+    }
+  };
 
-  const create = async () => {
-    if (!formDate) return;
-    const payload: Record<string, string> = { type: formType, date: formDate };
-    if (formType === "extra" || formStart) payload.startTime = formStart;
-    if (formType === "extra" || formEnd) payload.endTime = formEnd;
-    if (formNote) payload.note = formNote;
+  useEffect(() => {
+    void refresh();
+    void refreshNextAvailable();
+  }, [ownerTimezone]);
 
+  const addException = async (input: {
+    type: "block" | "extra";
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    note?: string;
+  }) => {
     const res = await fetch("/api/admin/availability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(input),
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? `HTTP ${res.status}`);
-      return;
+      throw new Error(body.error ?? `HTTP ${res.status}`);
     }
-    setFormDate("");
-    setFormStart("");
-    setFormEnd("");
-    setFormNote("");
     await refresh();
+    await refreshNextAvailable();
   };
 
-  const remove = async (id: string) => {
+  const removeException = async (id: string) => {
     const res = await fetch(`/api/admin/availability/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -73,90 +96,42 @@ export function AvailabilityEditor() {
       return;
     }
     await refresh();
+    await refreshNextAvailable();
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: "48rem" }}>
-      <section>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Add an exception</h2>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "end" }}>
-          <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>type</span>
-            <select value={formType} onChange={(e) => setFormType(e.target.value as "block" | "extra")} style={{ padding: "0.5rem" }}>
-              <option value="block">Block</option>
-              <option value="extra">Extra window</option>
-            </select>
-          </label>
-          <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>date</span>
-            <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} style={{ padding: "0.5rem" }} />
-          </label>
-          <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>from (optional for block)</span>
-            <input type="time" value={formStart} onChange={(e) => setFormStart(e.target.value)} style={{ padding: "0.5rem" }} />
-          </label>
-          <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>to (optional for block)</span>
-            <input type="time" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} style={{ padding: "0.5rem" }} />
-          </label>
-          <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: 1 }}>
-            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>note</span>
-            <input value={formNote} onChange={(e) => setFormNote(e.target.value)} style={{ padding: "0.5rem" }} />
-          </label>
-          <button
-            type="button"
-            onClick={create}
-            style={{ padding: "0.5rem 1rem", border: "1px solid currentColor", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
-          >
-            Add
-          </button>
-        </div>
-        <p style={{ fontSize: "0.8rem", opacity: 0.6, marginTop: "0.5rem" }}>
-          Block without times blocks the whole day. Extra requires times.
-        </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "60rem" }}>
+      <section
+        style={{
+          padding: "0.75rem 1rem",
+          background: "rgba(0,0,0,0.04)",
+          borderRadius: "8px",
+          fontSize: "0.9rem",
+        }}
+      >
+        <strong>Next available:</strong>{" "}
+        {nextAvailable
+          ? `${formatNextAvailable(nextAvailable, ownerTimezone)} (${ownerTimezone})`
+          : "no open slot in the next 14 days"}
       </section>
 
       <section>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Exceptions (next 60 days)</h2>
-        {loading && <p>Loading…</p>}
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Exceptions (next 60 days)</h2>
+        {loading && <p style={{ opacity: 0.6 }}>Loading…</p>}
         {error && <p style={{ color: "#f60" }}>{error}</p>}
-        {!loading && exceptions.length === 0 && <p style={{ opacity: 0.6 }}>No exceptions — weekly defaults apply.</p>}
-        {exceptions.length > 0 && (
-          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "560px" }}>
-            <thead>
-              <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(0,0,0,0.1)" }}>
-                <th style={{ padding: "0.5rem" }}>type</th>
-                <th style={{ padding: "0.5rem" }}>date</th>
-                <th style={{ padding: "0.5rem" }}>time</th>
-                <th style={{ padding: "0.5rem" }}>note</th>
-                <th style={{ padding: "0.5rem" }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {exceptions.map((x) => (
-                <tr key={x.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
-                  <td style={{ padding: "0.5rem" }}>{x.type}</td>
-                  <td style={{ padding: "0.5rem" }}>{x.date}</td>
-                  <td style={{ padding: "0.5rem" }}>
-                    {x.startTime && x.endTime ? `${x.startTime}–${x.endTime}` : "(all day)"}
-                  </td>
-                  <td style={{ padding: "0.5rem", opacity: 0.7 }}>{x.note ?? ""}</td>
-                  <td style={{ padding: "0.5rem" }}>
-                    <button
-                      type="button"
-                      onClick={() => void remove(x.id)}
-                      style={{ padding: "0.25rem 0.5rem", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", borderRadius: "6px", cursor: "pointer", fontFamily: "inherit" }}
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
+        {!loading && !error && (
+          <AvailabilityCalendar
+            exceptions={exceptions}
+            ownerTimezone={ownerTimezone}
+            onAdd={addException}
+            onRemove={removeException}
+          />
         )}
+        <p style={{ fontSize: "0.8rem", opacity: 0.6, marginTop: "0.75rem" }}>
+          Weekly default hours are edited in{" "}
+          <a href="/admin/settings" style={{ color: "inherit" }}>Settings</a>. Exceptions here
+          override the defaults for specific dates.
+        </p>
       </section>
     </div>
   );
