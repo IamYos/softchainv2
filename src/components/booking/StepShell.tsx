@@ -41,11 +41,17 @@ export function StepShell({
   return (
     <div
       className={styles.emailStage}
-      aria-live="polite"
       role="group"
       aria-label={label}
       onKeyDown={onKeyDown}
     >
+      {/*
+        Separate live-region announcer. Some screen readers suppress
+        aria-live when the same element carries a non-live role (role="group").
+      */}
+      <div role="status" aria-live="polite" aria-atomic="true" className={styles.srOnly}>
+        {label}
+      </div>
       <div className={styles.emailContent}>
         <SFLeftParenthesisIcon className={styles.parenthesisIcon} />
         <div className={styles.emailFieldWrap}>
@@ -67,12 +73,12 @@ export function StepShell({
       {(footnote || error || onBack) && (
         <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
           {error && (
-            <p className={styles.p} style={{ color: "var(--color-orange, #f60)", margin: 0 }}>
+            <p className={styles.p} role="alert" style={{ color: "var(--color-orange, #f60)", margin: 0 }}>
               {error}
             </p>
           )}
-          {footnote && !error && (
-            <p className={styles.p} style={{ opacity: 0.6, margin: 0 }}>{footnote}</p>
+          {footnote && (
+            <p className={styles.p} style={{ opacity: 0.6, margin: error ? "0.25rem 0 0" : 0 }}>{footnote}</p>
           )}
           {onBack && (
             <button
