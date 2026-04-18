@@ -77,27 +77,28 @@ export async function listBookingsForAdmin(
   tab: AdminBookingTab,
   limit = 100
 ): Promise<Array<Booking & { id: string }>> {
-  const now = Timestamp.fromDate(new Date());
+  // Single-field queries only to avoid needing composite indexes.
+  // Filter + sort in memory — fine for low volume; add indexes if it grows.
+  const now = new Date();
+  const nowTs = Timestamp.fromDate(now);
   const col = firestoreAdmin().collection("bookings");
   let snap;
   if (tab === "cancelled") {
-    snap = await col.where("status", "==", "cancelled").orderBy("startAt", "desc").limit(limit).get();
+    snap = await col.where("status", "==", "cancelled").limit(limit).get();
   } else if (tab === "past") {
-    snap = await col
-      .where("startAt", "<", now)
-      .orderBy("startAt", "desc")
-      .limit(limit)
-      .get();
+    snap = await col.where("startAt", "<", nowTs).limit(limit).get();
   } else {
-    snap = await col
-      .where("startAt", ">=", now)
-      .orderBy("startAt", "asc")
-      .limit(limit)
-      .get();
+    snap = await col.where("startAt", ">=", nowTs).limit(limit).get();
   }
-  return snap.docs
+  const rows = snap.docs
     .map((d) => ({ id: d.id, ...(d.data() as Booking) }))
     .filter((b) => (tab === "cancelled" ? true : b.status === "confirmed"));
+  rows.sort((a, b) => {
+    const aMs = a.startAt.toMillis();
+    const bMs = b.startAt.toMillis();
+    return tab === "upcoming" ? aMs - bMs : bMs - aMs;
+  });
+  return rows;
 }
 
 export async function updateBookingAdminFields(
