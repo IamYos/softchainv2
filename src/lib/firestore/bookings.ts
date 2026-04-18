@@ -70,3 +70,42 @@ export function bookingsCollectionRef() {
 }
 
 export { FieldValue, Timestamp };
+
+export type AdminBookingTab = "upcoming" | "past" | "cancelled";
+
+export async function listBookingsForAdmin(
+  tab: AdminBookingTab,
+  limit = 100
+): Promise<Array<Booking & { id: string }>> {
+  const now = Timestamp.fromDate(new Date());
+  const col = firestoreAdmin().collection("bookings");
+  let snap;
+  if (tab === "cancelled") {
+    snap = await col.where("status", "==", "cancelled").orderBy("startAt", "desc").limit(limit).get();
+  } else if (tab === "past") {
+    snap = await col
+      .where("startAt", "<", now)
+      .orderBy("startAt", "desc")
+      .limit(limit)
+      .get();
+  } else {
+    snap = await col
+      .where("startAt", ">=", now)
+      .orderBy("startAt", "asc")
+      .limit(limit)
+      .get();
+  }
+  return snap.docs
+    .map((d) => ({ id: d.id, ...(d.data() as Booking) }))
+    .filter((b) => (tab === "cancelled" ? true : b.status === "confirmed"));
+}
+
+export async function updateBookingAdminFields(
+  id: string,
+  patch: { adminNotes?: string | null; noShow?: boolean }
+): Promise<void> {
+  await firestoreAdmin().collection("bookings").doc(id).update({
+    ...patch,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+}
