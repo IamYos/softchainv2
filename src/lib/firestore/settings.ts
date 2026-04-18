@@ -7,7 +7,20 @@ import type { ContactLinks, BookingRules, DefaultHours } from "../booking/types"
 export async function getSettings(): Promise<SettingsDoc> {
   const snap = await firestoreAdmin().collection("settings").doc("config").get();
   if (!snap.exists) throw new Error("settings/config document missing");
-  return snap.data() as SettingsDoc;
+  const raw = snap.data() as SettingsDoc & { updatedAt?: unknown; admins?: string[] };
+  // Strip Firestore Timestamp fields like `updatedAt` so the returned value
+  // is plain-serializable and safe to pass from Server → Client Components.
+  // Also keeps the return shape aligned with SettingsDoc even if Firestore
+  // stores extra bookkeeping fields.
+  return {
+    ownerEmail: raw.ownerEmail,
+    ownerTimezone: raw.ownerTimezone,
+    defaultHours: raw.defaultHours,
+    contactLinks: raw.contactLinks,
+    rules: raw.rules,
+    icsFeedSecret: raw.icsFeedSecret,
+    admins: raw.admins ?? [],
+  } as SettingsDoc;
 }
 
 export type SettingsPatch = Partial<{
