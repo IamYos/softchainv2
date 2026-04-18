@@ -1,7 +1,8 @@
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Transaction } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@/lib/firebase/admin";
 import { getSettings } from "@/lib/firestore/settings";
 import { cancel as qstashCancel } from "@/lib/qstash/client";
+import { ACTIVE_SLOTS_COLLECTION, slotIdFromStart } from "./create";
 import { buildIcs } from "./ics";
 import { sendBookingEmail } from "@/lib/email/send";
 import { cancel as cancelTemplate } from "@/lib/email/templates/cancel";
@@ -13,18 +14,40 @@ export type CancelOutcome =
   | { kind: "already_cancelled" };
 
 export async function cancelBooking(bookingId: string): Promise<CancelOutcome> {
-  const ref = firestoreAdmin().collection("bookings").doc(bookingId);
-  const snap = await ref.get();
-  if (!snap.exists) return { kind: "not_found" };
-  const current = snap.data() as Booking;
-  if (current.status === "cancelled") return { kind: "already_cancelled" };
+  const db = firestoreAdmin();
+  const ref = db.collection("bookings").doc(bookingId);
 
-  const newSequence = current.icsSequence + 1;
-  await ref.update({
-    status: "cancelled",
-    icsSequence: newSequence,
-    updatedAt: FieldValue.serverTimestamp(),
+  // Atomic: re-check status inside transaction, flip to cancelled, release
+  // activeSlots hold so the slot can be rebooked. Two concurrent cancels race
+  // cleanly — only one sees `status: "confirmed"` and mutates.
+  const txOutcome = await db.runTransaction(async (tx: Transaction): Promise<
+    { kind: "ok"; current: Booking; newSequence: number }
+    | { kind: "not_found" }
+    | { kind: "already_cancelled" }
+  > => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return { kind: "not_found" };
+    const current = snap.data() as Booking;
+    if (current.status === "cancelled") return { kind: "already_cancelled" };
+
+    const newSequence = current.icsSequence + 1;
+    tx.update(ref, {
+      status: "cancelled",
+      icsSequence: newSequence,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    // Release the slot hold so it can be rebooked.
+    const slotId = slotIdFromStart(current.startAt.toDate());
+    tx.delete(db.collection(ACTIVE_SLOTS_COLLECTION).doc(slotId));
+
+    return { kind: "ok", current, newSequence };
   });
+
+  if (txOutcome.kind === "not_found") return { kind: "not_found" };
+  if (txOutcome.kind === "already_cancelled") return { kind: "already_cancelled" };
+
+  const { current, newSequence } = txOutcome;
 
   // Kill reminder jobs (best-effort).
   const jobIds = current.reminderJobIds ?? { h24: null, m15: null };
