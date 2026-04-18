@@ -131,7 +131,7 @@ export function AvailabilityCalendar({ exceptions, ownerTimezone, onAdd, onRemov
                         alignItems: "center",
                         justifyContent: "center",
                         padding: "0.45rem 0",
-                        border: "1px solid rgba(0,0,0,0.08)",
+                        border: "1px solid var(--sc-admin-border)",
                         borderRadius: "6px",
                         background: "transparent",
                         cursor: isPast ? "default" : "pointer",
@@ -275,7 +275,7 @@ function DayPopover({
               {existing.map((e) => (
                 <li
                   key={e.id}
-                  style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0", borderBottom: "1px dashed rgba(0,0,0,0.08)" }}
+                  style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0", borderBottom: "1px dashed var(--sc-admin-border)" }}
                 >
                   <span>
                     {e.type === "block" ? "Block " : "Extra "}
@@ -307,9 +307,10 @@ function DayPopover({
                 onClick={() => setKind(k)}
                 style={{
                   padding: "0.3rem 0.7rem",
-                  border: `1px solid ${kind === k ? "currentColor" : "rgba(0,0,0,0.15)"}`,
+                  border: `1px solid ${kind === k ? "currentColor" : "var(--sc-admin-border-subtle)"}`,
                   borderRadius: "999px",
-                  background: kind === k ? "rgba(0,0,0,0.05)" : "transparent",
+                  background: kind === k ? "var(--sc-admin-surface-hover)" : "transparent",
+                  color: "inherit",
                   cursor: "pointer",
                   fontFamily: "inherit",
                   fontSize: "0.8rem",
@@ -327,14 +328,14 @@ function DayPopover({
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 aria-label="Start time"
-                style={{ padding: "0.4rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", flex: 1 }}
+                style={{ padding: "0.4rem", border: "1px solid var(--sc-admin-border-subtle)", borderRadius: "6px", flex: 1 }}
               />
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 aria-label="End time"
-                style={{ padding: "0.4rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", flex: 1 }}
+                style={{ padding: "0.4rem", border: "1px solid var(--sc-admin-border-subtle)", borderRadius: "6px", flex: 1 }}
               />
             </div>
           )}
@@ -343,7 +344,7 @@ function DayPopover({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Note (optional)"
-            style={{ width: "100%", padding: "0.4rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", marginBottom: "0.5rem" }}
+            style={{ width: "100%", padding: "0.4rem", border: "1px solid var(--sc-admin-border-subtle)", borderRadius: "6px", marginBottom: "0.5rem" }}
           />
 
           <button

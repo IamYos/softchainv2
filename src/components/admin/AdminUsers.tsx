@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import s from "./admin.module.css";
 
 type UsersState = { ownerEmail: string; admins: string[] };
 
@@ -64,41 +65,53 @@ export function AdminUsers({ currentEmail, isOwner }: { currentEmail: string; is
     setBusy(false);
   };
 
+  const rowStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0.6rem 0.75rem",
+    border: "1px solid var(--sc-admin-border)",
+    borderRadius: "8px",
+    background: "var(--sc-admin-surface)",
+    gap: "0.75rem",
+    flexWrap: "wrap",
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "40rem" }}>
       {!isOwner && (
-        <p style={{ padding: "0.75rem 1rem", background: "rgba(0,0,0,0.04)", borderRadius: "8px", fontSize: "0.9rem" }}>
+        <p className={s.ribbon}>
           You&apos;re signed in as <strong>{currentEmail}</strong>. Only the owner can add or remove admins.
         </p>
       )}
 
-      {loading && <p>Loading…</p>}
-      {error && <p style={{ color: "#f60" }}>{error}</p>}
+      {loading && <p className={s.muted}>Loading…</p>}
+      {error && <p style={{ color: "var(--sc-admin-accent)" }}>{error}</p>}
 
       {state && (
         <>
           <section>
             <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Current admins</h2>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.6rem 0.75rem", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "8px" }}>
+              <li style={rowStyle}>
                 <span>
                   <strong>{state.ownerEmail}</strong>
-                  <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", opacity: 0.6, padding: "0.1rem 0.45rem", background: "rgba(0,0,0,0.06)", borderRadius: "999px" }}>owner</span>
+                  <span style={{ marginLeft: "0.5rem", fontSize: "0.7rem", padding: "0.15rem 0.5rem", background: "var(--sc-admin-surface-hover)", border: "1px solid var(--sc-admin-border)", borderRadius: "999px", color: "var(--sc-admin-muted)" }}>owner</span>
                 </span>
-                <span style={{ fontSize: "0.8rem", opacity: 0.5 }}>immutable</span>
+                <span className={s.dim} style={{ fontSize: "0.8rem" }}>immutable</span>
               </li>
               {state.admins.length === 0 && (
-                <li style={{ padding: "0.6rem 0.75rem", opacity: 0.6, fontSize: "0.9rem" }}>No additional admins.</li>
+                <li className={s.muted} style={{ padding: "0.6rem 0.75rem", fontSize: "0.9rem" }}>No additional admins.</li>
               )}
               {state.admins.map((a) => (
-                <li key={a} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.6rem 0.75rem", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "8px" }}>
+                <li key={a} style={rowStyle}>
                   <span>{a}</span>
                   {isOwner && (
                     <button
                       type="button"
                       onClick={() => void remove(a)}
                       disabled={busy}
-                      style={{ padding: "0.25rem 0.65rem", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", fontSize: "0.8rem" }}
+                      className={s.pill}
                     >
                       Remove
                     </button>
@@ -117,18 +130,19 @@ export function AdminUsers({ currentEmail, isOwner }: { currentEmail: string; is
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="name@gmail.com"
-                  style={{ flex: 1, minWidth: "14rem", padding: "0.55rem 0.75rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "8px", fontFamily: "inherit" }}
+                  className={s.input}
+                  style={{ flex: 1, minWidth: "14rem" }}
                 />
                 <button
                   type="button"
                   onClick={add}
                   disabled={busy || !newEmail.trim()}
-                  style={{ padding: "0.55rem 1rem", border: "1px solid currentColor", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}
+                  className={s.pill}
                 >
                   {busy ? "…" : "Add"}
                 </button>
               </div>
-              <p style={{ fontSize: "0.8rem", opacity: 0.6, marginTop: "0.5rem" }}>
+              <p className={s.muted} style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>
                 New admin must sign in with their Google account on that exact email.
               </p>
             </section>

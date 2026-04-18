@@ -144,7 +144,7 @@ export function RescheduleModal({
         </p>
 
         {slots.status === "loading" && <p>Loading available times…</p>}
-        {slots.status === "error" && <p style={{ color: "#f60" }}>{slots.message}</p>}
+        {slots.status === "error" && <p style={{ color: "var(--sc-admin-accent)" }}>{slots.message}</p>}
 
         {slots.status === "ready" && (
           <>
@@ -197,7 +197,8 @@ export function RescheduleModal({
                 onClick={onClose}
                 style={{
                   padding: "0.6rem 1.2rem",
-                  border: "1px solid rgba(0,0,0,0.2)",
+                  border: "1px solid var(--sc-admin-border-subtle)",
+                  color: "inherit",
                   borderRadius: "999px",
                   background: "transparent",
                   cursor: "pointer",
@@ -209,7 +210,7 @@ export function RescheduleModal({
             </div>
 
             {err && (
-              <p role="alert" style={{ color: "#f60", marginTop: "1rem", fontSize: "0.9rem" }}>
+              <p role="alert" style={{ color: "var(--sc-admin-accent)", marginTop: "1rem", fontSize: "0.9rem" }}>
                 {err}
               </p>
             )}

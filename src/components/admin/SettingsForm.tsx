@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { SettingsDoc } from "@/lib/booking/types";
 import { TIMEZONE_OPTIONS } from "@/components/booking/timezoneOptions";
+import s from "./admin.module.css";
 
 type ResendStatus = {
   domain: string | null;
@@ -21,6 +22,13 @@ const DAY_LABELS: Array<{ key: keyof SettingsDoc["defaultHours"]; label: string 
   { key: "sat", label: "Sat" },
   { key: "sun", label: "Sun" },
 ];
+
+const CONTACT_KEY_LABELS: Record<string, string> = {
+  zoom: "Zoom",
+  meet: "Google Meet",
+  teams: "Microsoft Teams",
+  whatsappNumber: "WhatsApp number",
+};
 
 export function SettingsForm({ initial, siteUrl }: Props) {
   const [settings, setSettings] = useState(initial);
@@ -95,9 +103,12 @@ export function SettingsForm({ initial, siteUrl }: Props) {
     setMessage("Saved.");
   };
 
+  const labelStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.75rem" };
+  const labelTextStyle: React.CSSProperties = { fontSize: "0.75rem", letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--sc-admin-muted)" };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: "44rem" }}>
-      <section>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "44rem" }}>
+      <section className={s.card}>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Email sending</h2>
         {resendStatus ? (
           <p style={{ fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
@@ -111,7 +122,7 @@ export function SettingsForm({ initial, siteUrl }: Props) {
                 background:
                   resendStatus.status === "verified" ? "#2da44e"
                   : resendStatus.status === "pending" || resendStatus.status === "temporary_failure" ? "#d4a72c"
-                  : resendStatus.status === "failed" || resendStatus.status === "not_found" ? "#f60"
+                  : resendStatus.status === "failed" || resendStatus.status === "not_found" ? "var(--sc-admin-accent)"
                   : "#999",
               }}
             />
@@ -121,133 +132,142 @@ export function SettingsForm({ initial, siteUrl }: Props) {
             </span>
           </p>
         ) : (
-          <p style={{ fontSize: "0.9rem", opacity: 0.6, margin: 0 }}>Checking Resend domain status…</p>
+          <p className={s.muted} style={{ fontSize: "0.9rem", margin: 0 }}>Checking Resend domain status…</p>
         )}
       </section>
 
-      <section>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Owner timezone</h2>
-        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.5rem" }}>
-          <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>timezone (IANA)</span>
+      <section className={s.card}>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Owner timezone</h2>
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>timezone (IANA)</span>
           <select
             value={settings.ownerTimezone}
-            onChange={(e) => setSettings((s) => ({ ...s, ownerTimezone: e.target.value }))}
-            style={{ padding: "0.5rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", fontFamily: "inherit" }}
+            onChange={(e) => setSettings((ss) => ({ ...ss, ownerTimezone: e.target.value }))}
+            className={s.select}
           >
             {TIMEZONE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </label>
-        <p style={{ fontSize: "0.8rem", opacity: 0.6 }}>All weekly default hours are interpreted in this timezone.</p>
+        <p className={s.muted} style={{ fontSize: "0.8rem", margin: 0 }}>All weekly default hours are interpreted in this timezone.</p>
       </section>
 
-      <section>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Contact links</h2>
+      <section className={s.card}>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Contact links</h2>
         {(["zoom", "meet", "teams", "whatsappNumber"] as const).map((k) => (
-          <label key={k} style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.75rem" }}>
-            <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>{k}</span>
+          <label key={k} style={labelStyle}>
+            <span style={labelTextStyle}>{CONTACT_KEY_LABELS[k] ?? k}</span>
             <input
               value={settings.contactLinks[k]}
               onChange={(e) =>
-                setSettings((s) => ({ ...s, contactLinks: { ...s.contactLinks, [k]: e.target.value } }))
+                setSettings((ss) => ({ ...ss, contactLinks: { ...ss.contactLinks, [k]: e.target.value } }))
               }
-              style={{ padding: "0.5rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", fontFamily: "inherit" }}
+              className={s.input}
+              placeholder={k === "whatsappNumber" ? "+971…" : "https://…"}
             />
           </label>
         ))}
       </section>
 
-      <section>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Weekly default hours (in ownerTimezone)</h2>
-        {DAY_LABELS.map(({ key, label }) => {
-          const val = settings.defaultHours[key];
-          return (
-            <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <label style={{ width: "3rem" }}>
+      <section className={s.card}>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Weekly default hours</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+          {DAY_LABELS.map(({ key, label }) => {
+            const val = settings.defaultHours[key];
+            return (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", width: "4rem" }}>
+                  <input
+                    type="checkbox"
+                    checked={val !== null}
+                    onChange={(e) =>
+                      setSettings((ss) => ({
+                        ...ss,
+                        defaultHours: {
+                          ...ss.defaultHours,
+                          [key]: e.target.checked ? { start: "09:00", end: "17:00" } : null,
+                        },
+                      }))
+                    }
+                  />
+                  <span style={{ fontSize: "0.85rem" }}>{label}</span>
+                </label>
                 <input
-                  type="checkbox"
-                  checked={val !== null}
+                  type="time"
+                  disabled={!val}
+                  value={val?.start ?? ""}
                   onChange={(e) =>
-                    setSettings((s) => ({
-                      ...s,
+                    setSettings((ss) => ({
+                      ...ss,
                       defaultHours: {
-                        ...s.defaultHours,
-                        [key]: e.target.checked ? { start: "09:00", end: "17:00" } : null,
+                        ...ss.defaultHours,
+                        [key]: { start: e.target.value, end: ss.defaultHours[key]?.end ?? "17:00" },
                       },
                     }))
                   }
-                />{" "}
-                {label}
-              </label>
-              <input
-                type="time"
-                disabled={!val}
-                value={val?.start ?? ""}
-                onChange={(e) =>
-                  setSettings((s) => ({
-                    ...s,
-                    defaultHours: {
-                      ...s.defaultHours,
-                      [key]: { start: e.target.value, end: s.defaultHours[key]?.end ?? "17:00" },
-                    },
-                  }))
-                }
-              />
-              <span>–</span>
-              <input
-                type="time"
-                disabled={!val}
-                value={val?.end ?? ""}
-                onChange={(e) =>
-                  setSettings((s) => ({
-                    ...s,
-                    defaultHours: {
-                      ...s.defaultHours,
-                      [key]: { start: s.defaultHours[key]?.start ?? "09:00", end: e.target.value },
-                    },
-                  }))
-                }
-              />
-            </div>
-          );
-        })}
+                  className={s.input}
+                  style={{ width: "7rem", padding: "0.35rem 0.5rem" }}
+                />
+                <span className={s.muted}>–</span>
+                <input
+                  type="time"
+                  disabled={!val}
+                  value={val?.end ?? ""}
+                  onChange={(e) =>
+                    setSettings((ss) => ({
+                      ...ss,
+                      defaultHours: {
+                        ...ss.defaultHours,
+                        [key]: { start: ss.defaultHours[key]?.start ?? "09:00", end: e.target.value },
+                      },
+                    }))
+                  }
+                  className={s.input}
+                  style={{ width: "7rem", padding: "0.35rem 0.5rem" }}
+                />
+              </div>
+            );
+          })}
+        </div>
       </section>
 
-      <section>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Rules</h2>
-        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.75rem" }}>
-          <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>min notice hours</span>
+      <section className={s.card}>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Rules</h2>
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>min notice hours</span>
           <input
             type="number"
             min={0}
             max={168}
             value={settings.rules.minNoticeHours}
             onChange={(e) =>
-              setSettings((s) => ({ ...s, rules: { ...s.rules, minNoticeHours: Number(e.target.value) } }))
+              setSettings((ss) => ({ ...ss, rules: { ...ss.rules, minNoticeHours: Number(e.target.value) } }))
             }
-            style={{ padding: "0.5rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", width: "8rem" }}
+            className={s.input}
+            style={{ width: "8rem" }}
           />
         </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginBottom: "0.75rem" }}>
-          <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>max lookahead days</span>
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>max lookahead days</span>
           <input
             type="number"
             min={1}
             max={180}
             value={settings.rules.maxLookaheadDays}
             onChange={(e) =>
-              setSettings((s) => ({ ...s, rules: { ...s.rules, maxLookaheadDays: Number(e.target.value) } }))
+              setSettings((ss) => ({ ...ss, rules: { ...ss.rules, maxLookaheadDays: Number(e.target.value) } }))
             }
-            style={{ padding: "0.5rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", width: "8rem" }}
+            className={s.input}
+            style={{ width: "8rem" }}
           />
         </label>
-        <p style={{ opacity: 0.5, fontSize: "0.85rem" }}>Slot duration is fixed at 30 minutes.</p>
+        <p className={s.muted} style={{ fontSize: "0.8rem", margin: 0 }}>Slot duration is fixed at 30 minutes.</p>
       </section>
 
-      <section>
+      <section className={s.card}>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>ICS calendar feed</h2>
-        <p style={{ fontSize: "0.85rem", opacity: 0.7, marginBottom: "0.75rem" }}>
+        <p className={s.muted} style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
           Subscribe in Google Calendar / Apple Calendar so new bookings appear automatically.
           Anyone with this URL can read your schedule — regenerate if it leaks.
         </p>
@@ -255,52 +275,38 @@ export function SettingsForm({ initial, siteUrl }: Props) {
           style={{
             display: "block",
             padding: "0.6rem 0.75rem",
-            background: "rgba(0,0,0,0.04)",
+            background: "var(--sc-admin-bg)",
+            border: "1px solid var(--sc-admin-border)",
             borderRadius: "6px",
             fontSize: "0.8rem",
             wordBreak: "break-all",
-            marginBottom: "0.5rem",
+            marginBottom: "0.75rem",
           }}
         >
           {feedUrl}
         </code>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={copyFeed}
-            style={{ padding: "0.35rem 0.9rem", border: "1px solid rgba(0,0,0,0.2)", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit", fontSize: "0.85rem" }}
-          >
+          <button type="button" onClick={copyFeed} className={s.pill}>
             {feedCopied ? "Copied" : "Copy"}
           </button>
-          <button
-            type="button"
-            onClick={regenerate}
-            disabled={regenerating}
-            style={{ padding: "0.35rem 0.9rem", border: "1px solid #f60", color: "#f60", borderRadius: "999px", background: "transparent", cursor: regenerating ? "default" : "pointer", fontFamily: "inherit", fontSize: "0.85rem" }}
-          >
+          <button type="button" onClick={regenerate} disabled={regenerating} className={`${s.pill} ${s.pillDanger}`}>
             {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
         </div>
       </section>
 
-      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
         <button
           type="button"
           onClick={save}
           disabled={status === "saving"}
-          style={{
-            padding: "0.6rem 1.25rem",
-            border: "1px solid currentColor",
-            borderRadius: "999px",
-            background: "transparent",
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
+          className={`${s.pill} ${s.pillActive}`}
+          style={{ padding: "0.6rem 1.4rem" }}
         >
-          {status === "saving" ? "Saving…" : "Save"}
+          {status === "saving" ? "Saving…" : "Save changes"}
         </button>
         {message && (
-          <span style={{ opacity: 0.7, fontSize: "0.9rem", color: status === "error" ? "#f60" : "inherit" }}>
+          <span className={s.muted} style={{ fontSize: "0.9rem", color: status === "error" ? "var(--sc-admin-accent)" : undefined }}>
             {message}
           </span>
         )}

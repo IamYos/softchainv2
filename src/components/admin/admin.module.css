@@ -1,0 +1,202 @@
+/* Shared admin palette-aware utilities.
+   Use these classnames instead of hand-rolled inline rgba borders so the
+   admin UI stays legible on the dark brand palette. */
+
+.card {
+  padding: 1rem;
+  background: var(--sc-admin-surface);
+  border: 1px solid var(--sc-admin-border);
+  border-radius: 10px;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--sc-admin-border);
+  background: var(--sc-admin-bg);
+  color: inherit;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--sc-admin-border-subtle);
+  background: var(--sc-admin-surface);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--sc-admin-border);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.pill:hover {
+  background: var(--sc-admin-surface-hover);
+}
+.pill[disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+.pillActive {
+  border-color: var(--sc-admin-text);
+  background: var(--sc-admin-surface-hover);
+}
+.pillDanger {
+  border-color: var(--sc-admin-accent);
+  color: var(--sc-admin-accent);
+}
+.pillDanger:hover {
+  background: color-mix(in srgb, var(--sc-admin-accent) 12%, transparent);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Table → cards split. Render both; CSS toggles visibility by viewport. */
+.tableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--sc-admin-border);
+  border-radius: 10px;
+  background: var(--sc-admin-surface);
+}
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+}
+.table thead tr {
+  border-bottom: 1px solid var(--sc-admin-border);
+  text-align: left;
+  color: var(--sc-admin-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.table th {
+  padding: 0.6rem 0.75rem;
+  font-weight: 500;
+}
+.table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--sc-admin-border);
+  vertical-align: top;
+}
+.table tbody tr {
+  cursor: pointer;
+}
+.table tbody tr:hover {
+  background: var(--sc-admin-surface-hover);
+}
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.muted {
+  color: var(--sc-admin-muted);
+}
+.dim {
+  color: var(--sc-admin-dim);
+}
+
+.cardList {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bookingCard {
+  padding: 0.9rem 1rem;
+  background: var(--sc-admin-surface);
+  border: 1px solid var(--sc-admin-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.bookingCard:hover {
+  background: var(--sc-admin-surface-hover);
+}
+.bookingCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.bookingCardName {
+  font-weight: 500;
+}
+.bookingCardMeta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--sc-admin-muted);
+}
+.bookingCardMeta dt {
+  opacity: 0.7;
+}
+.bookingCardMeta dd {
+  margin: 0;
+  color: inherit;
+}
+.bookingCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 749px) {
+  .tableWrap {
+    display: none;
+  }
+  .cardList {
+    display: flex;
+  }
+  .tabs {
+    font-size: 0.8rem;
+  }
+}
+
+.ribbon {
+  padding: 0.75rem 1rem;
+  background: var(--sc-admin-surface);
+  border: 1px solid var(--sc-admin-border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--sc-admin-muted);
+  font-size: 0.9rem;
+}
+
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sc-admin-muted);
+  margin: 0 0 0.4rem 0;
+}

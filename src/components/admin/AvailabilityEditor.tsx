@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { AvailabilityException } from "@/lib/booking/types";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
+import s from "./admin.module.css";
 
 type ExceptionRow = AvailabilityException & { id: string };
 
@@ -101,24 +102,17 @@ export function AvailabilityEditor({ ownerTimezone }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "60rem" }}>
-      <section
-        style={{
-          padding: "0.75rem 1rem",
-          background: "rgba(0,0,0,0.04)",
-          borderRadius: "8px",
-          fontSize: "0.9rem",
-        }}
-      >
+      <section className={s.ribbon}>
         <strong>Next available:</strong>{" "}
         {nextAvailable
           ? `${formatNextAvailable(nextAvailable, ownerTimezone)} (${ownerTimezone})`
           : "no open slot in the next 14 days"}
       </section>
 
-      <section>
+      <section className={s.card}>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Exceptions (next 60 days)</h2>
-        {loading && <p style={{ opacity: 0.6 }}>Loading…</p>}
-        {error && <p style={{ color: "#f60" }}>{error}</p>}
+        {loading && <p className={s.muted}>Loading…</p>}
+        {error && <p style={{ color: "var(--sc-admin-accent)" }}>{error}</p>}
         {!loading && !error && (
           <AvailabilityCalendar
             exceptions={exceptions}
@@ -127,7 +121,7 @@ export function AvailabilityEditor({ ownerTimezone }: Props) {
             onRemove={removeException}
           />
         )}
-        <p style={{ fontSize: "0.8rem", opacity: 0.6, marginTop: "0.75rem" }}>
+        <p className={s.muted} style={{ fontSize: "0.8rem", marginTop: "0.75rem" }}>
           Weekly default hours are edited in{" "}
           <a href="/admin/settings" style={{ color: "inherit" }}>Settings</a>. Exceptions here
           override the defaults for specific dates.

@@ -105,7 +105,7 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
         bottom: 0,
         width: "min(32rem, 100vw)",
         background: "var(--sc-admin-surface)",
-        borderLeft: "1px solid rgba(0,0,0,0.15)",
+        borderLeft: "1px solid var(--sc-admin-border)",
         padding: "1.5rem",
         overflowY: "auto",
         boxShadow: "-12px 0 32px rgba(0,0,0,0.08)",
@@ -151,7 +151,7 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
-          style={{ width: "100%", padding: "0.5rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "6px", fontFamily: "inherit" }}
+          style={{ width: "100%", padding: "0.5rem", border: "1px solid var(--sc-admin-border)", background: "var(--sc-admin-bg)", color: "inherit", borderRadius: "6px", fontFamily: "inherit" }}
         />
         <button
           type="button"
@@ -172,7 +172,7 @@ export function BookingDetailDrawer({ booking, ownerTimezone, onClose, onRefresh
           >
             Reschedule
           </button>
-          <button type="button" onClick={toggleNoShow} style={{ padding: "0.4rem 0.9rem", border: "1px solid rgba(0,0,0,0.15)", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}>
+          <button type="button" onClick={toggleNoShow} style={{ padding: "0.4rem 0.9rem", border: "1px solid var(--sc-admin-border)", color: "inherit", borderRadius: "999px", background: "transparent", cursor: "pointer", fontFamily: "inherit" }}>
             {booking.noShow ? "Unmark no-show" : "Mark no-show"}
           </button>
           <button

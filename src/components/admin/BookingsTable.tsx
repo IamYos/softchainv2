@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BookingDetailDrawer, type AdminBooking } from "./BookingDetailDrawer";
 import { RescheduleModal } from "./RescheduleModal";
+import s from "./admin.module.css";
 
 type Tab = "upcoming" | "past" | "cancelled";
 type ContactLinks = { zoom: string; meet: string; teams: string; whatsappNumber: string };
@@ -57,12 +58,10 @@ export function BookingsTable({ ownerTimezone, contactLinks }: Props) {
     void load(tab);
   }, [tab, load]);
 
-  // Mark bookings as seen when the view mounts (any tab).
   useEffect(() => {
     void fetch("/api/admin/bookings/unread", { method: "POST" });
   }, []);
 
-  // Auto-refresh: every 60s and when the tab regains focus.
   useEffect(() => {
     const interval = window.setInterval(() => void load(tab), AUTO_REFRESH_MS);
     const onVisibility = () => {
@@ -126,132 +125,150 @@ export function BookingsTable({ ownerTimezone, contactLinks }: Props) {
     }
   };
 
+  const renderActions = (b: AdminBooking, isUpcoming: boolean) => {
+    if (!isUpcoming) return null;
+    return (
+      <>
+        <button type="button" className={s.pill} onClick={() => setRescheduleId(b.id)}>Reschedule</button>
+        <button type="button" className={s.pill} onClick={() => void toggleNoShow(b)}>
+          {b.noShow ? "Unmark" : "No-show"}
+        </button>
+        <button type="button" className={s.pill} onClick={() => void copyLink(b)}>
+          {copiedId === b.id ? "Copied" : "Copy link"}
+        </button>
+        <button type="button" className={`${s.pill} ${s.pillDanger}`} onClick={() => void cancelRow(b)}>Cancel</button>
+      </>
+    );
+  };
+
   return (
     <div>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+      <div className={s.tabs} style={{ marginBottom: "1rem" }}>
         {(["upcoming", "past", "cancelled"] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            style={{
-              padding: "0.35rem 0.8rem",
-              border: `1px solid ${tab === t ? "currentColor" : "rgba(0,0,0,0.15)"}`,
-              background: tab === t ? "rgba(0,0,0,0.08)" : "transparent",
-              borderRadius: "999px",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              fontSize: "0.85rem",
-            }}
+            className={`${s.pill} ${tab === t ? s.pillActive : ""}`}
           >
             {t}
           </button>
         ))}
         <div style={{ flex: 1 }} />
-        <a
-          href="/api/admin/bookings/export"
-          style={{
-            padding: "0.35rem 0.8rem",
-            border: "1px solid rgba(0,0,0,0.15)",
-            borderRadius: "999px",
-            textDecoration: "none",
-            color: "inherit",
-            fontSize: "0.85rem",
-          }}
-        >
-          Export CSV
-        </a>
+        <a href="/api/admin/bookings/export" className={s.pill}>Export CSV</a>
       </div>
 
-      {loading && <p>Loading…</p>}
-      {error && <p style={{ color: "#f60" }}>{error}</p>}
-      {!loading && !error && bookings.length === 0 && <p style={{ opacity: 0.6 }}>No bookings.</p>}
+      {loading && <p className={s.muted}>Loading…</p>}
+      {error && <p style={{ color: "var(--sc-admin-accent)" }}>{error}</p>}
+      {!loading && !error && bookings.length === 0 && (
+        <div className={s.empty}>No bookings.</div>
+      )}
 
       {bookings.length > 0 && (
-        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "960px", fontSize: "0.9rem" }}>
-            <thead>
-              <tr style={{ textAlign: "left", borderBottom: "1px solid rgba(0,0,0,0.1)" }}>
-                <th style={{ padding: "0.5rem" }}>when</th>
-                <th style={{ padding: "0.5rem" }}>name</th>
-                <th style={{ padding: "0.5rem" }}>email</th>
-                <th style={{ padding: "0.5rem" }}>company</th>
-                <th style={{ padding: "0.5rem" }}>via</th>
-                <th style={{ padding: "0.5rem" }}>phone</th>
-                <th style={{ padding: "0.5rem" }}>topic</th>
-                <th style={{ padding: "0.5rem" }}>status</th>
-                <th style={{ padding: "0.5rem", textAlign: "right" }}>actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((b) => {
-                const isUpcoming = tab === "upcoming" && b.status === "confirmed";
-                return (
-                  <tr
-                    key={b.id}
-                    onClick={() => setOpenId(b.id)}
-                    style={{ cursor: "pointer", borderBottom: "1px solid rgba(0,0,0,0.05)" }}
-                  >
-                    <td style={{ padding: "0.5rem" }}>
-                      <div>{formatInTz(b.startAt, ownerTimezone)}</div>
-                      {b.visitorTimezone !== ownerTimezone && (
-                        <div style={{ fontSize: "0.75rem", opacity: 0.5 }}>
-                          {formatInTz(b.startAt, b.visitorTimezone)} visitor
+        <>
+          {/* Desktop / tablet table */}
+          <div className={s.tableWrap}>
+            <table className={s.table}>
+              <thead>
+                <tr>
+                  <th>when</th>
+                  <th>name</th>
+                  <th>email</th>
+                  <th>company</th>
+                  <th>via</th>
+                  <th>phone</th>
+                  <th>topic</th>
+                  <th>status</th>
+                  <th style={{ textAlign: "right" }}>actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((b) => {
+                  const isUpcoming = tab === "upcoming" && b.status === "confirmed";
+                  return (
+                    <tr key={b.id} onClick={() => setOpenId(b.id)}>
+                      <td>
+                        <div>{formatInTz(b.startAt, ownerTimezone)}</div>
+                        {b.visitorTimezone !== ownerTimezone && (
+                          <div style={{ fontSize: "0.7rem" }} className={s.dim}>
+                            {formatInTz(b.startAt, b.visitorTimezone)} visitor
+                          </div>
+                        )}
+                      </td>
+                      <td>{b.visitorName}</td>
+                      <td className={s.muted}>{b.visitorEmail}</td>
+                      <td className={s.muted}>{b.visitorCompany ?? "—"}</td>
+                      <td>{b.contactMethod}</td>
+                      <td className={s.muted}>{b.visitorPhone ?? "—"}</td>
+                      <td className={s.muted}>
+                        {b.topic.length > 48 ? `${b.topic.slice(0, 48)}…` : b.topic}
+                      </td>
+                      <td>
+                        {b.status}
+                        {b.noShow ? " · no-show" : ""}
+                      </td>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }} onClick={stopRowOpen}>
+                        <div style={{ display: "inline-flex", gap: "0.35rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                          {renderActions(b, isUpcoming)}
                         </div>
-                      )}
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>{b.visitorName}</td>
-                    <td style={{ padding: "0.5rem", opacity: 0.8 }}>{b.visitorEmail}</td>
-                    <td style={{ padding: "0.5rem", opacity: 0.7 }}>{b.visitorCompany ?? "—"}</td>
-                    <td style={{ padding: "0.5rem" }}>{b.contactMethod}</td>
-                    <td style={{ padding: "0.5rem", opacity: 0.7 }}>{b.visitorPhone ?? "—"}</td>
-                    <td style={{ padding: "0.5rem", opacity: 0.7 }}>
-                      {b.topic.length > 48 ? `${b.topic.slice(0, 48)}…` : b.topic}
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>
-                      {b.status}
-                      {b.noShow ? " · no-show" : ""}
-                    </td>
-                    <td style={{ padding: "0.5rem", textAlign: "right", whiteSpace: "nowrap" }} onClick={stopRowOpen}>
-                      {isUpcoming && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setRescheduleId(b.id)}
-                            style={actionBtnStyle}
-                          >
-                            Reschedule
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void toggleNoShow(b)}
-                            style={actionBtnStyle}
-                          >
-                            {b.noShow ? "Unmark" : "No-show"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void copyLink(b)}
-                            style={actionBtnStyle}
-                          >
-                            {copiedId === b.id ? "Copied" : "Copy link"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void cancelRow(b)}
-                            style={{ ...actionBtnStyle, borderColor: "#f60", color: "#f60" }}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className={s.cardList}>
+            {bookings.map((b) => {
+              const isUpcoming = tab === "upcoming" && b.status === "confirmed";
+              return (
+                <article
+                  key={b.id}
+                  className={s.bookingCard}
+                  onClick={() => setOpenId(b.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setOpenId(b.id);
+                    }
+                  }}
+                >
+                  <div className={s.bookingCardHead}>
+                    <div>
+                      <div className={s.bookingCardName}>{b.visitorName}</div>
+                      <div className={s.muted} style={{ fontSize: "0.8rem" }}>
+                        {formatInTz(b.startAt, ownerTimezone)}
+                        {b.visitorTimezone !== ownerTimezone && (
+                          <> · <span className={s.dim}>{formatInTz(b.startAt, b.visitorTimezone)}</span></>
+                        )}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: "0.75rem" }} className={s.dim}>
+                      {b.status}{b.noShow ? " · no-show" : ""}
+                    </span>
+                  </div>
+
+                  <dl className={s.bookingCardMeta}>
+                    <dt>email</dt><dd>{b.visitorEmail}</dd>
+                    <dt>company</dt><dd>{b.visitorCompany ?? "—"}</dd>
+                    <dt>via</dt><dd>{b.contactMethod}{b.visitorPhone ? ` · ${b.visitorPhone}` : ""}</dd>
+                    <dt>topic</dt><dd style={{ whiteSpace: "pre-wrap" }}>{b.topic}</dd>
+                  </dl>
+
+                  {isUpcoming && (
+                    <div className={s.bookingCardActions} onClick={stopRowOpen}>
+                      {renderActions(b, true)}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </>
       )}
 
       <BookingDetailDrawer
@@ -277,14 +294,3 @@ export function BookingsTable({ ownerTimezone, contactLinks }: Props) {
     </div>
   );
 }
-
-const actionBtnStyle: React.CSSProperties = {
-  padding: "0.25rem 0.6rem",
-  margin: "0 0 0 0.25rem",
-  border: "1px solid rgba(0,0,0,0.15)",
-  background: "transparent",
-  borderRadius: "999px",
-  cursor: "pointer",
-  fontFamily: "inherit",
-  fontSize: "0.75rem",
-};
