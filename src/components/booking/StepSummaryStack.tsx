@@ -1,6 +1,5 @@
 "use client";
 
-import styles from "@/components/marketing/sf/SFPostFrame.module.css";
 import type { BookingData, StepId } from "./useBookingState";
 
 type SummaryEntry = { step: StepId; label: string; value: string };
@@ -43,7 +42,7 @@ export function StepSummaryStack({ completedSteps, data, onEdit }: Props) {
         margin: "0 0 1.5rem 0",
         display: "flex",
         flexDirection: "column",
-        gap: "0.25rem",
+        gap: "0.35rem",
         alignItems: "center",
       }}
     >
@@ -52,22 +51,42 @@ export function StepSummaryStack({ completedSteps, data, onEdit }: Props) {
           <button
             type="button"
             onClick={() => onEdit(e.step)}
-            className={styles.p}
+            aria-label={`Edit ${e.label}`}
             style={{
+              alignItems: "baseline",
               background: "transparent",
               border: "none",
-              padding: "0.25rem 0.5rem",
-              opacity: 0.55,
+              color: "#202020",
               cursor: "pointer",
-              fontFamily: "inherit",
               display: "inline-flex",
-              gap: "0.5rem",
-              alignItems: "baseline",
+              fontFamily: "inherit",
+              fontSize: "15px",
+              gap: "0.6rem",
+              lineHeight: 1.35,
+              padding: "0.25rem 0.5rem",
             }}
           >
-            <span style={{ opacity: 0.7 }}>{e.label} —</span>
-            <span>{e.value}</span>
-            <span style={{ opacity: 0.4 }}>✎</span>
+            <span
+              style={{
+                fontFamily: "var(--font-aux-mono), monospace",
+                fontSize: "11px",
+                letterSpacing: "0.04em",
+                opacity: 0.6,
+                textTransform: "uppercase",
+              }}
+            >
+              {e.label}
+            </span>
+            <span style={{ fontWeight: 500 }}>{e.value}</span>
+            <span
+              aria-hidden
+              style={{
+                fontSize: "12px",
+                opacity: 0.55,
+              }}
+            >
+              ✎
+            </span>
           </button>
         </li>
       ))}

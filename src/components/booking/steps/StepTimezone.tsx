@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "@/components/marketing/sf/SFPostFrame.module.css";
 import { StepShell } from "../StepShell";
-import { TIMEZONE_OPTIONS, isKnownTimezone } from "../timezoneOptions";
+import { TIMEZONE_OPTIONS, isKnownTimezone, searchTimezones } from "../timezoneOptions";
 import { useVisitorTimezone } from "../useVisitorTimezone";
 import type { Action } from "../useBookingState";
 import type { Dispatch } from "react";
@@ -25,13 +25,7 @@ export function StepTimezone({ value, error, dispatch }: Props) {
     }
   }, [detected, value, dispatch]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return TIMEZONE_OPTIONS;
-    return TIMEZONE_OPTIONS.filter(
-      (o) => o.value.toLowerCase().includes(q) || o.label.toLowerCase().includes(q)
-    );
-  }, [query]);
+  const filtered = useMemo(() => searchTimezones(query), [query]);
 
   const canContinue = value.length > 0;
   const resolvedLabel = TIMEZONE_OPTIONS.find((o) => o.value === value)?.label

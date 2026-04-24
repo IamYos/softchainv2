@@ -432,7 +432,9 @@ body[data-softchain-cursor="on"] * {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 120;
+  /* Must out-rank any modal/portal content. The cursor is portaled to body
+     and sits above everything else including backdrop-filter layers. */
+  z-index: 9999;
 }
 
 .softchain-cursor-ring,

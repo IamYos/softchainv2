@@ -14,6 +14,36 @@ type Props = {
   dispatch: Dispatch<Action>;
 };
 
+type ApiErrorBody = {
+  error?: string;
+  details?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
+};
+
+const FIELD_LABEL: Record<string, string> = {
+  visitorName: "Name",
+  visitorEmail: "Email",
+  visitorCompany: "Company",
+  topic: "Topic",
+  contactMethod: "Contact method",
+  visitorPhone: "Phone",
+  visitorTimezone: "Timezone",
+  startAtIso: "Time slot",
+  turnstileToken: "Captcha",
+};
+
+function formatApiError(body: ApiErrorBody, status: number): string {
+  const fe = body.details?.fieldErrors;
+  if (fe) {
+    for (const [field, msgs] of Object.entries(fe)) {
+      const msg = msgs?.[0];
+      if (msg) return `${FIELD_LABEL[field] ?? field}: ${msg}`;
+    }
+  }
+  const form = body.details?.formErrors?.[0];
+  if (form) return form;
+  return body.error ?? `Request failed (HTTP ${status}).`;
+}
+
 export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -21,7 +51,14 @@ export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
   const canSubmit = turnstileToken.length > 0 && !isSubmitting;
 
   const onSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      // Surface a message when the user clicks/Enters without a captcha token —
+      // previously this was a silent no-op.
+      if (!isSubmitting && turnstileToken.length === 0) {
+        dispatch({ type: "submitError", message: "Complete the captcha to continue." });
+      }
+      return;
+    }
     dispatch({ type: "submitStart" });
     try {
       const res = await fetch("/api/bookings/create", {
@@ -42,15 +79,21 @@ export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
       });
 
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        dispatch({ type: "submitError", message: body.error ?? `HTTP ${res.status}` });
+        const body = (await res.json().catch(() => ({}))) as ApiErrorBody;
+        if (process.env.NODE_ENV !== "production") {
+          console.error("[booking] submit failed", res.status, body);
+        }
+        dispatch({ type: "submitError", message: formatApiError(body, res.status) });
         return;
       }
 
       const result = (await res.json()) as { ok: true } & SubmitResult;
       dispatch({ type: "submitSuccess", result });
     } catch (e) {
-      dispatch({ type: "submitError", message: (e as Error).message });
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[booking] submit error", e);
+      }
+      dispatch({ type: "submitError", message: (e as Error).message || "Network error." });
     }
   };
 

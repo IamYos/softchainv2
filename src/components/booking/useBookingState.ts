@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer } from "react";
+import { validateEmail, validateName, validatePhone, validateTopic } from "./validators";
 
 export type StepId =
   | "email"
@@ -74,9 +75,6 @@ export const initialState: State = {
   result: null,
 };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const E164_RE = /^\+[1-9]\d{6,14}$/;
-
 // Next-step resolver. Skips `phone` unless contactMethod is whatsapp.
 function nextStep(current: StepId, data: BookingData): StepId | null {
   const order: StepId[] = [
@@ -94,28 +92,16 @@ function nextStep(current: StepId, data: BookingData): StepId | null {
 
 function validateStep(step: StepId, data: BookingData): string | null {
   switch (step) {
-    case "email":
-      return EMAIL_RE.test(data.visitorEmail.trim()) ? null : "Enter a valid email.";
-    case "name":
-      return data.visitorName.trim().length >= 2 ? null : "Name must be at least 2 characters.";
-    case "company":
-      return null; // optional
-    case "timezone":
-      return data.visitorTimezone.length > 0 ? null : "Pick a timezone.";
-    case "date":
-      return data.selectedDate.length > 0 ? null : "Pick a date.";
-    case "time":
-      return data.startAtIso.length > 0 ? null : "Pick a time slot.";
-    case "contactMethod":
-      return data.contactMethod !== "" ? null : "Pick how we'll talk.";
-    case "phone":
-      return E164_RE.test(data.visitorPhone.trim())
-        ? null
-        : "Phone must be international format (e.g. +14155551212).";
-    case "topic":
-      return data.topic.trim().length >= 10 ? null : "Tell us a bit more — at least 10 characters.";
-    default:
-      return null;
+    case "email":         return validateEmail(data.visitorEmail);
+    case "name":          return validateName(data.visitorName);
+    case "company":       return null; // optional
+    case "timezone":      return data.visitorTimezone.length > 0 ? null : "Pick a timezone.";
+    case "date":          return data.selectedDate.length > 0 ? null : "Pick a date.";
+    case "time":          return data.startAtIso.length > 0 ? null : "Pick a time slot.";
+    case "contactMethod": return data.contactMethod !== "" ? null : "Pick how we'll talk.";
+    case "phone":         return validatePhone(data.visitorPhone);
+    case "topic":         return validateTopic(data.topic);
+    default:              return null;
   }
 }
 

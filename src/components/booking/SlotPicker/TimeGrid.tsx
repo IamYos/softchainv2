@@ -48,10 +48,10 @@ export function TimeGrid({ slots, selectedStartIso, onSelect, timezone, ownerTim
             className={styles.p}
             style={{
               padding: "0.5rem",
-              border: `1px solid ${isSelected ? "var(--color-foreground, currentColor)" : "rgba(0,0,0,0.12)"}`,
+              border: `1px solid ${isSelected ? "#202020" : "rgba(32,32,32,0.2)"}`,
               borderRadius: "999px",
-              background: isSelected ? "var(--color-foreground, currentColor)" : "transparent",
-              color: isSelected ? "var(--color-background, white)" : "inherit",
+              background: isSelected ? "#202020" : "transparent",
+              color: isSelected ? "#ff5841" : "inherit",
               cursor: "pointer",
               fontFamily: "inherit",
               display: "flex",

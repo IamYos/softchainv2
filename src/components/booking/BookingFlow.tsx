@@ -86,7 +86,12 @@ export function BookingFlow() {
         <StepContactMethod value={data.contactMethod} error={stepError} dispatch={dispatch} />
       )}
       {currentStep === "phone" && (
-        <StepPhone value={data.visitorPhone} error={stepError} dispatch={dispatch} />
+        <StepPhone
+          value={data.visitorPhone}
+          timezone={data.visitorTimezone}
+          error={stepError}
+          dispatch={dispatch}
+        />
       )}
       {currentStep === "topic" && (
         <StepTopic value={data.topic} error={stepError} dispatch={dispatch} />

@@ -10,13 +10,20 @@ export type SlotsFetchState =
   | { status: "ready"; slots: SlotIso[]; visitorTimezone: string; ownerTimezone: string }
   | { status: "error"; message: string };
 
+// Internal state carries the timezone each response was for, so we can
+// derive "loading" purely from state + props — no synchronous setState
+// inside the effect body.
+type InternalState =
+  | { status: "idle" }
+  | { status: "ready"; slots: SlotIso[]; visitorTimezone: string; ownerTimezone: string }
+  | { status: "error"; message: string; forTimezone: string };
+
 export function useAvailableSlots(timezone: string, days: number): SlotsFetchState {
-  const [state, setState] = useState<SlotsFetchState>({ status: "idle" });
+  const [state, setState] = useState<InternalState>({ status: "idle" });
 
   useEffect(() => {
     if (!timezone) return;
     let cancelled = false;
-    setState({ status: "loading" });
 
     const now = new Date();
     const fromIso = utcToIsoDateInTz(now, timezone);
@@ -47,7 +54,7 @@ export function useAvailableSlots(timezone: string, days: number): SlotsFetchSta
       })
       .catch((err: Error) => {
         if (cancelled) return;
-        setState({ status: "error", message: err.message });
+        setState({ status: "error", message: err.message, forTimezone: timezone });
       });
 
     return () => {
@@ -55,5 +62,16 @@ export function useAvailableSlots(timezone: string, days: number): SlotsFetchSta
     };
   }, [timezone, days]);
 
+  if (!timezone) return { status: "idle" };
+  if (state.status === "idle") return { status: "loading" };
+  if (state.status === "ready" && state.visitorTimezone !== timezone) {
+    return { status: "loading" };
+  }
+  if (state.status === "error" && state.forTimezone !== timezone) {
+    return { status: "loading" };
+  }
+  if (state.status === "error") {
+    return { status: "error", message: state.message };
+  }
   return state;
 }

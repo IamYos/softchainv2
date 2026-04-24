@@ -29,7 +29,10 @@ export function StepShell({
   footnote,
 }: StepShellProps) {
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" && canContinue) {
+    // Always fire onContinue on Enter — when invalid, the parent's reducer
+    // surfaces a step-level error instead of silently doing nothing. Ignore
+    // Enter inside <textarea> so users can write multi-line topics.
+    if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
       e.preventDefault();
       onContinue();
     } else if (e.key === "Escape" && onBack) {
@@ -63,9 +66,10 @@ export function StepShell({
 
       <button
         type="button"
-        disabled={!canContinue}
+        aria-disabled={!canContinue}
         onClick={onContinue}
         className={`${styles.monoPill} ${styles.emailButton} ${styles.p}`}
+        style={!canContinue ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
       >
         {continueLabel}
       </button>
@@ -73,7 +77,11 @@ export function StepShell({
       {(footnote || error || onBack) && (
         <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
           {error && (
-            <p className={styles.p} role="alert" style={{ color: "var(--color-orange, #f60)", margin: 0 }}>
+            <p
+              className={styles.p}
+              role="alert"
+              style={{ color: "#202020", fontWeight: 500, margin: 0 }}
+            >
               {error}
             </p>
           )}

@@ -1,0 +1,229 @@
+.wrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.trigger {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #202020;
+  border-radius: 999px;
+  color: #202020;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 13px;
+  gap: 8px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 8px 14px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  background: #202020;
+  color: #ff5841;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid #202020;
+  outline-offset: 2px;
+}
+
+.triggerFlag {
+  display: block;
+  flex: none;
+  height: 14px;
+  width: 21px;
+  filter: grayscale(1) brightness(0.25) contrast(1.4);
+}
+
+.trigger:hover .triggerFlag,
+.trigger[aria-expanded="true"] .triggerFlag {
+  filter: grayscale(1) brightness(0.85) contrast(1.2);
+}
+
+.caret {
+  height: 10px;
+  width: 10px;
+  opacity: 0.7;
+}
+
+.backdrop {
+  align-items: center;
+  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 16px;
+  position: fixed;
+  z-index: 100;
+}
+
+.panel {
+  background: #202020;
+  border: 1px solid #202020;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  color: #b9b9b9;
+  display: flex;
+  flex-direction: column;
+  max-height: min(640px, calc(100vh - 48px));
+  overflow: hidden;
+  width: min(440px, calc(100vw - 32px));
+}
+
+.header {
+  align-items: center;
+  border-bottom: 1px solid rgba(185, 185, 185, 0.15);
+  display: flex;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.headerTitle {
+  color: #b9b9b9;
+  flex: 1;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  background: transparent;
+  border: 0;
+  color: #b9b9b9;
+  cursor: pointer;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  padding: 6px 8px;
+  text-transform: uppercase;
+  transition: opacity 0.15s ease;
+}
+
+.closeButton:hover {
+  color: #ff5841;
+  opacity: 1;
+}
+
+.searchRow {
+  border-bottom: 1px solid rgba(185, 185, 185, 0.15);
+  padding: 12px 18px;
+}
+
+.searchInput {
+  background: transparent;
+  border: 1px solid rgba(185, 185, 185, 0.3);
+  border-radius: 999px;
+  color: #b9b9b9;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 13px;
+  outline: none;
+  padding: 9px 14px;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+
+.searchInput::placeholder {
+  color: rgba(185, 185, 185, 0.5);
+}
+
+.searchInput:focus {
+  border-color: #ff5841;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 0 10px;
+}
+
+.sectionHeading {
+  color: rgba(185, 185, 185, 0.5);
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 10px 18px 4px;
+  text-transform: uppercase;
+}
+
+.divider {
+  background: rgba(185, 185, 185, 0.15);
+  height: 1px;
+  margin: 8px 0;
+}
+
+.option {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 13px;
+  gap: 12px;
+  letter-spacing: 0.01em;
+  padding: 10px 18px;
+  text-align: left;
+  width: 100%;
+}
+
+.option:hover,
+.option:focus-visible {
+  background: rgba(255, 88, 65, 0.1);
+  outline: none;
+}
+
+.option[aria-selected="true"] {
+  background: rgba(255, 88, 65, 0.22);
+  color: #ff5841;
+}
+
+.optionFlag {
+  display: block;
+  flex: none;
+  height: 16px;
+  width: 24px;
+  filter: grayscale(1) brightness(0.9) contrast(1.1);
+}
+
+.optionName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.optionIso {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+.optionDial {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.empty {
+  color: rgba(185, 185, 185, 0.55);
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 32px 16px;
+  text-align: center;
+  text-transform: uppercase;
+}

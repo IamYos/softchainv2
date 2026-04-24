@@ -1,6 +1,7 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef } from "react";
+import { CSSProperties, useEffect, useRef, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 
 type CustomCursorProps = {
   rgb?: string;
@@ -14,117 +15,71 @@ type ResolvedColor = {
 };
 
 const CURSOR_CONTRAST_RGB = "32, 32, 32";
-const BRAND_ORANGE = { r: 255, g: 88, b: 65 };
 
-function parseResolvedColor(value: string) {
+function parseResolvedColor(value: string): ResolvedColor | null {
   const match = value.match(/rgba?\(([^)]+)\)/i);
+  if (!match) return null;
 
-  if (!match) {
-    return null;
-  }
-
-  const [r, g, b, a = 1] = match[1]
-    .split(",")
-    .map((part) => Number.parseFloat(part.trim()));
-
-  if ([r, g, b, a].some((channel) => Number.isNaN(channel))) {
-    return null;
-  }
-
-  return { r, g, b, a } satisfies ResolvedColor;
+  const parts = match[1].split(",").map((p) => Number.parseFloat(p.trim()));
+  const [r, g, b, a = 1] = parts;
+  if ([r, g, b, a].some((n) => Number.isNaN(n))) return null;
+  return { r, g, b, a };
 }
 
-function getColorDistance(color: ResolvedColor, target: Omit<ResolvedColor, "a">) {
-  return Math.hypot(color.r - target.r, color.g - target.g, color.b - target.b);
+// Perceived brightness in [0,1] — standard luminance weighting.
+function luminance(c: ResolvedColor): number {
+  return (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) / 255;
 }
 
-function getColorCandidates(element: Element) {
-  const style = window.getComputedStyle(element);
-
-  return [
-    style.color,
-    style.backgroundColor,
-    style.borderTopColor,
-    style.borderRightColor,
-    style.borderBottomColor,
-    style.borderLeftColor,
-    style.outlineColor,
-    style.textDecorationColor,
-    style.getPropertyValue("fill"),
-    style.getPropertyValue("stroke"),
-    style.backgroundImage,
-  ];
-}
-
-function isBrandOrangeValue(value: string) {
-  const normalized = value.replace(/\s+/g, "").toLowerCase();
-
-  if (
-    normalized.includes("#ff5841") ||
-    normalized.includes("rgb(255,88,65)") ||
-    normalized.includes("rgba(255,88,65")
-  ) {
-    return true;
+// Effective bg at the pointer: topmost element with a non-transparent
+// background. Walking siblings/ancestors (the old approach) produced the
+// "always black" bug — a dark button inside the orange contact section
+// would still pick up the section color from a parent and flip to contrast,
+// even though the dark surface was directly under the cursor.
+function effectiveBackground(x: number, y: number): ResolvedColor | null {
+  const els = document.elementsFromPoint(x, y);
+  for (const el of els) {
+    const bg = parseResolvedColor(window.getComputedStyle(el).backgroundColor);
+    if (bg && bg.a >= 0.4) return bg;
   }
-
-  const color = parseResolvedColor(value);
-
-  if (!color || color.a < 0.18) {
-    return false;
-  }
-
-  return getColorDistance(color, BRAND_ORANGE) <= 96;
+  return null;
 }
 
-function elementUsesBrandOrange(element: Element | null) {
+function getCursorRgbOverride(element: Element | null): string | null {
   let current = element;
-
-  while (current && current !== document.documentElement) {
-    if (getColorCandidates(current).some(isBrandOrangeValue)) {
-      return true;
-    }
-
-    current = current.parentElement;
-  }
-
-  return false;
-}
-
-function getCursorRgbOverride(element: Element | null) {
-  let current = element;
-
   while (current && current !== document.documentElement) {
     if (current instanceof HTMLElement) {
       const override = current.dataset.softchainCursorRgb;
-
-      if (override) {
-        return override;
-      }
+      if (override) return override;
     }
-
     current = current.parentElement;
   }
-
   return null;
 }
+
+const subscribeNoop = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
   const layerRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLSpanElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
+  // Detect client without a setState-in-effect; needed because the cursor
+  // must live in document.body (not inside the marketing viewport shell —
+  // that shell uses `isolation: isolate`, which traps any z-index inside
+  // its own stacking context, so modals portaled to body would paint above
+  // the cursor).
+  const mounted = useSyncExternalStore(subscribeNoop, getClientSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    if (!window.matchMedia("(pointer: fine)").matches) {
-      return;
-    }
+    if (!mounted) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
 
     const layer = layerRef.current;
     const ring = ringRef.current;
     const dot = dotRef.current;
-
-    if (!layer || !ring || !dot) {
-      return;
-    }
+    if (!layer || !ring || !dot) return;
 
     document.body.dataset.softchainCursor = "on";
     layer.style.setProperty("--softchain-cursor-rgb", rgb);
@@ -144,30 +99,32 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
     };
 
     const setCursorRgb = (nextRgb: string) => {
-      if (nextRgb === activeCursorRgb) {
-        return;
-      }
-
+      if (nextRgb === activeCursorRgb) return;
       activeCursorRgb = nextRgb;
       layer.style.setProperty("--softchain-cursor-rgb", nextRgb);
     };
 
     const syncCursorTone = (clientX: number, clientY: number) => {
-      const hoveredElements = document.elementsFromPoint(clientX, clientY);
-      const overrideRgb = hoveredElements
-        .map((element) => getCursorRgbOverride(element))
-        .find((value): value is string => Boolean(value));
-
-      if (overrideRgb) {
-        setCursorRgb(overrideRgb);
+      // Explicit override wins — any ancestor of any stacked element can pin
+      // the cursor tone via data-softchain-cursor-rgb.
+      const stacked = document.elementsFromPoint(clientX, clientY);
+      const override = stacked
+        .map((el) => getCursorRgbOverride(el))
+        .find((v): v is string => Boolean(v));
+      if (override) {
+        setCursorRgb(override);
         return;
       }
 
-      const shouldUseContrast =
-        hoveredElements.length > 0 &&
-        hoveredElements.some((element) => elementUsesBrandOrange(element));
-
-      setCursorRgb(shouldUseContrast ? CURSOR_CONTRAST_RGB : rgb);
+      // Otherwise pick by what's actually under the cursor — the topmost
+      // opaque background. Light/warm → dark cursor. Dark → orange cursor.
+      const bg = effectiveBackground(clientX, clientY);
+      if (!bg) {
+        setCursorRgb(rgb);
+        return;
+      }
+      const l = luminance(bg);
+      setCursorRgb(l >= 0.55 ? CURSOR_CONTRAST_RGB : rgb);
     };
 
     const onPointerMove = (event: PointerEvent) => {
@@ -192,16 +149,11 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
     };
 
     const onMouseOut = (event: MouseEvent) => {
-      if (!event.relatedTarget) {
-        onPointerLeave();
-      }
+      if (!event.relatedTarget) onPointerLeave();
     };
 
     const onScroll = () => {
-      if (!state.visible) {
-        return;
-      }
-
+      if (!state.visible) return;
       syncCursorTone(state.targetX, state.targetY);
     };
 
@@ -222,7 +174,6 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       state.scale += (state.targetScale - state.scale) * 0.2;
 
       const opacity = state.visible ? 1 : 0;
-
       ring.style.opacity = `${opacity}`;
       dot.style.opacity = `${opacity}`;
       ring.style.transform = `translate3d(${state.x}px, ${state.y}px, 0) scale(${state.scale})`;
@@ -241,9 +192,9 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       window.removeEventListener("scroll", onScroll, true);
       delete document.body.dataset.softchainCursor;
     };
-  }, [rgb]);
+  }, [rgb, mounted]);
 
-  return (
+  const layer = (
     <div
       ref={layerRef}
       aria-hidden="true"
@@ -254,4 +205,7 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
       <span ref={dotRef} className="softchain-cursor-dot" />
     </div>
   );
+
+  if (!mounted) return null;
+  return createPortal(layer, document.body);
 }

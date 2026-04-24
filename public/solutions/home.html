@@ -167,6 +167,126 @@
       --hex-current-7: var(--sc-gray-7);
       --hex-current-8: var(--sc-gray-8);
     }
+
+    /*
+     * Feature-section redesign.
+     *
+     * Architecture reminder (so future edits target the right thing):
+     *   - #engine ............... fixed full-viewport THREE.js canvas that
+     *                              renders the visible 3D scene (circle,
+     *                              shapes, morph, stagger dots, etc.).
+     *                              Shifting this shifts the whole scene.
+     *   - .feature-section-demo . absolute 2D slot centered in viewport,
+     *                              only the draggable chapter actually has
+     *                              visible DOM inside it (#draggable-demo).
+     *   - .home-section-text .... heading + description + bullet links,
+     *                              in-flow inside each feature section.
+     *   - .sub-nav > [data-card]. fixed bottom-right code snippets — we
+     *                              DO NOT touch this, it stays where the
+     *                              engine JS places it.
+     *
+     * Target layout (desktop): animation upper-left, heading bottom-left
+     * underneath, code card unchanged. Mobile: animation upper-center,
+     * heading below full-width, code card unchanged.
+     */
+    @font-face {
+      font-family: "Softchain-NON-Sans";
+      src:
+        url("/fonts/NON-Sans-Medium.woff2") format("woff2"),
+        url("/fonts/NON-Sans-Medium.woff") format("woff");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* Heading-only: drop description + bullet links from every feature
+     * section. The <h2> remains. */
+    .feature-section .home-section-text-heading p,
+    .feature-section .feature-links {
+      display: none !important;
+    }
+
+    /* Softchain typography on the heading — matches hero/about title
+     * spec (NON-Sans Medium, weight 500, tight tracking, line-height 1). */
+    .feature-section .home-section-text h2 {
+      font-family: "Softchain-NON-Sans", Arial, Helvetica, sans-serif !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.055em !important;
+      color: #b9b9b9 !important;
+      line-height: 1 !important;
+      margin: 0 !important;
+    }
+
+    /* Per-letter spans used by the scramble script. Color flickers between
+     * two brand tones during scramble, resolves to gray. */
+    .feature-section .home-section-text h2 [data-scramble-char="true"] {
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+      transition: color 40ms linear;
+      white-space: pre;
+    }
+
+    /* Desktop ------------------------------------------------------- */
+    @media (min-width: 900px) {
+      /* Shift the 3D scene left (no vertical shift — keep it near vertical
+       * center so there's breathing room above the heading below). */
+      body[data-template="home"] #engine {
+        transform: translateX(-22vw);
+      }
+
+      /* 2D demo slot (draggable etc.) sits at the same horizontal position
+       * as the shifted 3D scene, vertically centered. */
+      .feature-section .feature-section-demo {
+        top: 50% !important;
+        left: 28% !important;
+      }
+
+      /* Heading pinned to the bottom-left of each section. */
+      .feature-section .home-section-text {
+        position: fixed !important;
+        pointer-events: none;
+        z-index: 5;
+        bottom: clamp(24px, 5vw, 80px);
+        left: clamp(24px, 4vw, 64px);
+        max-width: min(46%, 560px);
+        width: auto !important;
+        padding: 0 !important;
+      }
+
+      .feature-section .home-section-text h2 {
+        font-size: clamp(36px, 4vw, 64px) !important;
+      }
+    }
+
+    /* Mobile / tablet ----------------------------------------------- */
+    @media (max-width: 899px) {
+      /* Keep the engine centered on narrow viewports. */
+      body[data-template="home"] #engine {
+        transform: none;
+      }
+
+      .feature-section .feature-section-demo {
+        top: 50% !important;
+        left: 50% !important;
+      }
+
+      /* Heading spans full width at the bottom. */
+      .feature-section .home-section-text {
+        position: fixed !important;
+        pointer-events: none;
+        z-index: 5;
+        bottom: clamp(18px, 5vw, 36px);
+        left: clamp(16px, 4vw, 28px);
+        right: clamp(16px, 4vw, 28px);
+        max-width: none !important;
+        width: auto !important;
+        padding: 0 !important;
+      }
+
+      .feature-section .home-section-text h2 {
+        font-size: clamp(28px, 7vw, 44px) !important;
+      }
+    }
   </style>
 </head>
 <script>
@@ -989,5 +1109,149 @@ createTimeline()
 </main>
 <div id="engine"></div>
   </div>
-<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions"></script></body>
+<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions"></script>
+<script>
+  /*
+   * Vanilla port of the ScrambleHeadlineLoop / ScrambleTextReveal React
+   * components used on the Softchain hero/about pages. Runs inside the
+   * iframe (no React available). Triggered by the `is-in-view` class the
+   * anime.js ScrollObserver applies to each feature section — so each
+   * heading scrambles as its chapter becomes active, exactly once.
+   */
+  (function () {
+    const CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    const SCRAMBLE_COLORS = ["#b9b9b9", "#ff5841"];
+    const RESOLVED_COLOR = "#b9b9b9";
+    const TICK_MS = 48;
+    const RESOLVE_START_MS = 120;
+    const RESOLVE_STEP_MS = 55;
+    const TAIL_MS = 220;
+
+    const randomGlyph = () => CHARSET[Math.floor(Math.random() * CHARSET.length)];
+    const randomScrambleColor = () =>
+      SCRAMBLE_COLORS[Math.floor(Math.random() * SCRAMBLE_COLORS.length)];
+
+    function flattenText(h2) {
+      const tmp = document.createElement("div");
+      tmp.innerHTML = h2.innerHTML.replace(/<br\s*\/?>/gi, " ");
+      return tmp.textContent.replace(/\s+/g, " ").trim();
+    }
+
+    function prepHeading(h2) {
+      if (h2.dataset.scrambleReady === "true") return;
+      h2.dataset.scrambleReady = "true";
+
+      const text = flattenText(h2);
+      h2.dataset.scrambleText = text;
+      h2.textContent = "";
+
+      const sr = document.createElement("span");
+      sr.textContent = text;
+      sr.style.cssText =
+        "position:absolute;width:1px;height:1px;clip:rect(0 0 0 0);overflow:hidden;";
+      h2.appendChild(sr);
+
+      const content = document.createElement("span");
+      content.dataset.scrambleContent = "true";
+      content.setAttribute("aria-hidden", "true");
+
+      text.split("").forEach((char) => {
+        const span = document.createElement("span");
+        span.dataset.scrambleChar = "true";
+        span.dataset.char = char;
+        span.textContent = char === " " ? " " : " ";
+        span.style.color = "transparent";
+        content.appendChild(span);
+      });
+
+      h2.appendChild(content);
+    }
+
+    function runScramble(h2) {
+      if (h2.dataset.scrambleDone === "true") return;
+      h2.dataset.scrambleDone = "true";
+
+      const text = h2.dataset.scrambleText || "";
+      const content = h2.querySelector('[data-scramble-content="true"]');
+      if (!content) return;
+      const spans = content.querySelectorAll('[data-scramble-char="true"]');
+      const chars = text.split("");
+
+      const resolvedAt = chars.map((_, i) => RESOLVE_START_MS + i * RESOLVE_STEP_MS);
+      const endAt = resolvedAt[resolvedAt.length - 1] + TAIL_MS;
+      const startedAt = performance.now();
+      let lastTick = startedAt;
+      let frameId = 0;
+
+      const tick = (now) => {
+        const elapsed = now - startedAt;
+        if (now - lastTick >= TICK_MS) {
+          lastTick = now;
+          chars.forEach((char, i) => {
+            const span = spans[i];
+            if (!span) return;
+            if (char === " ") {
+              span.textContent = " ";
+              span.style.color = "transparent";
+              return;
+            }
+            if (elapsed >= resolvedAt[i]) {
+              span.textContent = char;
+              span.style.color = RESOLVED_COLOR;
+            } else {
+              span.textContent = randomGlyph();
+              span.style.color = randomScrambleColor();
+            }
+          });
+        }
+        if (elapsed < endAt) {
+          frameId = requestAnimationFrame(tick);
+          return;
+        }
+        chars.forEach((char, i) => {
+          const span = spans[i];
+          if (!span) return;
+          span.textContent = char;
+          span.style.color = char === " " ? "transparent" : RESOLVED_COLOR;
+        });
+      };
+
+      frameId = requestAnimationFrame(tick);
+      // Safety: stop any orphaned frame loop after a comfortable margin.
+      window.setTimeout(() => cancelAnimationFrame(frameId), endAt + 500);
+    }
+
+    function init() {
+      const sections = document.querySelectorAll(".feature-section");
+      sections.forEach((section) => {
+        const h2 = section.querySelector(".home-section-text h2");
+        if (!h2) return;
+        prepHeading(h2);
+
+        // If a section is already marked in-view (landing on it at load),
+        // defer a frame so the character spans are laid out first.
+        if (section.classList.contains("is-in-view")) {
+          requestAnimationFrame(() => runScramble(h2));
+        }
+
+        const observer = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            if (m.attributeName === "class" && section.classList.contains("is-in-view")) {
+              runScramble(h2);
+              return;
+            }
+          }
+        });
+        observer.observe(section, { attributes: true, attributeFilter: ["class"] });
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  })();
+</script>
+</body>
 </html>
