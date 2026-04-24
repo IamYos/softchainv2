@@ -41,7 +41,9 @@ describe("booking reducer", () => {
       { type: "setField", field: "startAtIso", value: "2026-05-04T13:00:00.000Z" },
       { type: "advance" }, // time → contactMethod
       { type: "setField", field: "contactMethod", value: "zoom" },
-      { type: "advance" }, // contactMethod → topic (phone skipped for non-WA)
+      { type: "advance" }, // contactMethod → phone (phone is always collected)
+      { type: "setField", field: "visitorPhone", value: "+14155551212" },
+      { type: "advance" }, // phone → topic
       { type: "setField", field: "topic", value: "Exploring a software build for a client portal." },
       { type: "advance" }, // topic → submit
     ]);
@@ -49,7 +51,8 @@ describe("booking reducer", () => {
     expect(step(final)).toBe("submit");
     expect(final.completedSteps).toContain("email");
     expect(final.completedSteps).toContain("contactMethod");
-    expect(final.data.visitorPhone).toBe("");
+    expect(final.completedSteps).toContain("phone");
+    expect(final.data.visitorPhone).toBe("+14155551212");
   });
 
   it("routes through phone step when contactMethod is whatsapp", () => {

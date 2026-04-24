@@ -7,7 +7,7 @@ const baseInput = {
   visitorCompany: null,
   topic: "Discuss a consulting engagement for our Q3 launch.",
   contactMethod: "meet" as const,
-  visitorPhone: null,
+  visitorPhone: "+14155551212",
   visitorTimezone: "America/New_York",
   startAtIso: "2026-05-04T13:00:00.000Z",
   turnstileToken: "dummy-token",
@@ -15,13 +15,13 @@ const baseInput = {
 };
 
 describe("createBookingInputSchema", () => {
-  it("accepts a valid non-whatsapp booking with no phone", () => {
+  it("accepts a valid booking with a phone", () => {
     const result = createBookingInputSchema.safeParse(baseInput);
     expect(result.success).toBe(true);
   });
 
-  it("requires a phone when contactMethod is whatsapp", () => {
-    const input = { ...baseInput, contactMethod: "whatsapp" as const, visitorPhone: null };
+  it("requires a phone regardless of contact method", () => {
+    const input = { ...baseInput, contactMethod: "meet" as const, visitorPhone: null };
     const result = createBookingInputSchema.safeParse(input);
     expect(result.success).toBe(false);
   });

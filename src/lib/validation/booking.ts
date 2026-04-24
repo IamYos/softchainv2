@@ -17,8 +17,7 @@ const companySchema = z.string().trim().max(200).nullable();
 const phoneSchema = z
   .string()
   .trim()
-  .regex(/^\+[1-9]\d{6,14}$/, "Phone must be in E.164 format (e.g. +14155551212)")
-  .nullable();
+  .regex(/^\+[1-9]\d{6,14}$/, "Phone must be in E.164 format (e.g. +14155551212)");
 
 const utcIsoSchema = z
   .string()
@@ -38,9 +37,6 @@ export const createBookingInputSchema = z
     turnstileToken: z.string().min(1),
     website_url: z.string().max(500).optional().default(""),
   })
-  .refine(
-    (d) => d.contactMethod !== "whatsapp" || !!d.visitorPhone,
-    { path: ["visitorPhone"], message: "Phone required for WhatsApp" }
-  );
+  ;
 
 export type CreateBookingInput = z.infer<typeof createBookingInputSchema>;

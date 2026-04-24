@@ -75,19 +75,16 @@ export const initialState: State = {
   result: null,
 };
 
-// Next-step resolver. Skips `phone` unless contactMethod is whatsapp.
-function nextStep(current: StepId, data: BookingData): StepId | null {
+// Next-step resolver. Phone is always shown — we collect a number from every
+// visitor regardless of their chosen contact method.
+function nextStep(current: StepId): StepId | null {
   const order: StepId[] = [
     "email", "name", "company", "timezone",
     "date", "time", "contactMethod", "phone", "topic", "submit",
   ];
   const idx = order.indexOf(current);
   if (idx < 0 || idx >= order.length - 1) return null;
-  let next = order[idx + 1];
-  if (next === "phone" && data.contactMethod !== "whatsapp") {
-    next = order[idx + 2];
-  }
-  return next;
+  return order[idx + 1];
 }
 
 function validateStep(step: StepId, data: BookingData): string | null {
@@ -117,7 +114,7 @@ export function reducer(state: State, action: Action): State {
     case "advance": {
       const err = validateStep(state.currentStep, state.data);
       if (err) return { ...state, stepError: err };
-      const next = nextStep(state.currentStep, state.data);
+      const next = nextStep(state.currentStep);
       if (!next) return state;
       return {
         ...state,

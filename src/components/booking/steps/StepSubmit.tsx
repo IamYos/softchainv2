@@ -70,7 +70,7 @@ export function StepSubmit({ data, error, isSubmitting, dispatch }: Props) {
           visitorCompany: data.visitorCompany.trim() ? data.visitorCompany.trim() : null,
           topic: data.topic.trim(),
           contactMethod: data.contactMethod,
-          visitorPhone: data.contactMethod === "whatsapp" ? data.visitorPhone.trim() : null,
+          visitorPhone: data.visitorPhone.trim(),
           visitorTimezone: data.visitorTimezone,
           startAtIso: data.startAtIso,
           turnstileToken,

@@ -31,6 +31,16 @@ function luminance(c: ResolvedColor): number {
   return (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) / 255;
 }
 
+// Luminance of the two cursor tones we can pick between.
+const ORANGE_LUM = (0.299 * 255 + 0.587 * 88 + 0.114 * 65) / 255; // ≈ 0.53
+const CONTRAST_LUM = 32 / 255; // ≈ 0.125
+
+function contrast(a: number, b: number): number {
+  const hi = Math.max(a, b) + 0.05;
+  const lo = Math.min(a, b) + 0.05;
+  return hi / lo;
+}
+
 // Effective bg at the pointer: topmost element with a non-transparent
 // background. Walking siblings/ancestors (the old approach) produced the
 // "always black" bug — a dark button inside the orange contact section
@@ -116,15 +126,18 @@ export function CustomCursor({ rgb = "255, 88, 65" }: CustomCursorProps) {
         return;
       }
 
-      // Otherwise pick by what's actually under the cursor — the topmost
-      // opaque background. Light/warm → dark cursor. Dark → orange cursor.
+      // Otherwise pick whichever tone (orange vs near-black) has the higher
+      // contrast ratio against the topmost opaque background. This handles
+      // every surface: orange section → dark cursor, dark buttons/modal →
+      // orange cursor, light/gray surfaces → dark cursor.
       const bg = effectiveBackground(clientX, clientY);
       if (!bg) {
         setCursorRgb(rgb);
         return;
       }
-      const l = luminance(bg);
-      setCursorRgb(l >= 0.55 ? CURSOR_CONTRAST_RGB : rgb);
+      const bgLum = luminance(bg);
+      const useContrast = contrast(bgLum, CONTRAST_LUM) > contrast(bgLum, ORANGE_LUM);
+      setCursorRgb(useContrast ? CURSOR_CONTRAST_RGB : rgb);
     };
 
     const onPointerMove = (event: PointerEvent) => {
