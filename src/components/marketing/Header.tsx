@@ -344,6 +344,11 @@ export function Header({ currentPage }: HeaderProps) {
   const handleNavItemClick = (item: HeaderNavItem) => {
     const resolvedItem = resolveHeaderNavItem(item, currentPage);
 
+    if (resolvedItem.kind === "scroll-top") {
+      queueOrRunScroll(0, 1);
+      return;
+    }
+
     if (resolvedItem.kind === "scroll") {
       scrollToTarget(resolvedItem.target);
       return;
@@ -364,14 +369,8 @@ export function Header({ currentPage }: HeaderProps) {
   };
 
   const handlePrimaryClick = () => {
-    const destination = getContactDestination(currentPage);
-
-    if (destination.kind === "scroll") {
-      scrollToTarget(destination.target);
-      return;
-    }
-
-    queueOrRunHref(destination.href);
+    const destination = getContactDestination();
+    scrollToTarget(destination.target);
   };
 
   return (

@@ -37,7 +37,12 @@ export function StepEmail({ value, error, dispatch }: Props) {
         id="book-email"
         type="email"
         autoComplete="email"
-        autoFocus
+        // No autoFocus on the first step — the booking flow lives at the bottom
+        // of every marketing page, and autoFocus on initial mount makes the
+        // browser scroll the input into view, which jumped the page straight
+        // to the CTA on every refresh. Subsequent steps (StepName, StepCompany,
+        // …) still autoFocus because they only mount after the user has clicked
+        // Continue, so focus follows the user's intent there.
         className={styles.emailInput}
         placeholder="Enter your email"
         value={value}

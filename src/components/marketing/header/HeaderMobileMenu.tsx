@@ -79,8 +79,15 @@ export function HeaderMobileMenu({
                 <button
                   key={item.label}
                   type="button"
+                  // Active item uses the panel's *opposite* accent so it never
+                  // sits the-same-color on its background:
+                  //   mobile panel = #ff5841 (orange) → active text = #b9b9b9 (gray)
+                  //   desktop panel = #b9b9b9 (gray)  → active text = #ff5841 (orange)
+                  // Inactive items stay dark — readable on both panel colors.
                   className={`w-fit cursor-pointer py-2 text-left transition-opacity duration-200 hover:opacity-70 ${
-                    item.isActive ? "text-[#ff5841] opacity-100" : "text-[#202020]"
+                    item.isActive
+                      ? "text-[#b9b9b9] opacity-100 md:text-[#ff5841]"
+                      : "text-[#202020]"
                   }`}
                   onClick={() => onItemClick(item)}
                   aria-current={item.isActive ? "page" : undefined}

@@ -49,6 +49,11 @@ export function SmoothScroll({ children, overlay }: SmoothScrollProps) {
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
 
+  // No scroll-restoration handling here — that runs synchronously in the
+  // root layout's <head> via an inline script, before the browser would
+  // otherwise restore the previous Y. Doing it in a useEffect causes a
+  // visible flash because hydration runs after restoration.
+
   const scrollTo = useCallback(
     (target: string | number, options?: { duration?: number }) => {
       const behavior: ScrollBehavior = options?.duration === 0 ? "auto" : "smooth";

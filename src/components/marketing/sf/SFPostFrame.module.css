@@ -671,12 +671,11 @@
   min-height: 100svh;
   overflow: hidden;
   position: relative;
-}
-
-@media screen and (max-width: 749px) {
-  .contactSection {
-    padding-top: 80px;
-  }
+  /* Override the global .marketing-anchor offset — anchor jumps to this
+     section land flush with the viewport top so the previous section never
+     bleeds into view. The fixed header sits over the section's top region;
+     .contactContent's padding-top below clears it. */
+  scroll-margin-top: 0;
 }
 
 .contactContent {
@@ -685,7 +684,9 @@
   min-height: 100svh;
   justify-content: space-between;
   padding-bottom: 40px;
-  padding-top: 64px;
+  /* Clears the 72px fixed header + breathing room so the title isn't tucked
+     under the header when the section lands flush with the viewport. */
+  padding-top: var(--mf-anchor-offset);
   position: relative;
 }
 

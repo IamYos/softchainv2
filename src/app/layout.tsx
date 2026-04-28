@@ -106,6 +106,16 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+// Disable browser-native scroll restoration BEFORE the document is parsed.
+// If we set this in a useEffect, the browser has already restored the prior
+// scroll position by the time React hydrates — the user sees a flash to the
+// old Y, then a snap to top. Setting it inline in <head> runs synchronously
+// during HTML parse, before scroll restoration, so refreshes always start at
+// the top with no visible jump. Hash navigation (#section) is unaffected —
+// that's a separate browser mechanism that scrollRestoration doesn't gate.
+const SCROLL_RESTORATION_SCRIPT =
+  'if("scrollRestoration"in history)history.scrollRestoration="manual";';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -113,6 +123,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCROLL_RESTORATION_SCRIPT }} />
+      </head>
       <body
         className={`${auxMono.variable} ${nonSans.variable} ${ppEditorial.variable} antialiased`}
       >

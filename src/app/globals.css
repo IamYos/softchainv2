@@ -59,9 +59,13 @@ body {
   color: var(--mf-text-heading);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* Intentionally NOT setting `scroll-behavior: smooth` here.
+   That property forces every scroll change — including Next.js's automatic
+   "scroll to top after route navigation" — to animate. The result was a
+   bouncy "scroll up from the previous page's position" on every link click.
+   In-page smooth scrolls (Book a Call, hash anchors) opt in explicitly via
+   `scrollIntoView({ behavior: "smooth" })` / `window.scrollTo({ behavior })`
+   in JavaScript, so we get smoothness only where we want it. */
 
 body {
   font-family: var(--font-non-sans), Arial, Helvetica, sans-serif;

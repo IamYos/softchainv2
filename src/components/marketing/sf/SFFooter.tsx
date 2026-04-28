@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
+import { useLenis } from "@/components/marketing/SmoothScroll";
 import {
   getHeaderNavHref,
   HEADER_MENU_SECONDARY_ITEMS,
+  resolveHeaderNavItem,
+  type HeaderNavItem,
   type MarketingPageContext,
 } from "@/components/marketing/header/navigation";
 import styles from "./SFPostFrame.module.css";
@@ -14,6 +18,32 @@ type SFFooterProps = {
 };
 
 export function SFFooter({ currentPage }: SFFooterProps) {
+  const lenis = useLenis();
+  const router = useRouter();
+
+  const handleNavClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    item: HeaderNavItem,
+  ) => {
+    // Let modified clicks (cmd/ctrl/middle/shift) follow the visible href so
+    // "open in new tab" / new window still work as a normal link.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+
+    const resolved = resolveHeaderNavItem(item, currentPage);
+    if (resolved.kind === "scroll-top") {
+      lenis?.scrollTo(0, { duration: 1 });
+      return;
+    }
+    if (resolved.kind === "scroll") {
+      lenis?.scrollTo(`#${resolved.target}`, { duration: 1.2 });
+      return;
+    }
+    router.push(resolved.href);
+  };
+
   return (
     <footer id="footer" className={`${styles.sectionRoot} ${styles.footerSection}`}>
       <div className={styles.wrapper} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
@@ -39,7 +69,12 @@ export function SFFooter({ currentPage }: SFFooterProps) {
               <ul className={`${styles.footerNav} ${styles.footerNavSecondary}`}>
                 {HEADER_MENU_SECONDARY_ITEMS.map((item) => (
                   <li key={item.label} className={`${styles.footerNavItem} ${styles.p2}`}>
-                    <a href={getHeaderNavHref(item, currentPage)}>{item.label}</a>
+                    <a
+                      href={getHeaderNavHref(item, currentPage)}
+                      onClick={(event) => handleNavClick(event, item)}
+                    >
+                      {item.label}
+                    </a>
                   </li>
                 ))}
               </ul>
