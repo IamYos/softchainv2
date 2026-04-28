@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
 import styles from "./SFPostFrame.module.css";
 import { TechStackGrid } from "./TechStackGrid";
@@ -7,7 +8,7 @@ const FEATURED_INSIGHT = {
   date: "Lifecycle",
   description:
     "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",
-  href: "#closing-cta",
+  href: "/insights",
 };
 
 const INSIGHTS = [
@@ -90,12 +91,12 @@ function FeaturedPanel() {
           <p className={`${styles.featureDescription} ${styles.p}`}>
             {FEATURED_INSIGHT.description}
           </p>
-          <a
+          <Link
             href={FEATURED_INSIGHT.href}
             className={`${styles.monoPill} ${styles.featureButton} ${styles.p}`}
           >
             Read More
-          </a>
+          </Link>
         </div>
       </div>
     </div>
