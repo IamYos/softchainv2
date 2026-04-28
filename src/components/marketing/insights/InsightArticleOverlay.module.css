@@ -1,0 +1,131 @@
+/* The overlay sits in the wrapper's normal flow (NOT absolute) so the
+   wrapper's height tracks the overlay's actual content height — short
+   articles render in a short box, no oceans of empty black underneath.
+   The wrapper has overflow:hidden which clips the off-screen portion of
+   the slide-down animation. */
+.overlay {
+  background: #202020;
+  color: #b9b9b9;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-aux-mono), monospace;
+  /* Sized to content, with a comfortable floor (≈ one card height) and a
+     viewport-relative ceiling for long articles. When content exceeds the
+     ceiling, internal scroll kicks in; default overscroll-behavior chains
+     the gesture into the page scroll once the overlay's scroll runs out. */
+  min-height: clamp(360px, 60vh, 480px);
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  width: 100%;
+  /* Slide in from above — `overflow: hidden` on the parent wrapper clips
+     the off-screen portion. Slow, deliberate easing. */
+  animation: insightOverlaySlideDown 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.backButton {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(185, 185, 185, 0.3);
+  border-radius: 999px;
+  color: #b9b9b9;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 12px;
+  gap: 10px;
+  left: clamp(20px, 3vw, 32px);
+  letter-spacing: 0.08em;
+  padding: 10px 18px 10px 14px;
+  position: absolute;
+  text-transform: uppercase;
+  top: clamp(20px, 3vw, 28px);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+  z-index: 1;
+}
+
+.backButton:hover,
+.backButton:focus-visible {
+  background: #b9b9b9;
+  border-color: #b9b9b9;
+  color: #202020;
+  outline: none;
+}
+
+.backArrow {
+  flex: none;
+  height: 12px;
+  width: 16px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 2.6vw, 32px);
+  margin: 0 auto;
+  max-width: 760px;
+  padding: clamp(80px, 12vh, 120px) clamp(24px, 5vw, 56px) clamp(48px, 6vh, 72px);
+  width: 100%;
+}
+
+.metaRow {
+  align-items: center;
+  color: rgba(185, 185, 185, 0.6);
+  display: flex;
+  font-size: 12px;
+  gap: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metaDivider {
+  opacity: 0.5;
+}
+
+.title {
+  color: #b9b9b9;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: clamp(28px, 4.4vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.body {
+  color: rgba(185, 185, 185, 0.85);
+  font-family: var(--font-aux-mono), monospace;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag {
+  border: 1px solid rgba(185, 185, 185, 0.3);
+  border-radius: 999px;
+  color: #b9b9b9;
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  text-transform: uppercase;
+}
+
+@keyframes insightOverlaySlideDown {
+  from {
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}

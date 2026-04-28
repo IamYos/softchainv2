@@ -1,8 +1,8 @@
 export const SOLUTIONS_PAGE_CONTENT = {
   hero: {
     word: "Solutions.",
-    cardTitle: "Engineering, AI, infrastructure, and support under one team.",
+    cardTitle: "One delivery model for software, AI, infrastructure, and management.",
     cardBody:
-      "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",
+      "Projects move from scoping and architecture into build, integration, deployment, and support without split ownership.",
   },
 } as const;

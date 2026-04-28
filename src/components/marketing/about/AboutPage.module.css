@@ -122,7 +122,11 @@
   left: 0;
   min-width: 0;
   position: absolute;
-  width: min(100%, 1040px);
+  /* Reserves the card's column (520 width + 28 right offset + 24 gap = 572)
+     so the wordmark can't bleed into it. fitMode="width" then shrinks the
+     font-size with the constrained width, so vertical overlap is also
+     avoided regardless of word length. */
+  width: min(100%, 1040px, calc(100% - 572px));
   z-index: 2;
 }
 

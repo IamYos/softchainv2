@@ -138,7 +138,7 @@ function SolutionsEngine() {
       <div className={styles.engineSticky}>
         <iframe
           ref={iframeRef}
-          title="Anime.js homepage solutions"
+          title="Softchain solutions scene"
           src="/solutions/home.html"
           className={styles.engineFrame}
           onLoad={handleLoad}

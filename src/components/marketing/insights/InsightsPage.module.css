@@ -107,7 +107,14 @@
   left: 0;
   min-width: 0;
   position: absolute;
-  width: min(100%, 1040px);
+  /* Width reserves the card's column: 520px (card max-width) + 28px (its right
+     offset) + 24px (gap). On wide screens (≥~1620px) the card and the word
+     don't compete and the word stays at 1040px. On narrower viewports the
+     calc() wins, the word shrinks, and because fitMode="width" drives the
+     font-size from the container width, the word also shrinks vertically —
+     so it can never reach into the card horizontally OR overlap it
+     vertically, regardless of word length. */
+  width: min(100%, 1040px, calc(100% - 572px));
   z-index: 2;
 }
 
@@ -174,8 +181,7 @@
 }
 
 .featuredTitle,
-.tracksTitle,
-.libraryTitle {
+.tracksTitle {
   font-family: var(--font-non-sans), Arial, sans-serif;
   font-weight: 500;
   letter-spacing: 0;
@@ -281,21 +287,90 @@
 }
 
 .libraryIntro {
-  align-items: end;
-  display: grid;
-  gap: 32px;
-  grid-template-columns: minmax(0, 0.36fr) minmax(0, 0.64fr);
-  margin-bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 56px;
+  min-width: 0;
 }
 
 .libraryIntro .sectionEyebrow {
   margin: 0;
 }
 
+.libraryTitleWrap {
+  /* No overflow:hidden here — that was clipping descenders / right-edge
+     letters when the line was sized close to the container width. The
+     wrapper just constrains width and adds breathing room below. */
+  min-width: 0;
+  padding-bottom: 0.12em;
+  width: 100%;
+}
+
+.libraryScrambleHeading {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
 .libraryTitle {
-  font-size: 3.5rem;
+  /* fitMode="width" drives the actual font-size via --scramble-fit-font-size.
+     Above the desktop breakpoint we hold the line to a single row (nowrap),
+     so the headline scales up to fill the width. Below it (mobile/portrait)
+     we let it wrap so the words stay readable instead of being clipped by
+     the section padding. */
+  color: #202020;
+  font-family: var(--font-non-sans), Arial, sans-serif;
+  font-size: var(--scramble-fit-font-size, clamp(36px, 10vw, 280px));
+  font-weight: 500;
+  letter-spacing: -0.045em;
   line-height: 0.98;
-  max-width: 14ch;
+  margin: 0;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 1024px) {
+  .libraryTitle {
+    /* Below the desktop breakpoint we let the headline wrap. With wrapping
+       enabled, the fit-to-container algorithm (fitMode="width") cannot
+       constrain the font size — wrapped lines always satisfy the width
+       check, so the binary search runs to maxFontSizePx and the headline
+       balloons. We bypass the fit variable here and size from the viewport
+       directly via clamp(). */
+    font-size: clamp(28px, 6vw, 64px);
+    white-space: normal;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .libraryTitle {
+    font-size: clamp(24px, 7vw, 44px);
+    letter-spacing: -0.035em;
+  }
+}
+
+.libraryTitle [data-scramble-word="true"] {
+  padding-bottom: 0.06em;
+}
+
+/* The wrap is the positioning + clipping context for the slide-down article
+   overlay. Relative so the overlay's transform is anchored here; overflow
+   hidden so the off-screen portion of the slide-in is clipped at the top
+   edge of the block. scroll-margin-top is the scroll target offset — when
+   an article opens we scrollIntoView this wrap (not the overlay, which is
+   mid-transform at scroll time and would land at the wrong Y), so the
+   overlay's final resting top sits cleanly below the fixed header. */
+.articleGridWrap {
+  overflow: hidden;
+  position: relative;
+  /* Header-clearance for scrollIntoView. Header height is fixed (72px) so
+     the floor uses it directly; the breathing room is 1vh so it scales
+     with viewport instead of the fixed 24px in --mf-anchor-offset. Range:
+     ~78px on a 600px-tall window, ~83px on a 1080px window — noticeably
+     tighter than the previous 96px. */
+  scroll-margin-top: calc(var(--mf-header-height) + 1vh);
 }
 
 .articleGrid {
@@ -304,15 +379,29 @@
 }
 
 .articleCard {
+  /* The card is a <button> now (clickable to open the article overlay) —
+     reset the user-agent defaults so it renders identically to the previous
+     <article>: transparent bg, inherited font, left-aligned text, full
+     grid-cell width, pointer cursor. */
+  background: transparent;
   border: 1px solid #8b8b8b;
   border-bottom: 0;
   color: #202020;
+  cursor: pointer;
   display: grid;
+  font: inherit;
   min-height: 420px;
   padding: 24px;
+  text-align: left;
   transition:
     background 0.2s ease,
     color 0.2s ease;
+  width: 100%;
+}
+
+.articleCard:focus-visible {
+  outline: 2px solid #202020;
+  outline-offset: -1px;
 }
 
 .articleGrid > *:nth-last-child(-n + 3) .articleCard {
@@ -448,14 +537,8 @@
   }
 
   .featuredTitle,
-  .tracksTitle,
-  .libraryTitle {
+  .tracksTitle {
     font-size: 3rem;
-  }
-
-  .libraryIntro {
-    align-items: start;
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -501,8 +584,7 @@
   }
 
   .featuredTitle,
-  .tracksTitle,
-  .libraryTitle {
+  .tracksTitle {
     font-size: 2.25rem;
   }
 
