@@ -185,9 +185,9 @@
      *                              DO NOT touch this, it stays where the
      *                              engine JS places it.
      *
-     * Target layout (desktop): animation upper-left, heading bottom-left
-     * underneath, code card unchanged. Mobile: animation upper-center,
-     * heading below full-width, code card unchanged.
+     * Target layout: animation and heading share one responsive stage.
+     * The title panel is centered on the animation's visual centerline,
+     * underneath the ring, while the code card stays unchanged.
      */
     @font-face {
       font-family: "Softchain-NON-Sans";
@@ -212,13 +212,36 @@
       font-family: "Softchain-NON-Sans", Arial, Helvetica, sans-serif !important;
       font-weight: 500 !important;
       letter-spacing: -0.055em !important;
-      color: #b9b9b9 !important;
+      color: #202020 !important;
       line-height: 1 !important;
       margin: 0 !important;
+      max-width: 100%;
+      min-width: 0;
+      overflow: visible;
+      text-align: center;
+      width: 100%;
     }
 
     /* Per-letter spans used by the scramble script. Color flickers between
      * two brand tones during scramble, resolves to gray. */
+    .feature-section .home-section-text h2 [data-scramble-content="true"] {
+      align-items: baseline;
+      column-gap: 0.18em;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 100%;
+      min-width: 0;
+      overflow: visible;
+      row-gap: 0.04em;
+      width: 100%;
+    }
+
+    .feature-section .home-section-text h2 [data-scramble-word="true"] {
+      display: inline-flex;
+      white-space: nowrap;
+    }
+
     .feature-section .home-section-text h2 [data-scramble-char="true"] {
       display: inline-block;
       font-variant-numeric: tabular-nums;
@@ -226,65 +249,142 @@
       white-space: pre;
     }
 
+    .feature-section .home-section-text h2 [data-scramble-space="true"] {
+      display: none;
+    }
+
+    :root {
+      --solutions-animation-scale: 0.8;
+      --solutions-stage-x: 25vw;
+      --solutions-stage-y: 40svh;
+      --solutions-stage-radius: min(17vw, 32svh);
+      --solutions-heading-gap: clamp(16px, 2.5svh, 28px);
+      --solutions-heading-top: calc(
+        var(--solutions-stage-y) + var(--solutions-stage-radius) + var(--solutions-heading-gap)
+      );
+      --solutions-heading-width: min(42vw, 760px);
+    }
+
+    body[data-template="home"] #engine,
+    .feature-section .feature-section-demo {
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    .feature-section .home-section-text {
+      align-items: center;
+      background: #b9b9b9;
+      border: 1px solid rgba(32, 32, 32, 0.28);
+      border-radius: 0.2rem;
+      box-sizing: border-box;
+      color: #202020;
+      justify-content: center;
+      opacity: 0 !important;
+      overflow: visible;
+      padding: clamp(10px, 1.5vw, 16px) clamp(18px, 2.8vw, 32px) !important;
+      visibility: hidden;
+      transition:
+        opacity 160ms ease,
+        visibility 0s linear 160ms;
+    }
+
+    .feature-section.is-active-heading .home-section-text {
+      opacity: 1 !important;
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
     /* Desktop ------------------------------------------------------- */
     @media (min-width: 900px) {
-      /* Shift the 3D scene left (no vertical shift — keep it near vertical
-       * center so there's breathing room above the heading below). */
+      /* Shift the 3D scene up-left so the heading has room underneath. */
       body[data-template="home"] #engine {
-        transform: translateX(-22vw);
+        transform: translate3d(
+          calc(var(--solutions-stage-x) - 50vw),
+          calc(var(--solutions-stage-y) - 50svh),
+          0
+        ) scale(var(--solutions-animation-scale));
       }
 
       /* 2D demo slot (draggable etc.) sits at the same horizontal position
        * as the shifted 3D scene, vertically centered. */
       .feature-section .feature-section-demo {
-        top: 50% !important;
-        left: 28% !important;
+        top: var(--solutions-stage-y) !important;
+        left: var(--solutions-stage-x) !important;
+        transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Heading pinned to the bottom-left of each section. */
+      /* Heading panel sits below the animation footprint, not over it. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
-        z-index: 5;
-        bottom: clamp(24px, 5vw, 80px);
-        left: clamp(24px, 4vw, 64px);
-        max-width: min(46%, 560px);
-        width: auto !important;
-        padding: 0 !important;
+        z-index: 20;
+        bottom: auto;
+        left: var(--solutions-stage-x);
+        max-width: min(760px, calc(100vw - 48px)) !important;
+        top: var(--solutions-heading-top);
+        transform: translateX(-50%);
+        width: fit-content !important;
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(36px, 4vw, 64px) !important;
+        font-size: clamp(30px, 2.6vw, 46px) !important;
       }
     }
 
     /* Mobile / tablet ----------------------------------------------- */
     @media (max-width: 899px) {
+      :root {
+        --solutions-animation-scale: 0.78;
+        --solutions-stage-x: 50vw;
+        --solutions-stage-y: 45svh;
+        --solutions-stage-radius: min(34vw, 31svh);
+        --solutions-heading-gap: clamp(14px, 2.25svh, 28px);
+        --solutions-heading-width: min(calc(100vw - 32px), 560px);
+      }
+
       /* Keep the engine centered on narrow viewports. */
       body[data-template="home"] #engine {
-        transform: none;
+        transform: translate3d(
+          calc(var(--solutions-stage-x) - 50vw),
+          calc(var(--solutions-stage-y) - 50svh),
+          0
+        ) scale(var(--solutions-animation-scale));
       }
 
       .feature-section .feature-section-demo {
-        top: 50% !important;
-        left: 50% !important;
+        top: var(--solutions-stage-y) !important;
+        left: var(--solutions-stage-x) !important;
+        transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Heading spans full width at the bottom. */
+      /* Heading panel stays centered below the animation on narrow screens. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
-        z-index: 5;
-        bottom: clamp(18px, 5vw, 36px);
-        left: clamp(16px, 4vw, 28px);
-        right: clamp(16px, 4vw, 28px);
-        max-width: none !important;
-        width: auto !important;
-        padding: 0 !important;
+        z-index: 20;
+        bottom: auto;
+        left: var(--solutions-stage-x);
+        max-width: var(--solutions-heading-width) !important;
+        right: auto;
+        top: var(--solutions-heading-top);
+        transform: translateX(-50%);
+        width: fit-content !important;
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(28px, 7vw, 44px) !important;
+        font-size: clamp(20px, 5.2vw, 32px) !important;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --solutions-animation-scale: 0.75;
+        --solutions-stage-y: 44svh;
+        --solutions-stage-radius: min(35vw, 29svh);
+      }
+
+      .feature-section .home-section-text h2 {
+        font-size: clamp(20px, 5.1vw, 28px) !important;
       }
     }
   </style>
@@ -1120,8 +1220,8 @@ createTimeline()
    */
   (function () {
     const CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    const SCRAMBLE_COLORS = ["#b9b9b9", "#ff5841"];
-    const RESOLVED_COLOR = "#b9b9b9";
+    const SCRAMBLE_COLORS = ["#202020", "#ff5841"];
+    const RESOLVED_COLOR = "#202020";
     const TICK_MS = 48;
     const RESOLVE_START_MS = 120;
     const RESOLVE_STEP_MS = 55;
@@ -1155,13 +1255,28 @@ createTimeline()
       content.dataset.scrambleContent = "true";
       content.setAttribute("aria-hidden", "true");
 
-      text.split("").forEach((char) => {
+      const appendScrambleChar = (parent, char) => {
         const span = document.createElement("span");
         span.dataset.scrambleChar = "true";
         span.dataset.char = char;
+        if (/\s/.test(char)) span.dataset.scrambleSpace = "true";
         span.textContent = char === " " ? " " : " ";
         span.style.color = "transparent";
-        content.appendChild(span);
+        parent.appendChild(span);
+      };
+
+      text.split(/(\s+)/).forEach((token) => {
+        if (!token) return;
+
+        if (/^\s+$/.test(token)) {
+          token.split("").forEach((char) => appendScrambleChar(content, char));
+          return;
+        }
+
+        const word = document.createElement("span");
+        word.dataset.scrambleWord = "true";
+        token.split("").forEach((char) => appendScrambleChar(word, char));
+        content.appendChild(word);
       });
 
       h2.appendChild(content);
@@ -1223,6 +1338,25 @@ createTimeline()
 
     function init() {
       const sections = document.querySelectorAll(".feature-section");
+
+      function setActiveHeading(activeSection) {
+        sections.forEach((section) => {
+          section.classList.toggle("is-active-heading", section === activeSection);
+        });
+      }
+
+      function getLastInViewSection() {
+        const inView = Array.from(sections).filter((section) =>
+          section.classList.contains("is-in-view"),
+        );
+        return inView[inView.length - 1] || null;
+      }
+
+      const initialActiveSection = getLastInViewSection();
+      if (initialActiveSection) {
+        setActiveHeading(initialActiveSection);
+      }
+
       sections.forEach((section) => {
         const h2 = section.querySelector(".home-section-text h2");
         if (!h2) return;
@@ -1231,18 +1365,33 @@ createTimeline()
         // If a section is already marked in-view (landing on it at load),
         // defer a frame so the character spans are laid out first.
         if (section.classList.contains("is-in-view")) {
+          setActiveHeading(section);
           requestAnimationFrame(() => runScramble(h2));
         }
 
         const observer = new MutationObserver((mutations) => {
           for (const m of mutations) {
-            if (m.attributeName === "class" && section.classList.contains("is-in-view")) {
-              runScramble(h2);
+            if (m.attributeName === "class") {
+              const wasInView = (m.oldValue || "").split(/\s+/).includes("is-in-view");
+              const isInView = section.classList.contains("is-in-view");
+              if (wasInView === isInView) {
+                return;
+              }
+              if (isInView) {
+                setActiveHeading(section);
+                runScramble(h2);
+              } else if (section.classList.contains("is-active-heading")) {
+                setActiveHeading(getLastInViewSection());
+              }
               return;
             }
           }
         });
-        observer.observe(section, { attributes: true, attributeFilter: ["class"] });
+        observer.observe(section, {
+          attributes: true,
+          attributeFilter: ["class"],
+          attributeOldValue: true,
+        });
       });
     }
 

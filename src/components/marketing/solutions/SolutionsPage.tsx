@@ -9,6 +9,8 @@ import { SFFooter } from "@/components/marketing/sf/SFFooter";
 import { SOLUTIONS_PAGE_CONTENT } from "./solutionsContent";
 import styles from "./SolutionsPage.module.css";
 
+const FEATURE_START_SCROLL = 1;
+
 function SolutionsHero() {
   return (
     <section
@@ -81,12 +83,15 @@ function SolutionsEngine() {
     const rect = section.getBoundingClientRect();
     const outerRunway = section.offsetHeight - window.innerHeight;
     if (outerRunway <= 0 || internalRunwayRef.current <= 0) {
-      win.scrollTo(0, 0);
+      win.scrollTo(0, FEATURE_START_SCROLL);
       return;
     }
     const scrolled = Math.max(0, Math.min(outerRunway, -rect.top));
     const progress = scrolled / outerRunway;
-    win.scrollTo(0, progress * internalRunwayRef.current);
+    const targetScroll =
+      FEATURE_START_SCROLL +
+      progress * Math.max(0, internalRunwayRef.current - FEATURE_START_SCROLL);
+    win.scrollTo(0, targetScroll);
   }, []);
 
   const handleLoad = useCallback(() => {
@@ -103,6 +108,10 @@ function SolutionsEngine() {
     }
     measureRunway();
     syncScroll();
+    requestAnimationFrame(() => {
+      measureRunway();
+      syncScroll();
+    });
   }, [measureRunway, syncScroll]);
 
   useEffect(() => {
