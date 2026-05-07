@@ -11,7 +11,7 @@ import styles from "./SolutionsPage.module.css";
 
 const FEATURE_START_SCROLL = 1;
 const SOLUTIONS_ENGINE_SRC =
-  "/solutions/home.html?v=softchain-snippet-ui-20260507";
+  "/solutions/home.html?v=softchain-progress-ui-20260507";
 
 function SolutionsHero() {
   return (

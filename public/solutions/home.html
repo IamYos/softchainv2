@@ -331,8 +331,7 @@
      * (.sub-nav, which is the transform-defined containing block on
      * both desktop and mobile), leaving room at the bottom for the
      * progress bar. The transition lets the slide-from-bottom +
-     * fade-in animate smoothly when the active chapter changes
-     * (replaces scripts.js's showCard which is skipped on mobile). */
+     * fade-in animate smoothly when the active chapter changes. */
     .sub-nav > pre[data-card] {
       position: fixed !important;
       top: 0 !important;
@@ -354,6 +353,7 @@
       color: #b9b9b9;
       font-size: clamp(11px, 2.8vw, 13px) !important;
       line-height: 1.48 !important;
+      overflow-wrap: anywhere;
       white-space: pre-wrap !important;
     }
 
@@ -398,6 +398,14 @@
       width: auto !important;
       max-width: none !important;
       margin: 0 !important;
+    }
+
+    .sub-nav .scroll-cursor:not(.scroll-cursor-ghost) {
+      background-color: #ff5841 !important;
+    }
+
+    .sub-nav .scroll-cursor-ghost {
+      background-color: rgba(185, 185, 185, 0.42) !important;
     }
 
     .feature-section .home-section-text {
@@ -556,6 +564,7 @@
       }
 
       .feature-section .home-section-text-heading {
+        gap: clamp(5px, 0.8svh, 8px);
         justify-items: center;
       }
 
@@ -587,22 +596,15 @@
         z-index: 20;
       }
 
-      /* Bundled scripts.js skips the showCard() animation on mobile for
-       * cards that contain `<code>` (`!s.matches.minM` short-circuits),
-       * so the active chapter's card stays at opacity:0 / translateY(120%).
-       * Override here using :has() to detect which chapter is active and
-       * force the matching card visible. !important beats inline styles. */
-      body:has(.feature-section.is-active-heading[data-chapter="intuitive"]) .sub-nav > pre[data-card="intuitive"],
-      body:has(.feature-section.is-active-heading[data-chapter="composition"]) .sub-nav > pre[data-card="composition"],
-      body:has(.feature-section.is-active-heading[data-chapter="scroll"]) .sub-nav > pre[data-card="scroll"],
-      body:has(.feature-section.is-active-heading[data-chapter="staggering"]) .sub-nav > pre[data-card="staggering"],
-      body:has(.feature-section.is-active-heading[data-chapter="svgUtils"]) .sub-nav > pre[data-card="svgUtils"],
-      body:has(.feature-section.is-active-heading[data-chapter="draggable"]) .sub-nav > pre[data-card="draggable"],
-      body:has(.feature-section.is-active-heading[data-chapter="clockwork"]) .sub-nav > pre[data-card="clockwork"],
-      body:has(.feature-section.is-active-heading[data-chapter="responsive"]) .sub-nav > pre[data-card="responsive"] {
-        opacity: 1 !important;
-        transform: translateY(0) !important;
+      .sub-nav > pre[data-card] {
+        padding: clamp(11px, 3.1vw, 20px) !important;
       }
+
+      .sub-nav > pre[data-card] code {
+        font-size: clamp(8.5px, min(2.35vw, 1.22svh), 12px) !important;
+        line-height: 1.38 !important;
+      }
+
     }
 
     @media (max-width: 560px) {
@@ -1181,37 +1183,6 @@ and support as the business changes.</span>
 
 <span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">a technology model with ownership the company can rely on</span>
 </code></pre>
-    <div class="modules-sizes home-section-card text-layout" data-card="modules" data-enter-offset="-=50lvh" data-leave-offset="-=150lvh">
-      <div class="box-heading">
-        <h3>Bundle size</h3>
-        <div class="modules-bundle-size"><span class="size">24.50</span> KB</div>
-      </div>
-      <div class="modules-sizes-chart chart">
-        <div data-size="3.50" class="chart-bar module-waapi color-waapi"></div>
-        <div data-size="0.55" class="chart-bar module-timeline color-timeline"></div>
-        <div data-size="0.48" class="chart-bar module-stagger color-utils"></div>
-        <div data-size="0.35" class="chart-bar module-svg color-svg"></div>
-        <div data-size="0.52" class="chart-bar module-spring color-easings"></div>
-        <div data-size="5.60" class="chart-bar module-timer color-timer"></div>
-        <div data-size="4.30" class="chart-bar module-scroll color-events"></div>
-        <div data-size="5.20" class="chart-bar module-animation color-animation"></div>
-        <div data-size="6.41" class="chart-bar module-draggable color-draggable"></div>
-        <div data-size="0.22" class="chart-bar module-scope color-scope"></div>
-      </div>
-      <ul class="modules-list">
-        <li><span class="label-dot color-timer"></span>Timer <span class="size">5.60 KB</span></li>
-        <li><span class="label-dot color-animation"></span>Animation <span class="size">+5.20 KB</span></li>
-        <li><span class="label-dot color-timeline"></span>Timeline <span class="size">+0.55 KB</span></li>
-        <li><span class="label-dot color-animatable"></span>Animatable <span class="size">+0.40 KB</span></li>
-        <li><span class="label-dot color-draggable"></span>Draggable <span class="size">+6.41 KB</span></li>
-        <li><span class="label-dot color-events"></span>Scroll <span class="size">+4.30 KB</span></li>
-        <li><span class="label-dot color-scope"></span>Scope <span class="size">+0.22 KB</span></li>
-        <li><span class="label-dot color-svg"></span>SVG <span class="size">0.35 KB</span></li>
-        <li><span class="label-dot color-utils"></span>Stagger <span class="size">+0.48 KB</span></li>
-        <li><span class="label-dot color-easings"></span>Spring <span class="size">0.52 KB</span></li>
-        <li><span class="label-dot color-waapi"></span>WAAPI <span class="size">3.50 KB</span></li>
-      </ul>
-    </div>
   </div>
   <footer id="site-footer" class="layout-container" data-color="fg">
   <div id="site-footer-content">
@@ -1497,6 +1468,40 @@ and support as the business changes.</span>
       window.setTimeout(() => cancelAnimationFrame(frameId), endAt + 500);
     }
 
+    const MOBILE_MEDIA = window.matchMedia("(max-width: 899px)");
+
+    function fitSolutionSnippets() {
+      const cards = document.querySelectorAll(".sub-nav > pre[data-card]");
+      if (!MOBILE_MEDIA.matches) {
+        cards.forEach((card) => {
+          const code = card.querySelector("code");
+          if (code) code.style.removeProperty("font-size");
+        });
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        cards.forEach((card) => {
+          const code = card.querySelector("code");
+          if (!code || card.clientHeight <= 0 || card.clientWidth <= 0) return;
+
+          code.style.removeProperty("font-size");
+          let size = parseFloat(getComputedStyle(code).fontSize) || 10;
+          const minSize = 7.5;
+          const maxIterations = 14;
+          code.style.fontSize = `${size}px`;
+
+          for (let i = 0; i < maxIterations; i += 1) {
+            const tooTall = code.scrollHeight > card.clientHeight;
+            const tooWide = code.scrollWidth > card.clientWidth;
+            if ((!tooTall && !tooWide) || size <= minSize) break;
+            size -= 0.5;
+            code.style.fontSize = `${size}px`;
+          }
+        });
+      });
+    }
+
     function init() {
       const sections = document.querySelectorAll(".feature-section");
 
@@ -1504,6 +1509,7 @@ and support as the business changes.</span>
         sections.forEach((section) => {
           section.classList.toggle("is-active-heading", section === activeSection);
         });
+        fitSolutionSnippets();
       }
 
       function getLastInViewSection() {
@@ -1554,6 +1560,11 @@ and support as the business changes.</span>
           attributeOldValue: true,
         });
       });
+
+      fitSolutionSnippets();
+      window.addEventListener("resize", fitSolutionSnippets, { passive: true });
+      MOBILE_MEDIA.addEventListener("change", fitSolutionSnippets);
+      if (document.fonts?.ready) document.fonts.ready.then(fitSolutionSnippets);
     }
 
     if (document.readyState === "loading") {

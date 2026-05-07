@@ -3,11 +3,21 @@
 import { useEffect, useRef } from "react";
 import styles from "./InsightArticleOverlay.module.css";
 
+export type InsightArticleBlock =
+  | { type: "p"; text: string }
+  | { type: "list"; items: readonly string[] };
+
+export type InsightArticleSection = {
+  heading?: string;
+  blocks: readonly InsightArticleBlock[];
+};
+
 export type InsightArticle = {
   label: string;
   readTime: string;
   title: string;
   description: string;
+  body: readonly InsightArticleSection[];
   tags: readonly string[];
 };
 
@@ -78,7 +88,28 @@ export function InsightArticleOverlay({ article, onClose }: Props) {
 
         <h1 className={styles.title}>{article.title}</h1>
 
-        <p className={styles.body}>{article.description}</p>
+        {article.body.map((section, sIdx) => (
+          <section key={sIdx} className={styles.section}>
+            {section.heading && (
+              <h2 className={styles.sectionHeading}>{section.heading}</h2>
+            )}
+            {section.blocks.map((block, bIdx) =>
+              block.type === "p" ? (
+                <p key={bIdx} className={styles.body}>
+                  {block.text}
+                </p>
+              ) : (
+                <ul key={bIdx} className={styles.list}>
+                  {block.items.map((item, iIdx) => (
+                    <li key={iIdx} className={styles.listItem}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ),
+            )}
+          </section>
+        ))}
 
         <div className={styles.tags} aria-label="Tags">
           {article.tags.map((tag) => (
