@@ -265,21 +265,66 @@
     }
 
     :root {
-      --solutions-animation-scale: 0.8;
+      /* Engine scale shrinks on narrower viewports so the ring never
+       * bleeds across the left/right boundary. clamp() keeps it
+       * between 0.42 (small/square screens) and 0.85 (wide). */
+      --solutions-animation-scale: clamp(0.42, calc(40vw / 1000px), 0.85);
       --solutions-stage-x: 25vw;
       --solutions-stage-y: 40svh;
-      --solutions-stage-radius: min(22vw, 38svh);
+      /* Conservative radius estimate so the title never overlaps the
+       * actual rendered ring, even on square viewports. */
+      --solutions-stage-radius: min(28vw, 42svh);
       --solutions-heading-gap: clamp(28px, 4.5svh, 56px);
       --solutions-heading-top: calc(
         var(--solutions-stage-y) + var(--solutions-stage-radius) + var(--solutions-heading-gap)
       );
-      --solutions-heading-width: min(42vw, 760px);
     }
 
     body[data-template="home"] #engine,
     .feature-section .feature-section-demo {
       transform-origin: center center;
       will-change: transform;
+    }
+
+    /* Hide the copy / copy-error icon that scripts.js injects into
+     * each <pre data-card>. */
+    .sub-nav .copy-button {
+      display: none !important;
+    }
+
+    /* Each chapter's code snippet stretches to fill its container
+     * (.sub-nav, which is the transform-defined containing block on
+     * both desktop and mobile), leaving room at the bottom for the
+     * progress bar. The transition lets the slide-from-bottom +
+     * fade-in animate smoothly when the active chapter changes
+     * (replaces scripts.js's showCard which is skipped on mobile). */
+    .sub-nav > pre[data-card] {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: clamp(44px, 7svh, 72px) !important;
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: clamp(16px, 2vw, 28px) !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      transition: opacity 350ms ease, transform 350ms ease !important;
+    }
+
+    /* Progress bar pinned to .sub-nav's bottom, full width. */
+    .sub-nav .home-progress-card {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: auto !important;
+      width: auto !important;
+      max-width: none !important;
+      margin: 0 !important;
     }
 
     .feature-section .home-section-text {
@@ -346,20 +391,42 @@
       .feature-section .home-section-text h2 {
         font-size: clamp(24px, 2.2vw, 38px) !important;
       }
+
+      /* Right-half panel — `transform` makes .sub-nav the containing
+       * block for its position:fixed descendants. The cards keep their
+       * own anchor coords from scripts.js (so animations stay intact);
+       * they just resolve those coords inside this inset right-half
+       * box instead of the viewport. overflow:hidden kills any
+       * scrollbar that fixed children would otherwise produce. */
+      .sub-nav {
+        position: fixed !important;
+        top: clamp(20px, 5svh, 56px) !important;
+        bottom: clamp(20px, 5svh, 56px) !important;
+        left: calc(50vw + clamp(16px, 2vw, 32px)) !important;
+        right: clamp(16px, 2vw, 32px) !important;
+        width: auto !important;
+        height: auto !important;
+        transform: translate(0, 0) !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+      }
     }
 
     /* Mobile / tablet ----------------------------------------------- */
+    /* VERTICAL 25/75 split:
+     *   top    25svh → engine (left half) + title (right half) side-by-side
+     *   bottom 75svh → code snippet + progress bar, full width
+     */
     @media (max-width: 899px) {
       :root {
-        --solutions-animation-scale: 0.78;
-        --solutions-stage-x: 50vw;
-        --solutions-stage-y: 45svh;
-        --solutions-stage-radius: min(38vw, 36svh);
-        --solutions-heading-gap: clamp(22px, 3.5svh, 40px);
-        --solutions-heading-width: min(calc(100vw - 32px), 560px);
+        --solutions-animation-scale: 0.32;
+        --solutions-stage-x: 25vw;
+        /* Push engine center below the iframe's own navbar so the ring
+         * never crosses into the header area. */
+        --solutions-stage-y: 16svh;
+        --solutions-stage-radius: min(18vw, 10svh);
       }
 
-      /* Keep the engine centered on narrow viewports. */
       body[data-template="home"] #engine {
         transform: translate3d(
           calc(var(--solutions-stage-x) - 50vw),
@@ -374,37 +441,79 @@
         transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Heading panel stays centered below the animation on narrow screens,
-       * full width of the section. */
+      /* Title is positioned with its vertical CENTER on the engine's
+       * vertical center (--solutions-stage-y), so engine + title sit
+       * side-by-side on the same horizontal line. The translateY(-50%)
+       * does the centering — no fixed height needed, so the box always
+       * fits the title text and resizes dynamically. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
-        z-index: 20;
-        bottom: auto;
-        left: 0 !important;
+        z-index: 30;
+        bottom: auto !important;
+        left: 50vw !important;
         right: 0 !important;
-        max-width: 100% !important;
-        padding-left: 16px !important;
-        padding-right: 16px !important;
-        top: var(--solutions-heading-top);
-        transform: none !important;
-        width: 100% !important;
+        max-width: 50vw !important;
+        width: 50vw !important;
+        padding: 12px !important;
+        top: var(--solutions-stage-y) !important;
+        height: auto !important;
+        transform: translateY(-50%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(18px, 4.4vw, 26px) !important;
+        font-size: clamp(14px, 4vw, 22px) !important;
+      }
+
+      /* .sub-nav owns the bottom 75svh, inset from the viewport edges
+       * so the cards don't hug the screen corners. transform makes it
+       * the containing block for its position:fixed children, and
+       * overflow:hidden kills any spurious scrollbar from cards. */
+      .sub-nav {
+        position: fixed !important;
+        top: 25svh !important;
+        bottom: clamp(12px, 2.5svh, 28px) !important;
+        left: clamp(12px, 3vw, 24px) !important;
+        right: clamp(12px, 3vw, 24px) !important;
+        width: auto !important;
+        height: auto !important;
+        transform: translate(0, 0) !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        z-index: 20;
+      }
+
+      /* Bundled scripts.js skips the showCard() animation on mobile for
+       * cards that contain `<code>` (`!s.matches.minM` short-circuits),
+       * so the active chapter's card stays at opacity:0 / translateY(120%).
+       * Override here using :has() to detect which chapter is active and
+       * force the matching card visible. !important beats inline styles. */
+      body:has(.feature-section.is-active-heading[data-chapter="intuitive"]) .sub-nav > pre[data-card="intuitive"],
+      body:has(.feature-section.is-active-heading[data-chapter="composition"]) .sub-nav > pre[data-card="composition"],
+      body:has(.feature-section.is-active-heading[data-chapter="scroll"]) .sub-nav > pre[data-card="scroll"],
+      body:has(.feature-section.is-active-heading[data-chapter="staggering"]) .sub-nav > pre[data-card="staggering"],
+      body:has(.feature-section.is-active-heading[data-chapter="svgUtils"]) .sub-nav > pre[data-card="svgUtils"],
+      body:has(.feature-section.is-active-heading[data-chapter="draggable"]) .sub-nav > pre[data-card="draggable"],
+      body:has(.feature-section.is-active-heading[data-chapter="clockwork"]) .sub-nav > pre[data-card="clockwork"],
+      body:has(.feature-section.is-active-heading[data-chapter="responsive"]) .sub-nav > pre[data-card="responsive"] {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
       }
     }
 
     @media (max-width: 560px) {
       :root {
-        --solutions-animation-scale: 0.75;
-        --solutions-stage-y: 44svh;
-        --solutions-stage-radius: min(35vw, 29svh);
+        --solutions-animation-scale: 0.28;
+        --solutions-stage-x: 25vw;
+        --solutions-stage-y: 16svh;
+        --solutions-stage-radius: min(18vw, 10svh);
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(18px, 4.6vw, 24px) !important;
+        font-size: clamp(13px, 4vw, 20px) !important;
       }
     }
   </style>
