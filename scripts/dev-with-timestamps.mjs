@@ -13,6 +13,7 @@ const nextBin =
 const child = spawn(nextBin, ["dev", ...args], {
   stdio: ["inherit", "pipe", "pipe"],
   env: { ...process.env, FORCE_COLOR: "1" },
+  shell: true,
 });
 
 function pad(value) {

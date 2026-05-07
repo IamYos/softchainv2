@@ -221,14 +221,21 @@ export function AboutProcessSection() {
       const bodyRect = processBody.getBoundingClientRect();
       const visualRect = processVisual.getBoundingClientRect();
       const detailRect = processDetail.getBoundingClientRect();
+      const viewBoxAspect = PROCESS_VIEWBOX.width / PROCESS_VIEWBOX.height;
+      const svgAspect = visualRect.width / Math.max(1, visualRect.height);
+      const contentWidth =
+        svgAspect > viewBoxAspect ? visualRect.height * viewBoxAspect : visualRect.width;
+      const contentHeight =
+        svgAspect > viewBoxAspect ? visualRect.height : visualRect.width / viewBoxAspect;
       const connectorLeft =
         visualRect.left -
         bodyRect.left +
-        visualRect.width * (processAnchorX / PROCESS_VIEWBOX.width);
+        contentWidth * (processAnchorX / PROCESS_VIEWBOX.width);
       const connectorTop =
         visualRect.top -
         bodyRect.top +
-        visualRect.height * (getStageTopY(activeStageIndex) / PROCESS_VIEWBOX.height);
+        (visualRect.height - contentHeight) +
+        contentHeight * (getStageTopY(activeStageIndex) / PROCESS_VIEWBOX.height);
       const connectorEnd = detailRect.left - bodyRect.left - 40;
 
       setConnectorMetrics({

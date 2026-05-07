@@ -17,6 +17,7 @@ export function SoftchainMark({ className = "" }: SoftchainMarkProps) {
           src="/softchain-logo.png"
           alt=""
           fill
+          priority
           sizes="130px"
           className="object-contain object-left"
         />
@@ -29,6 +30,7 @@ export function SoftchainMark({ className = "" }: SoftchainMarkProps) {
           src="/softchain-logo-gray.png"
           alt=""
           fill
+          priority
           sizes="130px"
           className="object-contain object-left"
         />
