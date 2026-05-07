@@ -82,10 +82,6 @@ function getStageLabelY(index: number) {
   return PROCESS_VIEWBOX.anchorY - (PROCESS_STAGE_RADII[index] + PROCESS_STAGE_RADII[index - 1]);
 }
 
-function getStageTopY(index: number) {
-  return PROCESS_VIEWBOX.anchorY - PROCESS_STAGE_RADII[index] * 2;
-}
-
 function getStageLabelLines(label: readonly string[]) {
   const startOffset = ((label.length - 1) * PROCESS_LABEL_LINE_HEIGHT) / 2;
 
@@ -101,9 +97,7 @@ function clampStageIndex(index: number) {
 
 export function AboutProcessSection() {
   const sceneRef = useRef<HTMLElement>(null);
-  const processBodyRef = useRef<HTMLDivElement>(null);
   const processVisualRef = useRef<SVGSVGElement>(null);
-  const processDetailRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [sceneDistance, setSceneDistance] = useState(0);
   const [hoveredStage, setHoveredStage] = useState<number | null>(null);
@@ -111,11 +105,6 @@ export function AboutProcessSection() {
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [isSceneVisible, setIsSceneVisible] = useState(true);
   const [binaryRows, setBinaryRows] = useState<string[]>(() => [...INITIAL_BINARY_ROWS]);
-  const [connectorMetrics, setConnectorMetrics] = useState<{
-    left: number;
-    top: number;
-    width: number;
-  } | null>(null);
 
   useEffect(() => {
     const updateViewportMode = () => {
@@ -202,66 +191,6 @@ export function AboutProcessSection() {
     setSelectedStage(clampStageIndex(nextIndex));
   };
 
-  useEffect(() => {
-    const processBody = processBodyRef.current;
-    const processVisual = processVisualRef.current;
-    const processDetail = processDetailRef.current;
-
-    if (
-      isCompactViewport ||
-      !processBody ||
-      !processVisual ||
-      !processDetail ||
-      typeof ResizeObserver === "undefined"
-    ) {
-      return;
-    }
-
-    const updateConnectorMetrics = () => {
-      const bodyRect = processBody.getBoundingClientRect();
-      const visualRect = processVisual.getBoundingClientRect();
-      const detailRect = processDetail.getBoundingClientRect();
-      const viewBoxAspect = PROCESS_VIEWBOX.width / PROCESS_VIEWBOX.height;
-      const svgAspect = visualRect.width / Math.max(1, visualRect.height);
-      const contentWidth =
-        svgAspect > viewBoxAspect ? visualRect.height * viewBoxAspect : visualRect.width;
-      const contentHeight =
-        svgAspect > viewBoxAspect ? visualRect.height : visualRect.width / viewBoxAspect;
-      const connectorLeft =
-        visualRect.left -
-        bodyRect.left +
-        contentWidth * (processAnchorX / PROCESS_VIEWBOX.width);
-      const connectorTop =
-        visualRect.top -
-        bodyRect.top +
-        (visualRect.height - contentHeight) +
-        contentHeight * (getStageTopY(activeStageIndex) / PROCESS_VIEWBOX.height);
-      const connectorEnd = detailRect.left - bodyRect.left - 40;
-
-      setConnectorMetrics({
-        left: connectorLeft,
-        top: connectorTop,
-        width: Math.max(0, connectorEnd - connectorLeft),
-      });
-    };
-
-    updateConnectorMetrics();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateConnectorMetrics();
-    });
-
-    resizeObserver.observe(processBody);
-    resizeObserver.observe(processVisual);
-    resizeObserver.observe(processDetail);
-    window.addEventListener("resize", updateConnectorMetrics);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", updateConnectorMetrics);
-    };
-  }, [activeStageIndex, isCompactViewport, processAnchorX]);
-
   return (
     <section
       ref={sceneRef}
@@ -304,21 +233,7 @@ export function AboutProcessSection() {
           </div>
         </div>
 
-        <div className={styles.processBody} ref={processBodyRef}>
-          {!isCompactViewport && connectorMetrics ? (
-            <div
-              className={styles.processConnector}
-              style={
-                {
-                  left: `${connectorMetrics.left}px`,
-                  top: `${connectorMetrics.top}px`,
-                  width: `${connectorMetrics.width}px`,
-                } as CSSProperties
-              }
-              aria-hidden="true"
-            />
-          ) : null}
-
+        <div className={styles.processBody}>
           <div className={styles.processVisual}>
             <div className={styles.processVisualField}>
               <svg
@@ -414,7 +329,7 @@ export function AboutProcessSection() {
             </div>
           </div>
 
-          <aside className={styles.processDetail} ref={processDetailRef}>
+          <aside className={styles.processDetail}>
             <div className={styles.processDetailInner}>
               <p className={styles.processDetailKicker}>{activeStage.title}</p>
               <p className={styles.processDetailBody}>{activeStage.description}</p>

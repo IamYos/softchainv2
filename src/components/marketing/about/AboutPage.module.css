@@ -221,6 +221,10 @@
   display: inline-flex;
 }
 
+.processCountCurrent {
+  color: #ff5841;
+}
+
 .processCountDivider {
   color: rgba(185, 185, 185, 0.44);
 }
@@ -281,14 +285,6 @@
   position: relative;
 }
 
-.processConnector {
-  background: rgba(185, 185, 185, 0.22);
-  height: 1px;
-  position: absolute;
-  transform: translateY(-0.5px);
-  z-index: 1;
-}
-
 .processSvg {
   display: block;
   height: auto;
@@ -342,7 +338,7 @@
 }
 
 .processDetailKicker {
-  color: #b9b9b9;
+  color: #ff5841;
   font-family: var(--font-aux-mono), monospace;
   font-size: 13px;
   letter-spacing: 0.08em;
@@ -390,7 +386,7 @@
 }
 
 .processDetailStageActive {
-  color: #b9b9b9;
+  color: #ff5841;
   padding-left: 14px;
 }
 
@@ -838,10 +834,6 @@
     width: min(100%, 760px);
   }
 
-  .processConnector {
-    display: none;
-  }
-
   .processDetail {
     display: none;
   }
@@ -868,7 +860,7 @@
   .processCompactStageActive {
     background: rgba(185, 185, 185, 0.08);
     border-color: rgba(185, 185, 185, 0.32);
-    color: #b9b9b9;
+    color: #ff5841;
   }
 
   .processCompactStageIndex,
@@ -1030,10 +1022,6 @@
 
   .processVisualField {
     min-height: min(45svh, 90cqw);
-  }
-
-  .processConnector {
-    display: none;
   }
 
   .processSvg {
