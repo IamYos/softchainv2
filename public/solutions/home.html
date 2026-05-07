@@ -185,9 +185,9 @@
      *                              DO NOT touch this, it stays where the
      *                              engine JS places it.
      *
-     * Target layout: animation and heading share one responsive stage.
-     * The title panel is centered on the animation's visual centerline,
-     * underneath the ring, while the code card stays unchanged.
+     * Target layout: animation and solution copy share one responsive stage.
+     * The text panel carries the title, subtitle, and body while the code
+     * card stays in the right/bottom preview area.
      */
     @font-face {
       font-family: "Softchain-NON-Sans";
@@ -209,38 +209,31 @@
       font-display: swap;
     }
 
-    /* Heading-only: drop description + bullet links from every feature
-     * section. The <h2> remains. */
-    .feature-section .home-section-text-heading p,
-    .feature-section .feature-links {
-      display: none !important;
-    }
-
-    /* Softchain typography on the heading — AuxMono "hacking" face
-     * on a transparent panel; dynamic sizing via clamp on viewport units. */
+    /* Softchain typography on the section panel. Keep the resolved heading
+     * color aligned with the website light gray. */
     .feature-section .home-section-text h2 {
-      font-family: "Softchain-Aux-Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace !important;
-      font-weight: 400 !important;
-      letter-spacing: -0.01em !important;
-      color: #f0f0f0 !important;
-      line-height: 1.08 !important;
+      font-family: "Softchain-NON-Sans", Arial, Helvetica, sans-serif !important;
+      font-weight: 500 !important;
+      letter-spacing: 0 !important;
+      color: #b9b9b9 !important;
+      line-height: 0.98 !important;
       margin: 0 !important;
       max-width: 100%;
       min-width: 0;
       overflow: visible;
-      text-align: center;
+      text-align: left;
       text-transform: none;
       width: 100%;
     }
 
     /* Per-letter spans used by the scramble script. Color flickers during
-     * scramble, resolves to off-white on the dark engine backdrop. */
+     * scramble, resolves to the website light gray on the dark backdrop. */
     .feature-section .home-section-text h2 [data-scramble-content="true"] {
       align-items: baseline;
       column-gap: 0.22em;
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-start;
       max-width: 100%;
       min-width: 0;
       overflow: visible;
@@ -264,13 +257,44 @@
       display: none;
     }
 
+    .feature-section .home-section-text-heading {
+      display: grid;
+      gap: clamp(8px, 1.2svh, 14px);
+      width: 100%;
+    }
+
+    .feature-section .home-section-text-heading p {
+      color: #b9b9b9;
+      font-family: "Softchain-NON-Sans", Arial, Helvetica, sans-serif;
+      letter-spacing: 0;
+      margin: 0;
+      max-width: 36rem;
+      text-wrap: pretty;
+      text-transform: none;
+    }
+
+    .feature-section .feature-subtitle {
+      color: #b9b9b9 !important;
+      font-size: clamp(15px, 1.08vw, 19px);
+      line-height: 1.34;
+    }
+
+    .feature-section .feature-body {
+      font-size: clamp(13px, 0.9vw, 15px);
+      line-height: 1.48;
+    }
+
+    .feature-section .feature-links {
+      display: none !important;
+    }
+
     :root {
       /* Engine scale shrinks on narrower viewports so the ring never
-       * bleeds across the left/right boundary. clamp() keeps it
-       * between 0.42 (small/square screens) and 0.85 (wide). */
-      --solutions-animation-scale: clamp(0.42, calc(40vw / 1000px), 0.85);
+       * bleeds into the text or code zones. clamp() keeps it between
+       * 0.34 on smaller/square screens and 0.72 on wide screens. */
+      --solutions-animation-scale: clamp(0.34, calc(34vw / 1000px), 0.72);
       --solutions-stage-x: 25vw;
-      --solutions-stage-y: 40svh;
+      --solutions-stage-y: 32svh;
       /* Conservative radius estimate so the title never overlaps the
        * actual rendered ring, even on square viewports. */
       --solutions-stage-radius: min(28vw, 42svh);
@@ -292,6 +316,17 @@
       display: none !important;
     }
 
+    [data-card="sponsors"],
+    .funding-level-box,
+    funding-level,
+    sponsors-list,
+    sponsor-button,
+    a[href*="github.com/sponsors"],
+    .sponsor-button {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
     /* Each chapter's code snippet stretches to fill its container
      * (.sub-nav, which is the transform-defined containing block on
      * both desktop and mobile), leaving room at the bottom for the
@@ -303,7 +338,7 @@
       top: 0 !important;
       left: 0 !important;
       right: 0 !important;
-      bottom: clamp(44px, 7svh, 72px) !important;
+      bottom: clamp(36px, 6svh, 56px) !important;
       width: auto !important;
       height: auto !important;
       max-width: none !important;
@@ -313,6 +348,44 @@
       overflow: hidden !important;
       box-sizing: border-box !important;
       transition: opacity 350ms ease, transform 350ms ease !important;
+    }
+
+    .sub-nav > pre[data-card] code {
+      color: #b9b9b9;
+      font-size: clamp(11px, 2.8vw, 13px) !important;
+      line-height: 1.48 !important;
+      white-space: pre-wrap !important;
+    }
+
+    .sub-nav > pre[data-card] .snippet-comment {
+      color: #6f6f6f;
+    }
+
+    .sub-nav > pre[data-card] .snippet-key,
+    .sub-nav > pre[data-card] .snippet-prompt {
+      color: #ff5841;
+    }
+
+    .sub-nav > pre[data-card] .snippet-string {
+      color: #f0f0f0;
+    }
+
+    .sub-nav > pre[data-card] .snippet-muted,
+    .sub-nav > pre[data-card] .snippet-punctuation {
+      color: #8f8f8f;
+    }
+
+    .sub-nav > pre[data-card] .snippet-operator {
+      color: #d0d0d0;
+    }
+
+    .sub-nav > pre[data-card] .snippet-function {
+      color: #ff5841;
+      text-transform: uppercase;
+    }
+
+    .sub-nav > pre[data-card] .snippet-value {
+      color: #d9d9d9;
     }
 
     /* Progress bar pinned to .sub-nav's bottom, full width. */
@@ -333,8 +406,9 @@
       border: none !important;
       border-radius: 0 !important;
       box-sizing: border-box;
-      color: #f0f0f0;
-      justify-content: center;
+      color: #b9b9b9;
+      flex-direction: column;
+      justify-content: flex-start;
       opacity: 0 !important;
       overflow: visible;
       padding: 0 !important;
@@ -369,27 +443,38 @@
         transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Heading panel sits below the engine ring, in the SAME left-half
-       * container as the engine (visual center 25vw). Full width of that
-       * left half so text centers under the ring rather than under the
-       * whole viewport. */
+      /* Text panel sits in the same left-half stage as the engine, with
+       * enough vertical room for subtitle and body. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
         z-index: 20;
-        bottom: auto;
-        left: 0 !important;
+        bottom: clamp(24px, 5svh, 56px) !important;
+        left: clamp(18px, 3vw, 44px) !important;
         right: auto !important;
-        max-width: 50vw !important;
-        padding-left: clamp(16px, 2vw, 32px) !important;
-        padding-right: clamp(16px, 2vw, 32px) !important;
-        top: var(--solutions-heading-top);
+        max-width: min(620px, calc(50vw - clamp(36px, 6vw, 88px))) !important;
+        top: auto !important;
         transform: none !important;
-        width: 50vw !important;
+        width: calc(50vw - clamp(36px, 6vw, 88px)) !important;
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(24px, 2.2vw, 38px) !important;
+        font-size: clamp(32px, 2.9vw, 52px) !important;
+      }
+
+      .feature-section .feature-subtitle {
+        font-size: clamp(18px, 1.28vw, 23px);
+        line-height: 1.3;
+      }
+
+      .feature-section .feature-body {
+        font-size: clamp(15px, 1.02vw, 18px);
+        line-height: 1.5;
+      }
+
+      .sub-nav > pre[data-card] code {
+        font-size: clamp(15px, 1.02vw, 18px) !important;
+        line-height: 1.52 !important;
       }
 
       /* Right-half panel — `transform` makes .sub-nav the containing
@@ -419,11 +504,11 @@
      */
     @media (max-width: 899px) {
       :root {
-        --solutions-animation-scale: 0.32;
-        --solutions-stage-x: 25vw;
+        --solutions-animation-scale: 0.3;
+        --solutions-stage-x: 50vw;
         /* Push engine center below the iframe's own navbar so the ring
          * never crosses into the header area. */
-        --solutions-stage-y: 16svh;
+        --solutions-stage-y: 13svh;
         --solutions-stage-radius: min(18vw, 10svh);
       }
 
@@ -441,43 +526,59 @@
         transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Title is positioned with its vertical CENTER on the engine's
-       * vertical center (--solutions-stage-y), so engine + title sit
-       * side-by-side on the same horizontal line. The translateY(-50%)
-       * does the centering — no fixed height needed, so the box always
-       * fits the title text and resizes dynamically. */
+      /* Mobile stacks the scene first, then the text, then the code card. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
         z-index: 30;
         bottom: auto !important;
-        left: 50vw !important;
+        left: 0 !important;
         right: 0 !important;
-        max-width: 50vw !important;
-        width: 50vw !important;
-        padding: 12px !important;
-        top: var(--solutions-stage-y) !important;
+        max-width: 100vw !important;
+        width: 100vw !important;
+        padding: 0 clamp(14px, 4vw, 24px) !important;
+        top: 25svh !important;
         height: auto !important;
-        transform: translateY(-50%) !important;
+        transform: none !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        text-align: center;
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(14px, 4vw, 22px) !important;
+        font-size: clamp(21px, 6vw, 34px) !important;
+        text-align: center;
       }
 
-      /* .sub-nav owns the bottom 75svh, inset from the viewport edges
-       * so the cards don't hug the screen corners. transform makes it
+      .feature-section .home-section-text h2 [data-scramble-content="true"] {
+        justify-content: center;
+      }
+
+      .feature-section .home-section-text-heading {
+        justify-items: center;
+      }
+
+      .feature-section .feature-subtitle {
+        font-size: clamp(12px, 3.35vw, 15px);
+        line-height: 1.26;
+        max-width: 38rem;
+      }
+
+      .feature-section .feature-body {
+        display: none;
+      }
+
+      /* .sub-nav owns the bottom preview area. Tight insets let the code
+       * card use as much practical mobile space as possible. transform makes it
        * the containing block for its position:fixed children, and
        * overflow:hidden kills any spurious scrollbar from cards. */
       .sub-nav {
         position: fixed !important;
-        top: 25svh !important;
-        bottom: clamp(12px, 2.5svh, 28px) !important;
-        left: clamp(12px, 3vw, 24px) !important;
-        right: clamp(12px, 3vw, 24px) !important;
+        top: 40svh !important;
+        bottom: clamp(6px, 1.4svh, 14px) !important;
+        left: clamp(6px, 1.8vw, 12px) !important;
+        right: clamp(6px, 1.8vw, 12px) !important;
         width: auto !important;
         height: auto !important;
         transform: translate(0, 0) !important;
@@ -506,14 +607,22 @@
 
     @media (max-width: 560px) {
       :root {
-        --solutions-animation-scale: 0.28;
-        --solutions-stage-x: 25vw;
-        --solutions-stage-y: 16svh;
+        --solutions-animation-scale: 0.26;
+        --solutions-stage-x: 50vw;
+        --solutions-stage-y: 12svh;
         --solutions-stage-radius: min(18vw, 10svh);
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(13px, 4vw, 20px) !important;
+        font-size: clamp(19px, 6.6vw, 28px) !important;
+      }
+
+      .feature-section .feature-subtitle {
+        font-size: 12px;
+      }
+
+      .sub-nav {
+        top: 43svh !important;
       }
     }
   </style>
@@ -660,29 +769,11 @@
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
-              <h2>Software Design &amp; Engineering</h2>
-              <p>Web, mobile, backend, and internal systems scoped, designed, and built for production reliability.</p>
+              <h2>AI Systems</h2>
+              <p class="feature-subtitle">Agents &amp; Workflow Automation</p>
+              <p class="feature-body">We design agents around real workflows: the tools they can use, the data they can trust, and the approvals that keep automation controlled.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/animation/tween-parameters/composition"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Per property parameters</a></li>
-              <li><a class="text-ui" href="documentation/animation/tween-parameters/composition"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Flexible keyframes system</a></li>
-              <li><a class="text-ui" href="documentation/animation/tween-parameters/composition"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Built-in easings</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -694,29 +785,11 @@ Built-in easings</a></li>
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
-              <h2>Web Applications</h2>
-              <p>Operational dashboards, client portals, workflow engines, data platforms, and public-facing products.</p>
+              <h2>AI Systems</h2>
+              <p class="feature-subtitle">Knowledge, Multimodal &amp; Inference Systems</p>
+              <p class="feature-body">We turn private knowledge, documents, and multimodal data into reliable AI interfaces with retrieval, evaluation, guardrails, and deployment discipline.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/animation/animatable-properties/css-transforms"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Individual CSS Transforms</a></li>
-              <li><a class="text-ui" href="documentation/animation/tween-value-types/function-based"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Function based values</a></li>
-              <li><a class="text-ui" href="documentation/animation/tween-parameters/composition"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Blend composition</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -728,29 +801,11 @@ Blend composition</a></li>
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
-              <h2>Mobile Applications</h2>
-              <p>Native iOS and Android delivery with secure backend integration and platform-specific reliability.</p>
+              <h2>Software Design &amp; Engineering</h2>
+              <p class="feature-subtitle">Product &amp; Platform Engineering</p>
+              <p class="feature-body">We design and build platforms, portals, dashboards, and backend systems that hold up under real users, real data, and production operations.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/events/onscroll/scrollobserver-synchronisation-modes"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Multiple synchronisation modes</a></li>
-              <li><a class="text-ui" href="documentation/events/onscroll/scrollobserver-thresholds"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Advanced thresholds</a></li>
-              <li><a class="text-ui" href="documentation/events/onscroll/scrollobserver-callbacks"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Complete set of callbacks</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -762,29 +817,11 @@ Complete set of callbacks</a></li>
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
-              <h2>System Integration</h2>
-              <p>APIs, webhooks, data flows, CRMs, ERPs, legacy interfaces, and secure cross-system access.</p>
+              <h2>Software Design &amp; Engineering</h2>
+              <p class="feature-subtitle">Workflow, Integration &amp; Mobile Delivery</p>
+              <p class="feature-body">We connect products to the systems around them: APIs, ERPs, CRMs, payments, approvals, notifications, mobile apps, and support paths.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/stagger/time-staggering"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Time staggering</a></li>
-              <li><a class="text-ui" href="documentation/stagger/values-staggering"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Values staggering</a></li>
-              <li><a class="text-ui" href="documentation/stagger/timeline-positions-staggering"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Timeline positions staggering</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -796,29 +833,11 @@ Timeline positions staggering</a></li>
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
-              <h2>AI Systems</h2>
-              <p>RAG, assistants, agents, document automation, and intelligent features deployed around real business constraints.</p>
+              <h2>IT Infrastructure</h2>
+              <p class="feature-subtitle">Cloud, Network &amp; Security Foundations</p>
+              <p class="feature-body">We build the technical foundation behind applications, data, AI, and daily operations, with attention to security, access, monitoring, and continuity.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/svg/morphto"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Shape morphing</a></li>
-              <li><a class="text-ui" href="documentation/svg/createdrawable"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Line drawing</a></li>
-              <li><a class="text-ui" href="documentation/svg/createmotionpath"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Motion path</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -831,28 +850,10 @@ Motion path</a></li>
           <div class="home-section-text">
             <div class="home-section-text-heading">
               <h2>IT Infrastructure</h2>
-              <p>Cloud, on-premise, and hybrid environments planned with networking, security, and operational reliability.</p>
+              <p class="feature-subtitle">Integration, Migration &amp; Operations</p>
+              <p class="feature-body">We plan migrations, stabilize environments, connect systems, and put the operational controls in place so infrastructure keeps working after launch.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/draggable/draggable-settings"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Versatile settings</a></li>
-              <li><a class="text-ui" href="documentation/draggable/draggable-callbacks"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Comprehensive callbacks</a></li>
-              <li><a class="text-ui" href="documentation/draggable/draggable-methods"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Useful methods</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div id="draggable-demo" class="feature-section-demo">
@@ -869,28 +870,10 @@ Useful methods</a></li>
           <div class="home-section-text">
             <div class="home-section-text-heading">
               <h2>Technology Management</h2>
-              <p>Procurement, digitization planning, vendor coordination, governance, and long-term oversight.</p>
+              <p class="feature-subtitle">Planning, Procurement &amp; Vendor Coordination</p>
+              <p class="feature-body">We help leadership define requirements, compare vendors, review proposals, coordinate delivery, and make technology decisions with less guesswork.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/timeline/add-animations"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Synchronise animations</a></li>
-              <li><a class="text-ui" href="documentation/timeline/time-position"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Advanced time positions</a></li>
-              <li><a class="text-ui" href="documentation/timeline/timeline-playback-settings"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Playback settings</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -902,29 +885,11 @@ Playback settings</a></li>
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
-              <h2>Long-Term Support</h2>
-              <p>Maintenance, retained engineering, managed updates, monitoring, and operational support scoped per engagement.</p>
+              <h2>Technology Management</h2>
+              <p class="feature-subtitle">Governance, Roadmaps &amp; Long-Term Ownership</p>
+              <p class="feature-body">We stay close to execution as a retained technology partner, aligning roadmaps, governance, vendors, systems, and long-term support.</p>
             </div>
-            <ul class="feature-links">
-              <li><a class="text-ui" href="documentation/scope/scope-parameters/mediaqueries"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Media queries</a></li>
-              <li><a class="text-ui" href="documentation/scope/scope-parameters/root"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Custom root element</a></li>
-              <li><a class="text-ui" href="documentation/scope/register-method-function"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon">
-  <g fill="none" fill-rule="evenodd">
-    <polygon fill="currentColor" fill-rule="nonzero" points="17.737 11.987 12.5 17.225 11.263 15.987 14.388 12.862 6.5 12.862 6.5 11.112 14.388 11.112 11.263 7.987 12.5 6.75"/>
-  </g>
-</svg>
-Scopped methods</a></li>
-            </ul>
+            <ul class="feature-links" aria-hidden="true"></ul>
           </div>
           <div class="feature-section-demo-wrapper">
             <div class="feature-section-demo fixed-section"></div>
@@ -1072,79 +1037,149 @@ Become a sponsor</a></li>
         <div class="scroll-cursor-ghost scroll-cursor"></div>
       </div>
     </div>
-<pre data-card="intuitive" data-><code>animate('.square', {
-  rotate: 90,
-  loop: true,
-  ease: 'inOutExpo',
-});
-</code></pre>
-<pre data-card="composition"><code>animate('.shape', {
-  x: random(-100, 100),
-  y: random(-100, 100),
-  rotate: random(-180, 180),
-  duration: random(500, 1000),
-  composition: 'blend',
-});
-</code></pre>
-<pre data-card="svgUtils"><code>animate('.car', {
-  ...createMotionPath('.circuit'),
-});
+<pre data-card="intuitive"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">AI Systems</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Agents &amp; Workflow Automation</span>
 
-animate(createDrawable('.circuit'), {
-  draw: '0 1',
-});
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">Agents are designed around real work, not demos.
+We map the process, connect approved tools and data,
+then define where AI can act, prepare, or escalate.</span>
 
-animate('.circuit-a', {
-  d: morphTo('.circuit-b'),
-});
-</code></pre>
-<pre data-card="scroll"><code>animate(createDrawable('path'), {
-  draw: ['0 0', '0 1', '1 1'],
-  delay: stagger(40),
-  ease: 'inOut(3)',
-  autoplay: onScroll({ sync: true }),
-});
-</code></pre>
-<pre data-card="staggering"><code>const options = {
-  grid: [13, 13],
-  from: 'center',
-};
+<span class="snippet-key">build</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">role-aware agents for support and operations</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">document intake, extraction, and routing</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">tool-connected copilots for internal teams</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">approval flows, audit trails, and fallback paths</span>
+<span class="snippet-punctuation">]</span>
 
-createTimeline()
-  .add('.dot', {
-    scale: stagger([1.1, .75], options),
-    ease: 'inOutQuad',
-  }, stagger(200, options));
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">faster turnaround with control still inside the business</span>
 </code></pre>
-<pre data-card="draggable"><code>createDraggable('.circle', {
-  releaseEase: createSpring({
-    stiffness: 120,
-    damping: 6,
-  })
-});
+<pre data-card="composition"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">AI Systems</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Knowledge, Multimodal &amp; Inference</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">Company knowledge is usually spread across files,
+systems, teams, and formats. We build AI layers that
+retrieve the right context and expose it safely.</span>
+
+<span class="snippet-key">build</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">RAG over private documents and business data</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">internal search, Q&amp;A, policy, and support assistants</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">multimodal workflows for files, images, and audio</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">model selection, evaluation, and guardrails</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">knowledge becomes searchable, usable, and safer to apply</span>
 </code></pre>
-<pre data-card="clockwork"><code>createTimeline()
-  .add('.tick', {
-    y: '-=6',
-    duration: 50,
-  }, stagger(10))
-  .add('.ticker', {
-    rotate: 360,
-    duration: 1920,
-  }, '<');
+<pre data-card="scroll"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">Software Design &amp; Engineering</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Product &amp; Platform Engineering</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">We build software that has to survive real users,
+real data, integrations, permissions, and production
+pressure after launch.</span>
+
+<span class="snippet-key">build</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">SaaS products, portals, dashboards, and admin tools</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">backend services, APIs, databases, and roles</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">booking, reporting, workflow, and data platforms</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">launch, monitoring, iteration, and support</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">a production-ready platform with clear ownership</span>
 </code></pre>
-<pre data-card="responsive"><code>createScope({
-  mediaQueries: {
-    portrait: '(orientation: portrait)',
-  }
-})
-.add(({ matches }) => {
-  const isPortrait = matches.portrait;
-  createTimeline().add('.circle', {
-    y: isPortrait ? 0 : [-50, 50, -50],
-    x: isPortrait ? [-50, 50, -50] : 0,
-  }, stagger(100));
-});
+<pre data-card="staggering"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">Software Design &amp; Engineering</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Workflow, Integration &amp; Mobile Delivery</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">A good product cannot sit outside the business.
+We connect it to the tools, approvals, records, and
+mobile moments people already depend on.</span>
+
+<span class="snippet-key">build</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">ERP, CRM, payment, reporting, and data integrations</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">APIs, webhooks, sync layers, and secure access</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">workflow automation across approvals and handoffs</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">mobile apps connected to reliable backends</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">connected software that fits daily operations</span>
+</code></pre>
+<pre data-card="svgUtils"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">IT Infrastructure</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Network, Security &amp; System Foundations</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">Infrastructure is not just hosting. It is the
+foundation that lets applications, AI, data, and teams
+operate with confidence.</span>
+
+<span class="snippet-key">build</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">hosting architecture, servers, services, environments</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">network planning, VPNs, DNS, and remote access</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">identity, permissions, secrets, and access control</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">security baseline, backups, monitoring, and alerts</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">a foundation the business can secure and maintain</span>
+</code></pre>
+<pre data-card="draggable"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">IT Infrastructure</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Migration, Integration &amp; Operations</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">When systems move or grow, the risks show up in
+dependencies, access, downtime, and unclear ownership.
+We map what exists before changing what matters.</span>
+
+<span class="snippet-key">build</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">server, service, database, and environment migration</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">deployment pipelines, staging, production, rollback</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">performance, uptime, backups, and recovery planning</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">maintenance, updates, improvements, and support</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">systems that can move, recover, and keep running</span>
+</code></pre>
+<pre data-card="clockwork"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">Technology Management</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Planning, Procurement &amp; Vendor Coordination</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">Technology decisions become expensive when the
+requirement is unclear. We help leadership define the
+need before tools, vendors, or budgets take over.</span>
+
+<span class="snippet-key">manage</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">discovery, digitization planning, and requirements</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">build-vs-buy analysis and platform selection</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">proposal review, procurement, and scope control</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">vendor coordination and delivery follow-up</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">clearer decisions and less waste before delivery</span>
+</code></pre>
+<pre data-card="responsive"><code class="nohighlight snippet-code"><span class="snippet-comment">// softchain.solution.manifest</span>
+<span class="snippet-key">solution</span><span class="snippet-operator">:</span> <span class="snippet-string">Technology Management</span>
+<span class="snippet-key">focus</span><span class="snippet-operator">:</span> <span class="snippet-string">Governance, Roadmaps &amp; Long-Term Ownership</span>
+
+<span class="snippet-comment">// context</span>
+<span class="snippet-value">Growing companies need technical leadership that stays
+close to execution. We align roadmap, systems, vendors,
+and support as the business changes.</span>
+
+<span class="snippet-key">manage</span><span class="snippet-operator">:</span> <span class="snippet-punctuation">[</span>
+  <span class="snippet-string">technology roadmaps and delivery oversight</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">fractional CTO-level guidance for leadership</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">governance for access, data, security, and support</span><span class="snippet-punctuation">,</span>
+  <span class="snippet-string">retained engineering, reviews, and improvements</span>
+<span class="snippet-punctuation">]</span>
+
+<span class="snippet-key">business_value</span><span class="snippet-operator">:</span> <span class="snippet-string">a technology model with ownership the company can rely on</span>
 </code></pre>
     <div class="modules-sizes home-section-card text-layout" data-card="modules" data-enter-offset="-=50lvh" data-leave-offset="-=150lvh">
       <div class="box-heading">
@@ -1176,9 +1211,6 @@ createTimeline()
         <li><span class="label-dot color-easings"></span>Spring <span class="size">0.52 KB</span></li>
         <li><span class="label-dot color-waapi"></span>WAAPI <span class="size">3.50 KB</span></li>
       </ul>
-    </div>
-    <div class="funding-level-box home-section-card text-layout" data-card="sponsors" data-enter-offset="-=50lvh" data-leave-offset="-=50lvh">
-      <funding-level path="github-sponsors"></funding-level>
     </div>
   </div>
   <footer id="site-footer" class="layout-container" data-color="fg">
@@ -1349,8 +1381,8 @@ createTimeline()
    */
   (function () {
     const CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    const SCRAMBLE_COLORS = ["#f0f0f0", "#ff5841"];
-    const RESOLVED_COLOR = "#f0f0f0";
+    const SCRAMBLE_COLORS = ["#b9b9b9", "#ff5841"];
+    const RESOLVED_COLOR = "#b9b9b9";
     const TICK_MS = 48;
     const RESOLVE_START_MS = 120;
     const RESOLVE_STEP_MS = 55;

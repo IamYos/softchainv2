@@ -10,6 +10,8 @@ import { SOLUTIONS_PAGE_CONTENT } from "./solutionsContent";
 import styles from "./SolutionsPage.module.css";
 
 const FEATURE_START_SCROLL = 1;
+const SOLUTIONS_ENGINE_SRC =
+  "/solutions/home.html?v=softchain-snippet-ui-20260507";
 
 function SolutionsHero() {
   return (
@@ -148,7 +150,7 @@ function SolutionsEngine() {
         <iframe
           ref={iframeRef}
           title="Softchain solutions scene"
-          src="/solutions/home.html"
+          src={SOLUTIONS_ENGINE_SRC}
           className={styles.engineFrame}
           onLoad={handleLoad}
         />
