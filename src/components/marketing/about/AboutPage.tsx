@@ -102,29 +102,6 @@ function ValuesSection() {
   return (
     <section id="about-values" className={`${styles.valuesSection} marketing-anchor`}>
       <PageContainer className={styles.valuesContainer}>
-        <div className={styles.valuesIntro}>
-          <FadeIn>
-            <p className={styles.sectionEyebrowDark}>{ABOUT_PAGE_CONTENT.values.eyebrow}</p>
-          </FadeIn>
-          <AboutScrambleHeading
-            lines={[ABOUT_PAGE_CONTENT.values.title]}
-            className={styles.scrambleHeading}
-            lineClassName={styles.valuesTitle}
-            resolvedColor="#b9b9b9"
-          />
-        </div>
-
-        <div className={styles.valuesList}>
-          {ABOUT_PAGE_CONTENT.values.items.map((item, index) => (
-            <FadeIn key={item.title} delayMs={index * 70}>
-              <article className={styles.valueRow}>
-                <h3 className={styles.valueTitle}>{item.title}</h3>
-                <p className={styles.valueDescription}>{item.description}</p>
-              </article>
-            </FadeIn>
-          ))}
-        </div>
-
         <div className={styles.valuesSnapshot}>
           <FadeIn>
             <p className={styles.sectionEyebrowDark}>{ABOUT_PAGE_CONTENT.snapshot.eyebrow}</p>

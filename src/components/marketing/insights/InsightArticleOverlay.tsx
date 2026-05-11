@@ -13,6 +13,7 @@ export type InsightArticleSection = {
 };
 
 export type InsightArticle = {
+  slug: string;
   label: string;
   readTime: string;
   title: string;

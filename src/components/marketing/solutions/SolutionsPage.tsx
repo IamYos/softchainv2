@@ -13,6 +13,13 @@ const FEATURE_START_SCROLL = 1;
 const SOLUTIONS_ENGINE_SRC =
   "/solutions/home.html?v=softchain-progress-ui-20260507";
 
+const SOLUTION_ANCHOR_IDS: Record<string, string> = {
+  ai: "intuitive",
+  software: "scroll",
+  infrastructure: "svgUtils",
+  technology: "clockwork",
+};
+
 function SolutionsHero() {
   return (
     <section
@@ -138,6 +145,77 @@ function SolutionsEngine() {
       settleTimeouts.forEach((id) => window.clearTimeout(id));
     };
   }, [measureRunway, syncScroll]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const solution = params.get("solution");
+    if (!solution) return;
+    const anchorId = SOLUTION_ANCHOR_IDS[solution];
+    if (!anchorId) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 60;
+
+    const tryScrollToSection = () => {
+      if (cancelled) return true;
+      attempts += 1;
+
+      const section = sectionRef.current;
+      const iframe = iframeRef.current;
+      if (!section || !iframe) return false;
+
+      const win = iframe.contentWindow;
+      const doc = iframe.contentDocument;
+      if (!win || !doc) return false;
+
+      const target = doc.getElementById(anchorId);
+      if (!target) return false;
+
+      measureRunway();
+      const runway = internalRunwayRef.current;
+      const outerRunway = section.offsetHeight - window.innerHeight;
+      if (runway <= 0 || outerRunway <= 0) return false;
+
+      const targetAbsoluteTop =
+        target.getBoundingClientRect().top + (win.scrollY || 0);
+      const clampedInternal = Math.max(
+        FEATURE_START_SCROLL,
+        Math.min(runway, targetAbsoluteTop),
+      );
+      const denom = Math.max(1, runway - FEATURE_START_SCROLL);
+      const progress = Math.min(
+        1,
+        Math.max(0, (clampedInternal - FEATURE_START_SCROLL) / denom),
+      );
+      const sectionTop = window.pageYOffset + section.getBoundingClientRect().top;
+      const outerY = sectionTop + progress * outerRunway;
+
+      window.scrollTo({ top: outerY, behavior: "auto" });
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete("solution");
+      const search = url.searchParams.toString();
+      window.history.replaceState(
+        {},
+        "",
+        url.pathname + (search ? `?${search}` : "") + url.hash,
+      );
+      return true;
+    };
+
+    const intervalId = window.setInterval(() => {
+      if (tryScrollToSection() || attempts >= maxAttempts) {
+        window.clearInterval(intervalId);
+      }
+    }, 100);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [measureRunway]);
 
   return (
     <section

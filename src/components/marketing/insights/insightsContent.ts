@@ -20,6 +20,7 @@ export const INSIGHTS_PAGE_CONTENT = {
   ],
   articles: [
     {
+      slug: "architecture",
       label: "Architecture",
       readTime: "6 min read",
       title: "Architecture is a business decision before it is a technical diagram.",
@@ -126,6 +127,7 @@ export const INSIGHTS_PAGE_CONTENT = {
       ],
     },
     {
+      slug: "ai-systems",
       label: "AI Systems",
       readTime: "5 min read",
       title: "AI earns its place when it improves throughput, accuracy, or leverage.",
@@ -209,6 +211,7 @@ export const INSIGHTS_PAGE_CONTENT = {
       ],
     },
     {
+      slug: "infrastructure",
       label: "Infrastructure",
       readTime: "7 min read",
       title: "Infrastructure cannot be treated as cleanup after the product is built.",
@@ -323,6 +326,7 @@ export const INSIGHTS_PAGE_CONTENT = {
       ],
     },
     {
+      slug: "mobile",
       label: "Mobile",
       readTime: "4 min read",
       title: "Native mobile is worth it when platform quality carries the workflow.",
@@ -399,6 +403,7 @@ export const INSIGHTS_PAGE_CONTENT = {
       ],
     },
     {
+      slug: "support",
       label: "Support",
       readTime: "5 min read",
       title: "Support is part of the architecture when the system matters.",
@@ -495,6 +500,222 @@ export const INSIGHTS_PAGE_CONTENT = {
       ],
     },
     {
+      slug: "integration",
+      label: "Integration",
+      readTime: "6 min read",
+      title: "Software fails at the seams, not the components.",
+      description:
+        "Most production problems live where systems meet — APIs, ERPs, CRMs, identity, data flow — and treating integration as the last ten percent leaves the failures unowned.",
+      tags: ["API", "ERP", "Data Flow"],
+      body: [
+        {
+          blocks: [
+            {
+              type: "p",
+              text: "A common autopsy: the application works, the database works, the third-party service works, and the system as a whole does not. Each component, in isolation, behaves correctly. The failure lives somewhere between them — in the place where a request crosses a boundary, an identity is translated, a record is reconciled, or a deadline is respected. Nobody designed that place. It emerged from the decisions of the teams on either side of it, and it carries the assumptions of both without being accountable to either.",
+            },
+            {
+              type: "p",
+              text: "The seam is the part of the architecture that gets the least design attention and produces the most incidents. The reason is structural. A component has an owner. A seam has two owners, or none, and the difference between those two situations is rarely written down.",
+            },
+          ],
+        },
+        {
+          heading: "The seam, not the surface",
+          blocks: [
+            {
+              type: "p",
+              text: "Components are easy to talk about. A service has a name, a team, a repository, a budget, a roadmap. A seam has a contract that nobody quite finished writing, a failure mode that everyone assumed the other side was handling, and a latency profile that nobody measured under load. The conversation about components is the one that happens in meetings. The conversation about seams is the one that happens at three in the morning.",
+            },
+            {
+              type: "p",
+              text: "A system that has been designed by listing its components and connecting them with arrows is a system whose architecture is the components. The arrows are decoration. In production, the arrows are where the work actually happens, and the absence of design on them is paid for in incidents, in rework, and in the slow drift of a system away from what it was supposed to do.",
+            },
+          ],
+        },
+        {
+          heading: "Where seams actually fail",
+          blocks: [
+            {
+              type: "p",
+              text: "The failures are predictable. They recur across stacks, domains, and team sizes, because they come from properties of the seam itself rather than properties of any specific technology.",
+            },
+            {
+              type: "list",
+              items: [
+                "Contract drift. One side changes a field, an enum, a status code, or a response shape. The other side learns about it in production. The contract is not a document anyone owns; it is the union of the two implementations, which now disagree.",
+                "Identity mismatch. The user is one entity in the source system, a different entity in the destination, and a third entity in the analytics warehouse. Linking them is a project. Keeping the link correct over time is a different, larger project.",
+                "Idempotency assumptions. The sender retries on failure. The receiver does not deduplicate. The same operation is processed twice, three times, sometimes more. The damage is silent until reconciliation finds a number that does not match.",
+                "Partial failure. The call succeeded on one side and failed on the other. Both sides log success. The state is now inconsistent, and the only way to detect it is a job that compares the two systems on a schedule.",
+                "Clock and ordering. Events arrive out of order, with timestamps from different clocks, processed by workers with their own latency. The reconstruction of what happened, in what order, becomes a forensic exercise rather than a query.",
+                "Ownership ambiguity. The seam works most of the time. When it stops working, the on-call rotation on each side argues for ten minutes about which team is responsible before anyone is dispatched to fix it.",
+              ],
+            },
+            {
+              type: "p",
+              text: "Each of these is a design decision that was deferred. The deferral is invisible until the seam is under pressure, at which point the cost of designing it shows up at the worst possible time.",
+            },
+          ],
+        },
+        {
+          heading: "Integration as architecture",
+          blocks: [
+            {
+              type: "p",
+              text: "Treating integration as architecture means deciding, on purpose and in writing, what each seam in the system is supposed to do, how it behaves when something fails, and who owns it. A contract is not a wire format. It is the agreement between two systems about what is true, what is allowed, what is retried, what is rejected, and what is logged.",
+            },
+            {
+              type: "p",
+              text: "The agreement holds when both sides build to it. It collapses the first time one side changes without telling the other, which is why the contract is also a change-management document, not only a technical one. The systems that survive ten years of business change are the ones whose integrations were governed like products, with versioning, deprecation, and tests — not the ones whose integrations were the implicit consequence of two teams working in parallel.",
+            },
+          ],
+        },
+        {
+          heading: "The contract is the deliverable",
+          blocks: [
+            {
+              type: "p",
+              text: "On a serious integration, the contract is the thing that gets shipped first and changes last. The implementation behind it is replaceable. The contract is not, because every other system in the network has built itself against it.",
+            },
+            {
+              type: "list",
+              items: [
+                "Schema with version. Every payload has a version. The version changes when the meaning changes. Old versions are supported for a written window, not until someone notices.",
+                "Failure modes named. What returns success, what returns a retryable error, what returns a permanent error, what triggers an alert. Each path has a defined behaviour on the other side.",
+                "Idempotency keys. A way for the receiver to recognise the same logical operation across retries, restarts, and reprocessing. Without one, every retry is a new event and the system silently drifts.",
+                "Replayability. The ability to re-send a window of events to a fixed consumer without breaking it. This is the property that turns recovery from a heroic operation into a routine one.",
+                "Observability across the seam. Logs and traces that cross the boundary, so the same operation can be inspected on both sides. Without this, every incident becomes a coordination problem.",
+              ],
+            },
+            {
+              type: "p",
+              text: "These are not optional features of a mature integration. They are what makes an integration mature. A system without them is a system whose seams are held together by convention, and convention is exactly what fails the moment the people who established it move on.",
+            },
+          ],
+        },
+        {
+          heading: "When the seam outlives the system",
+          blocks: [
+            {
+              type: "p",
+              text: "The applications on either side of a long-lived integration get rebuilt, replaced, migrated, and decommissioned over the years. The integration tends to outlive them. It is rewired against the next system, then the one after, then the one after that. By year five, the original implementation on both sides is gone and the contract is the only continuous thing left.",
+            },
+            {
+              type: "p",
+              text: "That continuity is the test of whether the integration was designed at all. If it was, the rewiring is a translation job: the contract is honoured by the new component on each side, the failure modes still hold, the observability still works. If it was not, the integration is rebuilt from scratch every time a component changes, and every rebuild reintroduces the same class of bugs the previous one accumulated.",
+            },
+            {
+              type: "p",
+              text: "Software is not only the components. It is the network of seams that connects them to the rest of the business. The components can be excellent and the system can still fail, because the failure was never in the components. It was always at the boundary, and the boundary was where the design stopped.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      slug: "procurement",
+      label: "Procurement",
+      readTime: "5 min read",
+      title: "Build versus buy is a question about commitment, not features.",
+      description:
+        "Vendor decisions look like product comparisons and behave like five-year commitments; the right framing is what the business is signing up to operate, not what the demo can show.",
+      tags: ["Procurement", "Vendors", "Strategy"],
+      body: [
+        {
+          blocks: [
+            {
+              type: "p",
+              text: "Most build-versus-buy decisions are made on a feature list. A vendor produces a grid. An internal team produces a competing grid. The grids are compared, weighted, and scored, and a recommendation is reached. The exercise feels rigorous. It is also the wrong question, asked with the wrong instrument, on the wrong horizon.",
+            },
+            {
+              type: "p",
+              text: "Features are visible at the moment of the decision. Commitments are visible afterwards. A vendor decision is, in practice, a five-year operating commitment dressed as a six-week procurement exercise. The features on the grid are the part of the choice that ages the fastest. The commitment is the part that compounds.",
+            },
+          ],
+        },
+        {
+          heading: "The five-year question",
+          blocks: [
+            {
+              type: "p",
+              text: "A useful test, applied before any grid is built: what does the business look like five years from now if this decision is the wrong one? Not what the demo shows next quarter. What the cost of reversal is in year three, when the data is in the system, the integrations are wired, the team has adapted its workflow around it, and the contract has auto-renewed twice.",
+            },
+            {
+              type: "p",
+              text: "If the five-year answer is acceptable in either direction — the wrong decision is recoverable — then the decision is genuinely a feature comparison and the grid will produce a reasonable answer. If the five-year answer is asymmetric — one direction is a write-off and the other is not — then the decision is not about features. It is about which kind of mistake the business can afford, and the grid will route the conversation away from the only question that matters.",
+            },
+          ],
+        },
+        {
+          heading: "What gets left off the spreadsheet",
+          blocks: [
+            {
+              type: "p",
+              text: "The line items that determine the long-term cost of the decision rarely appear in the procurement document. They surface later, one at a time, as the system enters production and stays there.",
+            },
+            {
+              type: "list",
+              items: [
+                "Integration cost. Every system needs to connect to the rest of the business. The cost of integration is paid against the vendor's API, the vendor's identity model, the vendor's webhook reliability, and the vendor's roadmap. None of these are visible in the demo.",
+                "Lock-in cost. The cost of leaving is paid in data extraction, in training the team on a replacement, in rebuilding the integrations on the other side, and in the productivity dip while the team transitions. Lock-in is not a property the vendor advertises; it is a property the buyer discovers.",
+                "Roadmap divergence. The vendor's priorities and the business's priorities are aligned at signing. Over five years, they diverge. The buyer adapts, customises, or works around the divergence, and the cost of those workarounds becomes part of the operating cost of the system.",
+                "Pricing trajectory. The price at signing and the price at renewal are different conversations. The first is a sales conversation. The second is a leverage conversation, conducted from a position the buyer has spent five years weakening.",
+                "Operational shape. A bought system imposes its operational model on the business: how data is structured, who has access, how reports are produced, what is automatable, what is not. The business adapts to the system as much as the system adapts to the business, and the adaptation is part of what is being bought.",
+              ],
+            },
+            {
+              type: "p",
+              text: "These costs are not hidden. They are simply not on the form. A procurement exercise that does not name them is a procurement exercise that prices the wrong thing.",
+            },
+          ],
+        },
+        {
+          heading: "When buying is correct",
+          blocks: [
+            {
+              type: "p",
+              text: "Buying is correct when the capability is undifferentiated for the business, when the operational model the vendor imposes is acceptable, and when the cost of reversal is bounded. The clearest cases are infrastructure that the business has no reason to operate itself, commodity workflows where the vendor's defaults align with industry practice, and capabilities where the rate of vendor improvement exceeds anything an internal team could match.",
+            },
+            {
+              type: "p",
+              text: "The mistake in the buy direction is to extend the logic past where it applies — to buy systems that touch the workflow the business actually competes on, where the vendor's operational model becomes a constraint on the business's strategy. A system that is core to the business is a system the business should be able to change. A bought system is a system the business can change only as fast as the vendor allows.",
+            },
+          ],
+        },
+        {
+          heading: "When building is correct",
+          blocks: [
+            {
+              type: "p",
+              text: "Building is correct when the capability is part of how the business produces value, when the requirements diverge from anything a vendor offers, and when the business has the structural capacity to operate what it builds. The last condition is the one most often skipped. A built system is a system the business has signed up to maintain, observe, secure, update, and evolve. The build is the smaller commitment. The operate is the larger one.",
+            },
+            {
+              type: "p",
+              text: "The mistake in the build direction is to assume that custom equals better. A custom system that nobody can keep running is worse than a vendor system the business chafes against. The choice to build is also a choice to fund the engineering relationship that will hold the system together over its life, and that relationship has to be real on the day the decision is made, not assumed for the future.",
+            },
+          ],
+        },
+        {
+          heading: "The hybrid is not a free lunch",
+          blocks: [
+            {
+              type: "p",
+              text: "A common compromise: buy the platform, build the layer on top. It is often the right shape. It is rarely the cheap shape. The build absorbs the cost of integrating against the vendor, of working around the vendor's gaps, of keeping the custom layer aligned as the vendor's API evolves. The buy absorbs the lock-in, the pricing trajectory, and the roadmap divergence on the underlying platform.",
+            },
+            {
+              type: "p",
+              text: "The hybrid is correct when the platform underneath is genuinely commodity and the differentiation lives in the layer on top. It is wrong when it is chosen as a way to defer the underlying decision — the team buys the platform now and intends to replace it later, and the replacement project never happens because the layer on top has grown too dependent on the platform underneath.",
+            },
+            {
+              type: "p",
+              text: "Build versus buy is rarely the binary the procurement exercise treats it as. The decision is a posture: how much of the system the business intends to own, how much it intends to rent, and what it is prepared to operate either way. Posture is harder to write into a procurement form than features, which is precisely why the form keeps producing the wrong answer.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      slug: "leadership",
       label: "Leadership",
       readTime: "6 min read",
       title: "Fractional technical leadership works when execution stays attached.",

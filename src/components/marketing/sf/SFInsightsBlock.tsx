@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ScrambleTextReveal } from "@/components/marketing/ScrambleTextReveal";
+import { INSIGHTS_PAGE_CONTENT } from "@/components/marketing/insights/insightsContent";
 import styles from "./SFPostFrame.module.css";
 import { TechStackGrid } from "./TechStackGrid";
 
@@ -11,56 +12,7 @@ const FEATURED_INSIGHT = {
   href: "/insights",
 };
 
-const INSIGHTS = [
-  {
-    title: "Architecture is defined before development starts.",
-    date: "Scoping",
-    description:
-      "We do not start building before the stack, boundaries, and delivery plan are coherent.",
-  },
-  {
-    title: "AI belongs where it improves throughput, accuracy, or leverage.",
-    date: "AI Systems",
-    description:
-      "Model selection, deployment method, and system design are chosen by constraints, not hype.",
-  },
-  {
-    title: "Native mobile is used when platform quality actually matters.",
-    date: "Mobile",
-    description:
-      "Internal tools, secure workflows, and public products are built without compromising platform standards.",
-  },
-  {
-    title: "IT infrastructure is part of delivery, not a cleanup phase.",
-    date: "Operations",
-    description:
-      "Cloud, on-premise, and hybrid systems are planned with observability, security, and support from the start.",
-  },
-  {
-    title: "Support continues after launch when the engagement requires it.",
-    date: "Long-term",
-    description:
-      "Maintenance, retained engineering, managed updates, and operational support are structured per project.",
-  },
-  {
-    title: "Founders can work with Softchain as a CTO-level partner.",
-    date: "Startups",
-    description:
-      "We translate product goals into architecture and carry execution through production when there is no internal technical lead.",
-  },
-  {
-    title: "Businesses get senior execution without building oversized teams.",
-    date: "Businesses",
-    description:
-      "Delivery, integration, infrastructure, and support can be owned end to end without internal bloat.",
-  },
-  {
-    title: "Licensed in Dubai. Delivering internationally.",
-    date: "Company",
-    description:
-      "Softchain is headquartered in Dubai, UAE and delivers software and technical systems internationally.",
-  },
-] as const;
+const INSIGHTS = INSIGHTS_PAGE_CONTENT.articles;
 
 function InsightLines() {
   return (
@@ -107,16 +59,20 @@ function InsightRail() {
   return (
     <div className={styles.insightRail}>
       {INSIGHTS.map((insight) => (
-        <a key={insight.title} href="#closing-cta" className={styles.insightItem}>
+        <Link
+          key={insight.slug}
+          href={`/insights?article=${insight.slug}`}
+          className={styles.insightItem}
+        >
           <InsightLines />
           <div>
             <h3 className={`${styles.insightItemTitle} ${styles.p2}`}>{insight.title}</h3>
-            <p className={`${styles.insightItemDate} ${styles.p}`}>{insight.date}</p>
+            <p className={`${styles.insightItemDate} ${styles.p}`}>{insight.label}</p>
             <p className={`${styles.insightItemDescription} ${styles.p}`}>
               {insight.description}
             </p>
           </div>
-        </a>
+        </Link>
       ))}
     </div>
   );

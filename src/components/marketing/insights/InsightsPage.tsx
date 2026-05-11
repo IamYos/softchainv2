@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FadeIn } from "@/components/marketing/FadeIn";
 import { MarketingPageShell } from "@/components/marketing/MarketingPageShell";
 import { PageContainer } from "@/components/marketing/PageContainer";
@@ -59,6 +59,25 @@ function InsightsHero() {
 
 function InsightLibrary() {
   const [openArticle, setOpenArticle] = useState<InsightArticle | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("article");
+    if (!slug) return;
+    const match = INSIGHTS_PAGE_CONTENT.articles.find((a) => a.slug === slug);
+    if (!match) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpenArticle(match);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("article");
+    const search = url.searchParams.toString();
+    window.history.replaceState(
+      {},
+      "",
+      url.pathname + (search ? `?${search}` : "") + url.hash,
+    );
+  }, []);
 
   return (
     <>

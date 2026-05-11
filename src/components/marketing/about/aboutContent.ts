@@ -44,82 +44,63 @@ export const ABOUT_PAGE_CONTENT = {
   },
   snapshot: {
     eyebrow: "Company Snapshot",
-    title: "Businesses get senior execution without building oversized teams.",
+    title: "The team behind the work.",
     description:
-      "Headquartered in Dubai and delivering globally, Softchain brings architecture, delivery, infrastructure, and long-term support together under one accountable team.",
+      "Softchain is an engineering firm. We scope, design, build, integrate, and operate systems for clients globally from a single accountable team in Dubai.",
     items: [
       {
-        value: "Dubai",
+        value: "2022",
+        label: "Founded",
+        description:
+          "Softchain was founded in 2022 as an engineering firm focused on end-to-end delivery rather than separate strategy, build, and support vendors.",
+      },
+      {
+        value: "Dubai, UAE",
         label: "Headquarters",
-        description: "Softchain is headquartered in Dubai, UAE.",
+        description:
+          "The team operates from Dubai, with engineering, delivery coordination, and client relationships run out of a single base.",
+      },
+      {
+        value: "Licensed",
+        label: "Operating jurisdiction",
+        description:
+          "Softchain is licensed in the United Arab Emirates and contracts directly with clients across regions under that framework.",
       },
       {
         value: "Global",
-        label: "Delivery",
-        description: "Software and technical systems are delivered internationally.",
-      },
-      {
-        value: "4",
-        label: "Core disciplines",
+        label: "Client delivery",
         description:
-          "Software Design & Engineering, AI Systems, IT Infrastructure, and Technology Management.",
-      },
-      {
-        value: "End-to-end",
-        label: "Ownership",
-        description:
-          "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",
+          "Engagements are delivered internationally across startups, founders, growing businesses, and established companies, without sector or geography limits.",
       },
     ],
   },
   principles: {
     eyebrow: "Operating Principles",
-    title: "Delivery stays clearer when architecture, execution, and support are not split apart.",
+    title: "The positions the team holds, on every project.",
     items: [
       {
-        label: "Lifecycle",
-        title: "End-to-end delivery with clear technical ownership.",
+        label: "Architecture",
+        title: "Defined before development starts.",
         description:
-          "Scoping, architecture, implementation, integration, deployment, and long-term support handled by one team.",
+          "We do not begin building before the stack, system boundaries, data model, and delivery plan are coherent. The position the business is agreeing to is written down before the first commit.",
       },
       {
-        label: "Startups",
-        title: "Founders can work with Softchain as a CTO-level partner.",
+        label: "Integration",
+        title: "Designed, not improvised at the seams.",
         description:
-          "Product goals are translated into architecture and carried through production when there is no internal technical lead.",
+          "Connections to ERPs, CRMs, APIs, identity, and data systems are treated as first-class architecture. Contracts, failure modes, and ownership are decided up front rather than discovered in production.",
       },
       {
-        label: "Businesses",
-        title: "Businesses get senior execution without building oversized teams.",
+        label: "Infrastructure",
+        title: "Part of delivery, not a cleanup phase.",
         description:
-          "Delivery, integration, infrastructure, and support can be owned end to end without internal bloat.",
+          "Cloud, on-premise, and hybrid environments are planned with observability, permissions, recovery, and operational support designed in from the start — not bolted on after launch.",
       },
       {
-        label: "Company",
-        title: "Licensed in Dubai. Delivering internationally.",
+        label: "Support",
+        title: "Scoped to the risk the system carries.",
         description:
-          "Softchain is headquartered in Dubai, UAE and delivers software and technical systems internationally.",
-      },
-    ],
-  },
-  values: {
-    eyebrow: "How We Work",
-    title: "Constraint-led decisions across software, AI, infrastructure, and support.",
-    items: [
-      {
-        title: "AI belongs where it improves throughput, accuracy, or leverage.",
-        description:
-          "Model selection, deployment method, and system design are chosen by constraints, not hype.",
-      },
-      {
-        title: "IT infrastructure is part of delivery, not a cleanup phase.",
-        description:
-          "Cloud, on-premise, and hybrid systems are planned with observability, security, and support from the start.",
-      },
-      {
-        title: "Support continues after launch when the engagement requires it.",
-        description:
-          "Maintenance, retained engineering, managed updates, and operational support are structured per project.",
+          "Maintenance, retained engineering, managed updates, and incident response are structured around what the business stands to lose when the system is down or drifting, not as a default package.",
       },
     ],
   },

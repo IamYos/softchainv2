@@ -393,27 +393,132 @@ function getHoleCount(board: readonly number[]) {
   return holes;
 }
 
-function evaluateBoard(board: readonly number[], clearedRows: number) {
-  const heights = getColumnHeights(board);
-  const aggregateHeight = heights.reduce((sum, value) => sum + value, 0);
-  const bumpiness = heights.reduce(
-    (sum, value, index) => (index === 0 ? sum : sum + Math.abs(value - heights[index - 1])),
-    0,
-  );
-  const holes = getHoleCount(board);
-  const filledCells = board.reduce((sum, cell) => sum + cell, 0);
+// Dellacherie (1996) 6-feature heuristic. Landing height and eroded piece
+// cells describe the placement itself; row/column transitions, holes, and
+// well sums describe the resulting board. Weights are the canonical values
+// reported by Fahey — strong enough on a standard 10x20 field to clear
+// millions of lines without lookahead.
+const DELLACHERIE_WEIGHTS = {
+  landingHeight: -4.500158825082766,
+  erodedCells: 3.4181268101392694,
+  rowTransitions: -3.2178882868487753,
+  columnTransitions: -9.348695305445199,
+  holes: -7.899265427351652,
+  wells: -3.3855972247263626,
+} as const;
 
+// Beam width and discount for the 1-step lookahead in buildScript.
+const LOOKAHEAD_BEAM = 6;
+const LOOKAHEAD_DISCOUNT = 0.94;
+
+function getLandingHeight(piece: ActivePiece) {
+  let minY = BOARD_HEIGHT;
+
+  for (const [, dy] of getPieceCells(piece)) {
+    const y = piece.y + dy;
+    if (y < minY) {
+      minY = y;
+    }
+  }
+
+  return BOARD_HEIGHT - minY;
+}
+
+function getErodedCells(piece: ActivePiece, clearedRows: readonly number[]) {
+  if (clearedRows.length === 0) {
+    return 0;
+  }
+
+  const rowSet = new Set(clearedRows);
+  let cells = 0;
+
+  for (const [, dy] of getPieceCells(piece)) {
+    if (rowSet.has(piece.y + dy)) {
+      cells += 1;
+    }
+  }
+
+  return clearedRows.length * cells;
+}
+
+function getRowTransitions(board: readonly number[]) {
+  let transitions = 0;
+
+  for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+    let prev = 1;
+
+    for (let column = 0; column < BOARD_WIDTH; column += 1) {
+      const cur = board[toIndex(column, row)] !== 0 ? 1 : 0;
+      if (cur !== prev) {
+        transitions += 1;
+      }
+      prev = cur;
+    }
+
+    if (prev !== 1) {
+      transitions += 1;
+    }
+  }
+
+  return transitions;
+}
+
+function getColumnTransitions(board: readonly number[]) {
+  let transitions = 0;
+
+  for (let column = 0; column < BOARD_WIDTH; column += 1) {
+    let prev = 0;
+
+    for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+      const cur = board[toIndex(column, row)] !== 0 ? 1 : 0;
+      if (cur !== prev) {
+        transitions += 1;
+      }
+      prev = cur;
+    }
+
+    if (prev !== 1) {
+      transitions += 1;
+    }
+  }
+
+  return transitions;
+}
+
+function getWellSums(board: readonly number[]) {
+  const heights = getColumnHeights(board);
+  let sums = 0;
+
+  for (let column = 0; column < BOARD_WIDTH; column += 1) {
+    const left = column === 0 ? BOARD_HEIGHT : heights[column - 1];
+    const right = column === BOARD_WIDTH - 1 ? BOARD_HEIGHT : heights[column + 1];
+    const depth = Math.min(left, right) - heights[column];
+
+    if (depth > 0) {
+      sums += (depth * (depth + 1)) / 2;
+    }
+  }
+
+  return sums;
+}
+
+function scorePlacement(
+  piece: ActivePiece,
+  clearedRows: readonly number[],
+  clearedBoard: readonly number[],
+) {
   return (
-    clearedRows * 1400 +
-    filledCells * 1.2 -
-    aggregateHeight * 9 -
-    holes * 72 -
-    bumpiness * 4.5
+    DELLACHERIE_WEIGHTS.landingHeight * getLandingHeight(piece) +
+    DELLACHERIE_WEIGHTS.erodedCells * getErodedCells(piece, clearedRows) +
+    DELLACHERIE_WEIGHTS.rowTransitions * getRowTransitions(clearedBoard) +
+    DELLACHERIE_WEIGHTS.columnTransitions * getColumnTransitions(clearedBoard) +
+    DELLACHERIE_WEIGHTS.holes * getHoleCount(clearedBoard) +
+    DELLACHERIE_WEIGHTS.wells * getWellSums(clearedBoard)
   );
 }
 
-function findBestPlacement(board: readonly number[], key: PieceKey): Placement | null {
-  let bestPlacement: Placement | null = null;
+function collectPlacements(board: readonly number[], key: PieceKey): Placement[] {
+  const placements: Placement[] = [];
   const rotations = PIECES[key];
 
   for (let rotation = 0; rotation < rotations.length; rotation += 1) {
@@ -432,20 +537,78 @@ function findBestPlacement(board: readonly number[], key: PieceKey): Placement |
       const merged = mergePiece(board, piece);
       const clearedRows = getFullRows(merged);
       const clearedBoard = clearRows(merged, clearedRows);
-      const score = evaluateBoard(clearedBoard, clearedRows.length);
+      const score = scorePlacement(piece, clearedRows, clearedBoard);
 
-      if (!bestPlacement || score > bestPlacement.score) {
-        bestPlacement = {
-          ...candidateStep,
-          board: clearedBoard,
-          clearedRows,
-          score,
-        };
-      }
+      placements.push({
+        ...candidateStep,
+        board: clearedBoard,
+        clearedRows,
+        score,
+      });
     }
   }
 
-  return bestPlacement;
+  return placements;
+}
+
+function findBestPlacement(board: readonly number[], key: PieceKey): Placement | null {
+  const placements = collectPlacements(board, key);
+
+  if (placements.length === 0) {
+    return null;
+  }
+
+  let best = placements[0];
+
+  for (let index = 1; index < placements.length; index += 1) {
+    if (placements[index].score > best.score) {
+      best = placements[index];
+    }
+  }
+
+  return best;
+}
+
+function findBestPlacementWithLookahead(
+  board: readonly number[],
+  key: PieceKey,
+  nextKey: PieceKey | null,
+): Placement | null {
+  const placements = collectPlacements(board, key);
+
+  if (placements.length === 0) {
+    return null;
+  }
+
+  if (!nextKey) {
+    let best = placements[0];
+    for (let index = 1; index < placements.length; index += 1) {
+      if (placements[index].score > best.score) {
+        best = placements[index];
+      }
+    }
+    return best;
+  }
+
+  placements.sort((a, b) => b.score - a.score);
+  const beamSize = Math.min(LOOKAHEAD_BEAM, placements.length);
+
+  let best = placements[0];
+  let bestCombined = -Infinity;
+
+  for (let index = 0; index < beamSize; index += 1) {
+    const candidate = placements[index];
+    const follow = findBestPlacement(candidate.board, nextKey);
+    const combined =
+      candidate.score + (follow ? follow.score : 0) * LOOKAHEAD_DISCOUNT;
+
+    if (combined > bestCombined) {
+      bestCombined = combined;
+      best = candidate;
+    }
+  }
+
+  return best;
 }
 
 function buildScript(seed: number) {
@@ -453,8 +616,10 @@ function buildScript(seed: number) {
   const steps: ScriptStep[] = [];
   let board = createEmptyBoard();
 
-  for (const key of queue) {
-    const placement = findBestPlacement(board, key);
+  for (let index = 0; index < queue.length; index += 1) {
+    const key = queue[index];
+    const nextKey = index + 1 < queue.length ? queue[index + 1] : null;
+    const placement = findBestPlacementWithLookahead(board, key, nextKey);
 
     if (!placement) {
       break;

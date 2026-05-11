@@ -15,26 +15,26 @@ import {
 
 const SOLUTIONS = [
   {
-    title: "Software Design & Engineering",
-    description:
-      "Custom software, internal systems, client platforms, ERP and workflow integrations, and native mobile delivery designed and built for real operational load.",
-    href: "#sf-solutions",
-    icon: "systems" as const,
-    lines: 3,
-  },
-  {
     title: "AI Systems",
     description:
       "RAG, workflow automation, intelligent interfaces, and private or hybrid inference pipelines deployed where they create measurable business value.",
-    href: "#sf-insights",
+    href: "/solutions?solution=ai",
     icon: "dots" as const,
+    lines: 3,
+  },
+  {
+    title: "Software Design & Engineering",
+    description:
+      "Custom software, internal systems, client platforms, ERP and workflow integrations, and native mobile delivery designed and built for real operational load.",
+    href: "/solutions?solution=software",
+    icon: "systems" as const,
     lines: 3,
   },
   {
     title: "IT Infrastructure",
     description:
       "Cloud, on-premise, and hybrid environments handled end to end, including networking, security posture, migrations, observability, and long-term operational stability.",
-    href: "#closing-cta",
+    href: "/solutions?solution=infrastructure",
     icon: "infrastructure" as const,
     lines: 3,
   },
@@ -42,7 +42,7 @@ const SOLUTIONS = [
     title: "Technology Management",
     description:
       "Technology leadership across procurement, digitization, vendor coordination, planning, and ongoing operational oversight when the business needs a hands-on partner.",
-    href: "#closing-cta",
+    href: "/solutions?solution=technology",
     icon: "triangle" as const,
     lines: 0,
   },
