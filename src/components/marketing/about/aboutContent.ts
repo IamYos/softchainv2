@@ -76,7 +76,7 @@ export const ABOUT_PAGE_CONTENT = {
   },
   principles: {
     eyebrow: "Operating Principles",
-    title: "The positions the team holds, on every project.",
+    title: "What holds across every project.",
     items: [
       {
         label: "Architecture",
@@ -86,9 +86,9 @@ export const ABOUT_PAGE_CONTENT = {
       },
       {
         label: "Integration",
-        title: "Designed, not improvised at the seams.",
+        title: "The seams are designed before they are built.",
         description:
-          "Connections to ERPs, CRMs, APIs, identity, and data systems are treated as first-class architecture. Contracts, failure modes, and ownership are decided up front rather than discovered in production.",
+          "Boundaries between systems are treated as first-class architecture. Contracts, failure modes, and ownership of every connection are decided up front, so the system holds together at the points where most failures actually live.",
       },
       {
         label: "Infrastructure",

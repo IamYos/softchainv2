@@ -11,12 +11,21 @@ const BOARD_HEIGHT = 12;
 const TICK_MS = 55;
 const PLAN_LENGTH = 42;
 const SCRIPT_SEEDS = [11, 23, 37, 41, 53, 67] as const;
-const COMPLETE_HOLD_MS = 2500;
+const COMPLETE_HOLD_MS = 900;
+const HELLO_HOLD_MS = 2100;
 const BINARY_DURATION_MS = 1300;
 
 type CellTone = 0 | 1 | 2;
 type PieceKey = "I" | "J" | "L" | "O" | "S" | "T" | "Z";
-type Phase = "idle" | "falling" | "lock" | "clear" | "resolve" | "complete" | "binary";
+type Phase =
+  | "idle"
+  | "falling"
+  | "lock"
+  | "clear"
+  | "resolve"
+  | "complete"
+  | "hello"
+  | "binary";
 type Coord = readonly [number, number];
 
 type ScriptStep = {
@@ -185,9 +194,60 @@ const BINARY_GLYPHS = {
   "1": ["010", "110", "010", "010", "111"],
 } as const;
 
+// 3x5 pixel glyphs for the "HELLO WORLD" reveal that sits inside the orange
+// completion field. Same dimensions as BINARY_GLYPHS so both phases share a
+// typographic rhythm.
+const HELLO_GLYPHS = {
+  H: ["101", "101", "111", "101", "101"],
+  E: ["111", "100", "111", "100", "111"],
+  L: ["100", "100", "100", "100", "111"],
+  O: ["111", "101", "101", "101", "111"],
+  W: ["101", "101", "101", "111", "101"],
+  R: ["110", "101", "110", "101", "101"],
+  D: ["110", "101", "101", "101", "110"],
+} as const;
+
+const HELLO_LINES = ["HELLO", "WORLD"] as const;
+type HelloGlyphKey = keyof typeof HELLO_GLYPHS;
+
 function createEmptyBoard() {
   return Array.from({ length: BOARD_WIDTH * BOARD_HEIGHT }, () => 0);
 }
+
+function buildHelloCells(): CellTone[] {
+  const cells: CellTone[] = Array.from(
+    { length: BOARD_WIDTH * BOARD_HEIGHT },
+    () => 2,
+  );
+  const glyphWidth = 3;
+  const glyphHeight = 5;
+  const gapX = 1;
+  const rowStarts = [1, 7] as const;
+
+  for (let lineIndex = 0; lineIndex < HELLO_LINES.length; lineIndex += 1) {
+    const line = HELLO_LINES[lineIndex];
+    const lineWidth = line.length * glyphWidth + (line.length - 1) * gapX;
+    const offsetX = Math.floor((BOARD_WIDTH - lineWidth) / 2);
+    const offsetY = rowStarts[lineIndex];
+
+    for (let charIndex = 0; charIndex < line.length; charIndex += 1) {
+      const glyph = HELLO_GLYPHS[line[charIndex] as HelloGlyphKey];
+      const xStart = offsetX + charIndex * (glyphWidth + gapX);
+
+      for (let row = 0; row < glyphHeight; row += 1) {
+        for (let column = 0; column < glyphWidth; column += 1) {
+          if (glyph[row][column] === "1") {
+            cells[toIndex(xStart + column, offsetY + row)] = 0;
+          }
+        }
+      }
+    }
+  }
+
+  return cells;
+}
+
+const HELLO_CELLS = buildHelloCells();
 
 function createIdleGame(): GameState {
   return {
@@ -721,6 +781,20 @@ function startBinaryReset(scriptIndex: number): GameState {
   };
 }
 
+function startHello(scriptIndex: number): GameState {
+  return {
+    active: null,
+    binaryFrame: 0,
+    flashCells: [],
+    flashRows: [],
+    phase: "hello",
+    resolveCells: [],
+    resolveProgress: 0,
+    scriptIndex,
+    settled: createEmptyBoard(),
+  };
+}
+
 function tickGame(state: GameState, scriptId: number): GameState {
   const script = SCRIPT_LIBRARY[scriptId];
 
@@ -901,6 +975,10 @@ function getRenderableCells(state: GameState) {
     return getBinaryCells(state.binaryFrame, state.scriptIndex);
   }
 
+  if (state.phase === "hello") {
+    return HELLO_CELLS;
+  }
+
   const cells = state.settled.map<CellTone>((cell) => (cell === 0 ? 0 : 1));
 
   if (state.active) {
@@ -1003,7 +1081,13 @@ export function AboutPixelGrid() {
   }, [prefersReducedMotion]);
 
   useEffect(() => {
-    if (prefersReducedMotion || !isActive || game.phase === "idle" || game.phase === "complete") {
+    if (
+      prefersReducedMotion ||
+      !isActive ||
+      game.phase === "idle" ||
+      game.phase === "complete" ||
+      game.phase === "hello"
+    ) {
       return;
     }
 
@@ -1023,9 +1107,25 @@ export function AboutPixelGrid() {
 
     const timeoutId = window.setTimeout(() => {
       setGame((current) =>
-        current.phase === "complete" ? startBinaryReset(scriptId) : current,
+        current.phase === "complete" ? startHello(scriptId) : current,
       );
     }, COMPLETE_HOLD_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [game.phase, isActive, prefersReducedMotion, scriptId]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || !isActive || game.phase !== "hello") {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setGame((current) =>
+        current.phase === "hello" ? startBinaryReset(scriptId) : current,
+      );
+    }, HELLO_HOLD_MS);
 
     return () => {
       window.clearTimeout(timeoutId);
