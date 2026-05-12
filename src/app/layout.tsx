@@ -1,5 +1,8 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { NavigationOverlay } from "@/components/loading/NavigationOverlay";
+import { ServiceWorkerRegistrar } from "@/components/loading/ServiceWorkerRegistrar";
 import "./globals.css";
 
 const auxMono = localFont({
@@ -130,6 +133,10 @@ export default function RootLayout({
         className={`${auxMono.variable} ${nonSans.variable} ${ppEditorial.variable} antialiased`}
       >
         {children}
+        <Suspense fallback={null}>
+          <NavigationOverlay />
+        </Suspense>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
