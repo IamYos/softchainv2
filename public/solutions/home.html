@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function () {
+      try {
+        if (new URLSearchParams(window.location.search).get("env") === "prod") {
+          var noop = function () {};
+          ["log", "warn", "info", "debug", "trace", "error"].forEach(function (k) {
+            console[k] = noop;
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="darkreader-lock">
