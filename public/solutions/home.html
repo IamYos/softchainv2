@@ -954,7 +954,7 @@
       </div>
     </section>
 
-    <section id="responsive" class="home-section feature-section text-layout color-green" data-chapter="responsive" data-demo="responsive">
+    <section id="responsive" class="home-section feature-section text-layout color-green" data-chapter="responsive" data-demo="responsive" style="height: 200lvh;">
       <div class="home-section-content">
           <div class="home-section-text">
             <div class="home-section-text-heading">
@@ -1412,7 +1412,7 @@ and support as the business changes.</span>
 </main>
 <div id="engine"></div>
   </div>
-<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions"></script>
+<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions-chapterswap-2"></script>
 <script>
   /*
    * Vanilla port of the ScrambleHeadlineLoop / ScrambleTextReveal React
@@ -1642,6 +1642,163 @@ and support as the business changes.</span>
       document.addEventListener("DOMContentLoaded", init);
     } else {
       init();
+    }
+  })();
+</script>
+<script>
+  /*
+   * Progress-bar chapter sync.
+   *
+   * Bind the cursor's horizontal position to which chapter's heading is
+   * currently active (.is-active-heading class on a .feature-section).
+   * Chapter k active -> cursor target = k / (N - 1), so chapter 0 = 0,
+   * chapter 7 = 1, with N = 8 chapters evenly distributed across the bar.
+   * Tween the cursor smoothly to its target so transitions look natural.
+   *
+   * This bypasses raw scroll-pixel math because the user's perception of
+   * "which chapter we are on" is driven by the title/heading transition,
+   * which the vendor's ScrollObserver triggers independently of pixel
+   * boundaries. Tying cursor to that signal guarantees synchronization.
+   */
+  (function () {
+    function init() {
+      const cursor = document.querySelector(
+        ".scroll-cursor:not(.scroll-cursor-ghost)",
+      );
+      const bar = document.querySelector(".scroll-bar");
+      const chapters = Array.from(
+        document.querySelectorAll(
+          "#features-gallery .feature-section[data-chapter]",
+        ),
+      );
+      if (!cursor || !bar || chapters.length === 0) return false;
+
+      const N = chapters.length;
+      const denom = Math.max(1, N - 1);
+      let dragging = false;
+      let target = 0;
+      let current = 0;
+      let rafPending = false;
+
+      function activeIndex() {
+        for (let i = 0; i < N; i++) {
+          if (chapters[i].classList.contains("is-active-heading")) return i;
+        }
+        // Fallback: last in-view section, else nearest to viewport top.
+        for (let i = N - 1; i >= 0; i--) {
+          if (chapters[i].classList.contains("is-in-view")) return i;
+        }
+        const scrollTop =
+          (document.scrollingElement || document.documentElement).scrollTop;
+        for (let i = N - 1; i >= 0; i--) {
+          if (scrollTop >= chapters[i].offsetTop) return i;
+        }
+        return 0;
+      }
+
+      function readScale() {
+        const t = cursor.style.transform || "";
+        const m = t.match(/scale\(([^)]+)\)/);
+        return m ? parseFloat(m[1]) : 1;
+      }
+
+      function paint(p) {
+        const barW = bar.clientWidth;
+        const cursorW = cursor.offsetWidth || 3;
+        const x = p * Math.max(0, barW - cursorW);
+        const scale = readScale();
+        cursor.style.setProperty(
+          "transform",
+          `translate3d(${x.toFixed(2)}px, 0, 0) scale(${scale})`,
+          "important",
+        );
+      }
+
+      function tick() {
+        rafPending = false;
+        if (dragging) return;
+        const diff = target - current;
+        if (Math.abs(diff) < 0.0008) {
+          current = target;
+          paint(current);
+          return;
+        }
+        current += diff * 0.18;
+        paint(current);
+        rafPending = true;
+        requestAnimationFrame(tick);
+      }
+
+      function schedule() {
+        if (rafPending) return;
+        rafPending = true;
+        requestAnimationFrame(tick);
+      }
+
+      function updateTarget() {
+        const idx = activeIndex();
+        const next = idx / denom;
+        if (next === target) return;
+        target = next;
+        schedule();
+      }
+
+      // Observe class changes on every chapter section so we react when the
+      // active heading flips (which is the signal driving the visible title
+      // transition).
+      const obs = new MutationObserver(updateTarget);
+      chapters.forEach((c) =>
+        obs.observe(c, { attributes: true, attributeFilter: ["class"] }),
+      );
+
+      // Re-paint when the vendor rewrites the cursor's transform (it does
+      // so on every scroll frame). We don't change `target` here — we just
+      // re-apply the current X so the vendor can't snap the cursor away.
+      const cursorObs = new MutationObserver(() => {
+        if (dragging) return;
+        paint(current);
+      });
+      cursorObs.observe(cursor, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+
+      cursor.addEventListener("pointerdown", () => {
+        dragging = true;
+      });
+      const endDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        // After drag, snap target back to the active chapter's slot.
+        updateTarget();
+        schedule();
+      };
+      window.addEventListener("pointerup", endDrag);
+      window.addEventListener("pointercancel", endDrag);
+
+      window.addEventListener("resize", () => paint(current));
+
+      // Seed from current state.
+      current = activeIndex() / denom;
+      target = current;
+      paint(current);
+
+      return true;
+    }
+
+    function waitFor() {
+      if (init()) return;
+      let tries = 0;
+      const iv = setInterval(() => {
+        tries += 1;
+        if (init() || tries > 60) clearInterval(iv);
+      }, 200);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", waitFor);
+    } else {
+      waitFor();
     }
   })();
 </script>

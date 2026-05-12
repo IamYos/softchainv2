@@ -11,7 +11,7 @@ import styles from "./SolutionsPage.module.css";
 
 const FEATURE_START_SCROLL = 1;
 const SOLUTIONS_ENGINE_SRC =
-  "/solutions/home.html?v=softchain-progress-ui-20260512-console-silence-2" +
+  "/solutions/home.html?v=softchain-progress-ui-20260512-ch4-8-swap" +
   (process.env.NODE_ENV === "production" ? "&env=prod" : "");
 
 const SOLUTION_ANCHOR_IDS: Record<string, string> = {
