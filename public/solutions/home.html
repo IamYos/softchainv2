@@ -383,10 +383,13 @@
     }
 
     /* Each chapter's code snippet stretches to fill its container
-     * (.sub-nav, which is the transform-defined containing block on
-     * both desktop and mobile), leaving room at the bottom for the
-     * progress bar. The transition lets the slide-from-bottom +
-     * fade-in animate smoothly when the active chapter changes. */
+     * (.sub-nav). Visibility is driven exclusively by `.card-active`
+     * (toggled by the chapter-sync script below from the engine's own
+     * `is-active-heading` signal). The base rule keeps every card
+     * hidden; `.card-active` reveals the current chapter's snippet.
+     * !important on transform/opacity locks the vendor scripts.js out —
+     * it has its own per-section ScrollObserver that fires at a
+     * different scroll boundary, and we need a single source of truth. */
     .sub-nav > pre[data-card] {
       position: fixed !important;
       top: 0 !important;
@@ -401,7 +404,16 @@
       padding: clamp(16px, 2vw, 28px) !important;
       overflow: hidden !important;
       box-sizing: border-box !important;
+      transform: translate3d(0, 120%, 0) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
       transition: opacity 350ms ease, transform 350ms ease !important;
+    }
+
+    .sub-nav > pre[data-card].card-active {
+      transform: translate3d(0, 0, 0) !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
     }
 
     .sub-nav > pre[data-card] code {
@@ -506,35 +518,38 @@
         transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Text panel sits in the same left-half stage as the engine. The
-       * Y position is engine-relative: stage_y + stage_radius + gap puts
-       * the heading's top edge just below the ring's lowest point, no
-       * matter how tall the viewport is. X position stays unchanged. */
+      /* Text panel sits in the same left-half stage as the engine,
+       * anchored to the BOTTOM of the viewport so as the heading +
+       * subtitle + body get taller (longer copy or bigger font), the
+       * block grows upward off a fixed bottom edge — i.e. the title
+       * pushes up dynamically. The `bottom` value below is the padding
+       * from the viewport bottom; tune that single number to lift the
+       * whole block higher / lower. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
         z-index: 20;
-        bottom: auto !important;
-        top: var(--solutions-heading-top) !important;
+        top: auto !important;
+        bottom: clamp(48px, 7svh, 96px) !important;
         left: clamp(48px, 6vw, 120px) !important;
         right: auto !important;
-        max-width: min(580px, calc(50vw - clamp(72px, 9vw, 160px))) !important;
+        max-width: min(620px, calc(50vw - clamp(72px, 9vw, 160px))) !important;
         transform: none !important;
         width: calc(50vw - clamp(72px, 9vw, 160px)) !important;
       }
 
       .feature-section .home-section-text h2 {
-        font-size: clamp(32px, 2.9vw, 52px) !important;
+        font-size: clamp(38px, 3.4vw, 62px) !important;
       }
 
       .feature-section .feature-subtitle {
-        font-size: clamp(18px, 1.28vw, 23px);
+        font-size: clamp(20px, 1.5vw, 27px);
         line-height: 1.3;
       }
 
       .feature-section .feature-body {
-        font-size: clamp(15px, 1.02vw, 18px);
-        line-height: 1.5;
+        font-size: clamp(17px, 1.2vw, 21px);
+        line-height: 1.55;
       }
 
       .sub-nav > pre[data-card] code {
@@ -1412,7 +1427,7 @@ and support as the business changes.</span>
 </main>
 <div id="engine"></div>
   </div>
-<script src="/solutions/assets/js/scripts.js?v=4.3.5-10-solutions-chapterswap-2"></script>
+<script src="/solutions/assets/js/scripts.js?v=4.3.5-14-ch5-hub-bigger"></script>
 <script>
   /*
    * Vanilla port of the ScrambleHeadlineLoop / ScrambleTextReveal React
@@ -1647,86 +1662,79 @@ and support as the business changes.</span>
 </script>
 <script>
   /*
-   * Progress-bar chapter sync.
+   * Chapter sync — code snippet + progress-bar cursor.
    *
-   * Bind the cursor's horizontal position to which chapter's heading is
-   * currently active (.is-active-heading class on a .feature-section).
-   * Chapter k active -> cursor target = k / (N - 1), so chapter 0 = 0,
-   * chapter 7 = 1, with N = 8 chapters evenly distributed across the bar.
-   * Tween the cursor smoothly to its target so transitions look natural.
+   * One canonical signal: `.is-active-heading` on a chapter section.
+   * The scramble script (above) writes it from `.is-in-view`, which
+   * the vendor's gallery chapter timeline `Oi` toggles based on raw
+   * scroll position (`solutionProgress()`). So engine, active heading,
+   * card, and cursor all flip at the SAME scroll boundary.
    *
-   * This bypasses raw scroll-pixel math because the user's perception of
-   * "which chapter we are on" is driven by the title/heading transition,
-   * which the vendor's ScrollObserver triggers independently of pixel
-   * boundaries. Tying cursor to that signal guarantees synchronization.
+   * Two things to mirror to the active chapter:
+   *
+   *   1. Code snippet — toggle `.card-active` on the matching
+   *      `pre[data-card]`. CSS holds visibility with !important so the
+   *      vendor's per-section showCard/hideCard observer (which fires at
+   *      a different scroll boundary) can't override us.
+   *
+   *   2. Progress-bar cursor — snap to `idx / (N - 1)` of the bar, so
+   *      chapter 1 sits at 0% and chapter 8 sits at 100% (visible to
+   *      the very end). The vendor draggable rewrites the cursor
+   *      transform every scroll frame from its own `Se.progressX`; we
+   *      re-apply our snap via !important and a MutationObserver. The
+   *      vendor's hover/grab scale is preserved by parsing it back out
+   *      of the current transform.
    */
   (function () {
     function init() {
-      const cursor = document.querySelector(
-        ".scroll-cursor:not(.scroll-cursor-ghost)",
-      );
-      const bar = document.querySelector(".scroll-bar");
       const chapters = Array.from(
         document.querySelectorAll(
           "#features-gallery .feature-section[data-chapter]",
         ),
       );
-      if (!cursor || !bar || chapters.length === 0) return false;
+      if (chapters.length === 0) return false;
+
+      const cursor = document.querySelector(
+        ".scroll-cursor:not(.scroll-cursor-ghost)",
+      );
+      const bar = document.querySelector(".scroll-bar");
+
+      const pairs = chapters
+        .map((section) => {
+          const card = document.querySelector(
+            `.sub-nav > pre[data-card="${section.dataset.chapter}"]`,
+          );
+          return card ? { section, card } : null;
+        })
+        .filter(Boolean);
+      if (pairs.length === 0) return false;
 
       const N = chapters.length;
+      let activeIdx = 0;
       let dragging = false;
-      let target = 0;
-      let current = 0;
-      let rafPending = false;
-
-      function activeIndex() {
-        for (let i = 0; i < N; i++) {
-          if (chapters[i].classList.contains("is-active-heading")) return i;
-        }
-        // Fallback: last in-view section, else nearest to viewport top.
-        for (let i = N - 1; i >= 0; i--) {
-          if (chapters[i].classList.contains("is-in-view")) return i;
-        }
-        const scrollTop =
-          (document.scrollingElement || document.documentElement).scrollTop;
-        for (let i = N - 1; i >= 0; i--) {
-          if (scrollTop >= chapters[i].offsetTop) return i;
-        }
-        return 0;
-      }
-
-      function computeTarget() {
-        const idx = activeIndex();
-        // Cursor sits at idx/N when chapter idx activates — chapter k's
-        // activation lines up with the (k/N) tick on the bar, which is
-        // the boundary between partition (k-1) and partition k. So when
-        // chapter 1 (composition) becomes active, cursor = 1/8.
-        // For the last chapter, advance from (N-1)/N to 1 based on how
-        // far scroll has progressed within that chapter's range, so the
-        // cursor reaches exactly 100% at end-of-scroll.
-        if (idx < N - 1) return idx / N;
-        const scrollEl =
-          document.scrollingElement || document.documentElement;
-        const scrollTop = scrollEl.scrollTop;
-        const start = chapters[idx].offsetTop;
-        const maxScroll = Math.max(1, scrollEl.scrollHeight - window.innerHeight);
-        const local = Math.min(
-          1,
-          Math.max(0, (scrollTop - start) / Math.max(1, maxScroll - start)),
-        );
-        return (idx + local) / N;
-      }
 
       function readScale() {
+        if (!cursor) return 1;
         const t = cursor.style.transform || "";
         const m = t.match(/scale\(([^)]+)\)/);
         return m ? parseFloat(m[1]) : 1;
       }
 
-      function paint(p) {
+      function paintCursor() {
+        if (!cursor || !bar || dragging) return;
+        // The bar is conceptually 8 equal sections (one per chapter), so
+        // the snap points are 0/N, 1/N, ... (N-1)/N — the left edge of
+        // each section. Chapter K (0-indexed) → K/N. We anchor the
+        // cursor's left edge there directly: x = p * barW. Don't
+        // subtract cursorW — that's the stretch that made chapter K
+        // land "a bit more" past its mark, because (barW - cursorW) is
+        // smaller than barW and the K/N ratio was being applied to the
+        // wrong reference width.
+        const p = N > 0 ? activeIdx / N : 0;
         const barW = bar.clientWidth;
         const cursorW = cursor.offsetWidth || 3;
-        const x = p * Math.max(0, barW - cursorW);
+        const maxX = Math.max(0, barW - cursorW);
+        const x = Math.min(maxX, p * barW);
         const scale = readScale();
         cursor.style.setProperty(
           "transform",
@@ -1735,78 +1743,63 @@ and support as the business changes.</span>
         );
       }
 
-      function tick() {
-        rafPending = false;
-        if (dragging) return;
-        const diff = target - current;
-        if (Math.abs(diff) < 0.0008) {
-          current = target;
-          paint(current);
-          return;
+      function syncCards() {
+        pairs.forEach(({ section, card }) => {
+          card.classList.toggle(
+            "card-active",
+            section.classList.contains("is-active-heading"),
+          );
+        });
+      }
+
+      function currentActiveIdx() {
+        for (let i = 0; i < N; i++) {
+          if (chapters[i].classList.contains("is-active-heading")) return i;
         }
-        current += diff * 0.18;
-        paint(current);
-        rafPending = true;
-        requestAnimationFrame(tick);
+        return activeIdx;
       }
 
-      function schedule() {
-        if (rafPending) return;
-        rafPending = true;
-        requestAnimationFrame(tick);
+      function sync() {
+        activeIdx = currentActiveIdx();
+        syncCards();
+        paintCursor();
       }
 
-      function updateTarget() {
-        const next = computeTarget();
-        if (Math.abs(next - target) < 0.0005) return;
-        target = next;
-        schedule();
-      }
-
-      // Observe class changes on every chapter section so we react when the
-      // active heading flips (which is the signal driving the visible title
-      // transition).
-      const obs = new MutationObserver(updateTarget);
-      chapters.forEach((c) =>
-        obs.observe(c, { attributes: true, attributeFilter: ["class"] }),
+      const headingObs = new MutationObserver(sync);
+      pairs.forEach(({ section }) =>
+        headingObs.observe(section, {
+          attributes: true,
+          attributeFilter: ["class"],
+        }),
       );
 
-      // Re-paint when the vendor rewrites the cursor's transform (it does
-      // so on every scroll frame). We don't change `target` here — we just
-      // re-apply the current X so the vendor can't snap the cursor away.
-      const cursorObs = new MutationObserver(() => {
-        if (dragging) return;
-        paint(current);
-      });
-      cursorObs.observe(cursor, {
-        attributes: true,
-        attributeFilter: ["style"],
-      });
+      // The vendor draggable system rewrites the cursor's transform on
+      // every scroll frame; re-apply our snap whenever that happens.
+      if (cursor) {
+        const cursorObs = new MutationObserver(() => {
+          if (dragging) return;
+          paintCursor();
+        });
+        cursorObs.observe(cursor, {
+          attributes: true,
+          attributeFilter: ["style"],
+        });
 
-      cursor.addEventListener("pointerdown", () => {
-        dragging = true;
-      });
-      const endDrag = () => {
-        if (!dragging) return;
-        dragging = false;
-        // After drag, snap target back to the active chapter's slot.
-        updateTarget();
-        schedule();
-      };
-      window.addEventListener("pointerup", endDrag);
-      window.addEventListener("pointercancel", endDrag);
+        cursor.addEventListener("pointerdown", () => {
+          dragging = true;
+        });
+        const endDrag = () => {
+          if (!dragging) return;
+          dragging = false;
+          paintCursor();
+        };
+        window.addEventListener("pointerup", endDrag);
+        window.addEventListener("pointercancel", endDrag);
+      }
 
-      window.addEventListener("resize", () => paint(current));
+      window.addEventListener("resize", paintCursor);
 
-      // Drive updateTarget on scroll as well — needed so the last chapter's
-      // 7/8 → 1 fill tracks scroll within the responsive chapter's range.
-      window.addEventListener("scroll", updateTarget, { passive: true });
-
-      // Seed from current state.
-      current = computeTarget();
-      target = current;
-      paint(current);
-
+      sync();
       return true;
     }
 
