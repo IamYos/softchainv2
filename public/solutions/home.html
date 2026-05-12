@@ -298,7 +298,9 @@
       /* Conservative radius estimate so the title never overlaps the
        * actual rendered ring, even on square viewports. */
       --solutions-stage-radius: min(28vw, 42svh);
-      --solutions-heading-gap: clamp(28px, 4.5svh, 56px);
+      /* Gap between the engine's lower edge and the heading. Pure svh
+       * so it scales with viewport height — no pixel floors/ceilings. */
+      --solutions-heading-gap: 5svh;
       --solutions-heading-top: calc(
         var(--solutions-stage-y) + var(--solutions-stage-radius) + var(--solutions-heading-gap)
       );
@@ -325,6 +327,24 @@
     .sponsor-button {
       display: none !important;
       visibility: hidden !important;
+    }
+
+    /*
+     * The anime.js engine's `createLabel()` (scripts.js) injects
+     * <div class="module-label-text"> + <div class="module-label-point">
+     * elements into the CSS2DRenderer overlay (#labels-renderer) for the
+     * 3D module circles drawn by the `#modules` / `#toolbox` chapters.
+     * Those chapters are display:none here, so their per-frame transform
+     * updates never run — meaning every label stays at its CSS default
+     * (top:0 / left:0 of #labels-renderer = viewport top-left), stacked,
+     * at native tiny font, the entire time the engine is on screen.
+     * Kill them at the source.
+     */
+    #labels-renderer .module-label-text,
+    #labels-renderer .module-label-point,
+    .module-label-text,
+    .module-label-point {
+      display: none !important;
     }
 
     /* Anime.js toolbox-labels word cloud. scripts.js creates <li>s and
@@ -474,14 +494,16 @@
         transform: translate(-50%, -50%) scale(var(--solutions-animation-scale)) !important;
       }
 
-      /* Text panel sits in the same left-half stage as the engine, with
-       * enough vertical room for subtitle and body. */
+      /* Text panel sits in the same left-half stage as the engine. The
+       * Y position is engine-relative: stage_y + stage_radius + gap puts
+       * the heading's top edge just below the ring's lowest point, no
+       * matter how tall the viewport is. X position stays unchanged. */
       .feature-section .home-section-text {
         position: fixed !important;
         pointer-events: none;
         z-index: 20;
         bottom: auto !important;
-        top: clamp(140px, 26svh, 280px) !important;
+        top: var(--solutions-heading-top) !important;
         left: clamp(48px, 6vw, 120px) !important;
         right: auto !important;
         max-width: min(580px, calc(50vw - clamp(72px, 9vw, 160px))) !important;
@@ -525,6 +547,20 @@
         transform: translate(0, 0) !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
+      }
+    }
+
+    /* Short desktop viewports — the wide engine ring grows
+     * width-proportional via `calc(34vw / 1000px)`, but the bottom-pinned
+     * title also wants ~200px of vertical real estate. On short viewports
+     * (e.g. ~553svh) the ring's lower arc collided with the heading. Cap
+     * the scale and pull the engine center upward so the two zones stop
+     * fighting for the same y-band. */
+    @media (min-width: 900px) and (max-height: 780px) {
+      :root {
+        --solutions-animation-scale: clamp(0.28, calc(38svh / 800px), 0.42) !important;
+        --solutions-stage-y: 26svh !important;
+        --solutions-stage-radius: min(24vw, 30svh) !important;
       }
     }
 
