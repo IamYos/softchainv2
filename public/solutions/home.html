@@ -327,6 +327,29 @@
       visibility: hidden !important;
     }
 
+    /* Anime.js toolbox-labels word cloud. scripts.js creates <li>s and
+     * appends them to .toolbox-labels-left / .toolbox-labels-right
+     * (confirmed via `createElement("li")` + `querySelector(".toolbox-
+     * labels-left")` in scripts.js). #toolbox is display:none but the
+     * vendor stylesheet also positions these via `<toolbox-labels>`
+     * custom-element selectors, which leak through at portrait-tablet
+     * viewports. Hide them at every level so nothing renders. */
+    .toolbox-labels-container,
+    .toolbox-labels,
+    .toolbox-labels-left,
+    .toolbox-labels-right,
+    .toolbox-labels-left li,
+    .toolbox-labels-right li,
+    toolbox-labels-container,
+    toolbox-labels,
+    ul.toolbox-labels-left,
+    ul.toolbox-labels-right {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
     /* Each chapter's code snippet stretches to fill its container
      * (.sub-nav, which is the transform-defined containing block on
      * both desktop and mobile), leaving room at the bottom for the
