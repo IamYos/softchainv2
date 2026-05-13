@@ -52,6 +52,7 @@ export function LoadingOverlay({ label = "LOADING" }: { label?: string }) {
         lineSets={[[label]]}
         intervalMs={2400}
         resolvedColor="var(--mf-text-body)"
+        scrambleColors={["#ff5841", "#b9b9b9"]}
         className={styles.scrambleContainer}
         lineClassName={styles.scrambleLine}
         letterSpacing="0.32em"

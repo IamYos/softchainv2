@@ -1,0 +1,150 @@
+.legalRoot {
+  background: #b9b9b9;
+  color: #202020;
+  min-height: 100vh;
+  min-height: 100svh;
+  font-family: var(--font-aux-mono), monospace;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.hero {
+  padding-top: calc(var(--mf-header-height) + 80px);
+  padding-bottom: 64px;
+}
+
+.eyebrowRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.accentBar {
+  display: inline-block;
+  width: 40px;
+  height: 2px;
+  background: #ff5841;
+}
+
+.eyebrow {
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #202020;
+}
+
+.title {
+  font-family: var(--font-aux-mono), monospace;
+  font-size: clamp(40px, 7vw, 88px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0 0 28px;
+  color: #202020;
+}
+
+.lede {
+  font-family: var(--font-aux-mono), monospace;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.55;
+  max-width: 640px;
+  color: #202020;
+  margin: 0;
+}
+
+.body {
+  padding-bottom: 96px;
+}
+
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+.sectionItem {
+  display: block;
+  border-top: 1px solid rgba(32, 32, 32, 0.22);
+  padding-top: 32px;
+}
+
+.sectionItem:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.sectionHeading {
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #202020;
+  margin: 0 0 20px;
+}
+
+.paragraph {
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #202020;
+  margin: 0 0 14px;
+  max-width: 640px;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.backRow {
+  margin-top: 80px;
+  display: flex;
+}
+
+.backLink {
+  font-family: var(--font-aux-mono), monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #202020;
+  padding: 14px 22px;
+  border: 1px solid #202020;
+  background: transparent;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  background: #202020;
+  color: #b9b9b9;
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding-top: calc(var(--mf-header-height) + 56px);
+    padding-bottom: 48px;
+  }
+
+  .sectionList {
+    gap: 40px;
+  }
+}

@@ -1,4 +1,10 @@
-export type MarketingPageContext = "home" | "about" | "solutions" | "insights";
+export type MarketingPageContext =
+  | "home"
+  | "about"
+  | "solutions"
+  | "insights"
+  | "legal"
+  | "not-found";
 
 export type HeaderNavItem = {
   label: string;

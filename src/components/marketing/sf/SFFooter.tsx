@@ -114,10 +114,10 @@ export function SFFooter({ currentPage }: SFFooterProps) {
 
           <div className={styles.footerCopy}>
             <p className={`${styles.footerCopyItem} ${styles.p}`}>&copy;2026 Softchain.</p>
-            <a className={`${styles.footerCopyItem} ${styles.p}`} href="#footer">
+            <a className={`${styles.footerCopyItem} ${styles.p}`} href="/privacy">
               Privacy Policy
             </a>
-            <a className={`${styles.footerCopyItem} ${styles.p}`} href="#footer">
+            <a className={`${styles.footerCopyItem} ${styles.p}`} href="/terms">
               Terms of Use
             </a>
             <span className={`${styles.footerCopyItem} ${styles.p}`}>Dubai, UAE</span>
