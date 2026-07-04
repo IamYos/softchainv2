@@ -3,7 +3,7 @@ import { firestoreAdmin } from "@/lib/firebase/admin";
 import { getSettings } from "@/lib/firestore/settings";
 import { cancel as qstashCancel } from "@/lib/qstash/client";
 import { scheduleReminders } from "@/lib/qstash/reminders";
-import { sendBookingEmail } from "@/lib/email/send";
+import { sendBookingEmail, adminRecipients } from "@/lib/email/send";
 import { reschedule as rescheduleTemplate } from "@/lib/email/templates/reschedule";
 import { ACTIVE_SLOTS_COLLECTION, slotIdFromStart } from "./create";
 import { buildIcs } from "./ics";
@@ -160,7 +160,8 @@ export async function rescheduleBooking(
       icsMethod: "REQUEST",
     }),
     sendBookingEmail({
-      to: settings.ownerEmail,
+      to: adminRecipients(settings.ownerEmail),
+      replyTo: prev.visitorEmail,
       ...tpl,
       icsContent: ics,
       icsMethod: "REQUEST",

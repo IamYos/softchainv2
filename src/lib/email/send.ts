@@ -1,16 +1,26 @@
 import { resendClient, fromAddress } from "./resend";
 
 export type SendArgs = {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   text: string;
   icsContent?: string;
   icsMethod?: "REQUEST" | "CANCEL";
+  replyTo?: string;
 };
 
+const ADMIN_NOTIFY_EMAIL = "info@softchain.ae";
+
+// Recipients for admin-facing notifications: the owner plus the shared
+// info@ mailbox, deduped in case the owner email IS the info@ address.
+export function adminRecipients(ownerEmail: string): string[] {
+  if (ownerEmail.trim().toLowerCase() === ADMIN_NOTIFY_EMAIL) return [ownerEmail];
+  return [ownerEmail, ADMIN_NOTIFY_EMAIL];
+}
+
 export async function sendBookingEmail(args: SendArgs): Promise<{ id: string }> {
-  const { to, subject, html, text, icsContent, icsMethod } = args;
+  const { to, subject, html, text, icsContent, icsMethod, replyTo } = args;
 
   const attachments = icsContent
     ? [
@@ -25,6 +35,7 @@ export async function sendBookingEmail(args: SendArgs): Promise<{ id: string }> 
   const { data, error } = await resendClient().emails.send({
     from: fromAddress(),
     to,
+    replyTo,
     subject,
     html,
     text,

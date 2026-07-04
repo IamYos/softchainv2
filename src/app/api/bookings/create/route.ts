@@ -6,7 +6,7 @@ import { extractIp } from "@/lib/http/ip";
 import { getSettings } from "@/lib/firestore/settings";
 import { createBookingTransaction } from "@/lib/booking/create";
 import { buildIcs } from "@/lib/booking/ics";
-import { sendBookingEmail } from "@/lib/email/send";
+import { sendBookingEmail, adminRecipients } from "@/lib/email/send";
 import { bookingConfirmation } from "@/lib/email/templates/booking-confirmation";
 import { adminNewBooking } from "@/lib/email/templates/admin-new-booking";
 import { scheduleReminders } from "@/lib/qstash/reminders";
@@ -146,7 +146,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const emailResults = await Promise.allSettled([
     sendBookingEmail({ to: booking.visitorEmail, ...visitor, icsContent: ics, icsMethod: "REQUEST" }),
-    sendBookingEmail({ to: settings.ownerEmail, ...admin, icsContent: ics, icsMethod: "REQUEST" }),
+    sendBookingEmail({ to: adminRecipients(settings.ownerEmail), replyTo: booking.visitorEmail, ...admin, icsContent: ics, icsMethod: "REQUEST" }),
   ]);
   emailResults.forEach((r, i) => {
     if (r.status === "rejected") {

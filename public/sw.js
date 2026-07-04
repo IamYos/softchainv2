@@ -9,7 +9,7 @@
 //
 // Bump CACHE_VERSION to invalidate all caches on next activation.
 
-const CACHE_VERSION = "softchain-cache-v1";
+const CACHE_VERSION = "softchain-cache-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
@@ -74,8 +74,10 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Bypass: API, Next server actions, RSC payloads with auth, hot-reload.
+  // Bypass: API, admin (session-gated), Next server actions, RSC payloads
+  // with auth, hot-reload.
   if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/admin")) return;
   if (url.pathname.startsWith("/_next/data/")) return;
   if (req.headers.get("next-action")) return;
   if (req.headers.get("rsc")) return;
@@ -115,11 +117,15 @@ async function cacheFirst(req, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(req);
   if (cached) return cached;
-  const res = await fetch(req);
-  if (res && res.ok && res.status === 200) {
-    cache.put(req, res.clone()).catch(() => undefined);
+  try {
+    const res = await fetch(req);
+    if (res && res.ok && res.status === 200) {
+      cache.put(req, res.clone()).catch(() => undefined);
+    }
+    return res || Response.error();
+  } catch {
+    return Response.error();
   }
-  return res;
 }
 
 async function staleWhileRevalidate(req, cacheName) {
@@ -132,6 +138,7 @@ async function staleWhileRevalidate(req, cacheName) {
       }
       return res;
     })
-    .catch(() => cached);
-  return cached || network;
+    .catch(() => undefined);
+  if (cached) return cached;
+  return (await network) || Response.error();
 }

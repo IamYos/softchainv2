@@ -1015,6 +1015,17 @@
   }
 }
 
+/* In-flow variant: the booking confirmation card renders in the normal
+   document flow, not as a centered overlay. Must come after .formSuccess /
+   .formSuccessVisible so it wins the position + transform. */
+.formSuccessInline {
+  left: auto;
+  margin-inline: auto;
+  position: static;
+  top: auto;
+  transform: none;
+}
+
 .successMessage {
   display: inline-block;
   margin-bottom: 32px;

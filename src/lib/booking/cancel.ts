@@ -4,7 +4,7 @@ import { getSettings } from "@/lib/firestore/settings";
 import { cancel as qstashCancel } from "@/lib/qstash/client";
 import { ACTIVE_SLOTS_COLLECTION, slotIdFromStart } from "./create";
 import { buildIcs } from "./ics";
-import { sendBookingEmail } from "@/lib/email/send";
+import { sendBookingEmail, adminRecipients } from "@/lib/email/send";
 import { cancel as cancelTemplate } from "@/lib/email/templates/cancel";
 import type { Booking } from "./types";
 
@@ -93,7 +93,7 @@ export async function cancelBooking(bookingId: string): Promise<CancelOutcome> {
   const { subject, html, text } = cancelTemplate(templateCtx);
   const results = await Promise.allSettled([
     sendBookingEmail({ to: current.visitorEmail, subject, html, text, icsContent: ics, icsMethod: "CANCEL" }),
-    sendBookingEmail({ to: settings.ownerEmail, subject, html, text, icsContent: ics, icsMethod: "CANCEL" }),
+    sendBookingEmail({ to: adminRecipients(settings.ownerEmail), replyTo: current.visitorEmail, subject, html, text, icsContent: ics, icsMethod: "CANCEL" }),
   ]);
   results.forEach((r, i) => {
     if (r.status === "rejected") {

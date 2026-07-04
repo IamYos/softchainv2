@@ -29,7 +29,7 @@ export function BookingConfirmationCard({ data, result, ownerTimezone }: Props) 
       : `You'll receive a meeting link by email.`;
 
   return (
-    <div className={styles.formSuccess + " " + styles.formSuccessVisible} style={{ position: "static" }}>
+    <div className={`${styles.formSuccess} ${styles.formSuccessVisible} ${styles.formSuccessInline}`}>
       <p className={`${styles.successMessage} ${styles.p2}`}>
         You&apos;re booked.
       </p>

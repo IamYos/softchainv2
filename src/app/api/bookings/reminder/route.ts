@@ -3,7 +3,7 @@ import { z } from "zod";
 import { qstashReceiver } from "@/lib/qstash/client";
 import { getBookingById } from "@/lib/firestore/bookings";
 import { getSettings } from "@/lib/firestore/settings";
-import { sendBookingEmail } from "@/lib/email/send";
+import { sendBookingEmail, adminRecipients } from "@/lib/email/send";
 import { reminder24h } from "@/lib/email/templates/reminder-24h";
 import { reminder15m } from "@/lib/email/templates/reminder-15m";
 import { adminWhatsappPrompt } from "@/lib/email/templates/admin-whatsapp-prompt";
@@ -85,7 +85,7 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ ok: true, skipped: "whatsapp-no-phone" });
     }
     const email = adminWhatsappPrompt({ ...ctx, visitorPhone: booking.visitorPhone });
-    await sendBookingEmail({ to: settings.ownerEmail, ...email });
+    await sendBookingEmail({ to: adminRecipients(settings.ownerEmail), replyTo: booking.visitorEmail, ...email });
     return NextResponse.json({ ok: true, sent: "admin-whatsapp-prompt" });
   }
 
