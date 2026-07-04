@@ -1,3 +1,4 @@
+import { resolveTxt } from "node:dns/promises";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/adminSession";
 import { resendClient, fromAddress } from "@/lib/email/resend";
@@ -11,6 +12,18 @@ function domainFromAddress(addr: string): string | null {
   const match = addr.match(/<?([^\s<>@]+@([^\s<>]+))>?/);
   if (!match) return null;
   return match[2] ?? null;
+}
+
+// The Resend API key may be restricted to sending only, in which case
+// domains.list() 401s. Fall back to checking the domain's Resend DKIM
+// record in DNS — if it exists, the domain was set up for sending.
+async function dnsDkimConfigured(domain: string): Promise<boolean> {
+  try {
+    const records = await resolveTxt(`resend._domainkey.${domain}`);
+    return records.flat().join("").includes("p=");
+  } catch {
+    return false;
+  }
 }
 
 export async function GET(): Promise<Response> {
@@ -29,6 +42,9 @@ export async function GET(): Promise<Response> {
   try {
     const { data, error } = await resendClient().domains.list();
     if (error) {
+      if (await dnsDkimConfigured(target)) {
+        return NextResponse.json({ domain: target, status: "verified_dns", reason: error.message });
+      }
       return NextResponse.json({ domain: target, status: "unknown", reason: error.message });
     }
     const list = data?.data ?? [];
@@ -38,6 +54,9 @@ export async function GET(): Promise<Response> {
     }
     return NextResponse.json({ domain: target, status: match.status });
   } catch (err) {
+    if (await dnsDkimConfigured(target)) {
+      return NextResponse.json({ domain: target, status: "verified_dns", reason: (err as Error).message });
+    }
     return NextResponse.json(
       { domain: target, status: "unknown", reason: (err as Error).message },
       { status: 200 }

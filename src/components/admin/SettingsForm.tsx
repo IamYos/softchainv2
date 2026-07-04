@@ -7,7 +7,7 @@ import s from "./admin.module.css";
 
 type ResendStatus = {
   domain: string | null;
-  status: "pending" | "verified" | "failed" | "temporary_failure" | "not_started" | "not_found" | "unknown";
+  status: "pending" | "verified" | "verified_dns" | "failed" | "temporary_failure" | "not_started" | "not_found" | "unknown";
   reason?: string;
 };
 
@@ -120,7 +120,7 @@ export function SettingsForm({ initial, siteUrl }: Props) {
                 height: "0.65rem",
                 borderRadius: "50%",
                 background:
-                  resendStatus.status === "verified" ? "#2da44e"
+                  resendStatus.status === "verified" || resendStatus.status === "verified_dns" ? "#2da44e"
                   : resendStatus.status === "pending" || resendStatus.status === "temporary_failure" ? "#d4a72c"
                   : resendStatus.status === "failed" || resendStatus.status === "not_found" ? "var(--sc-admin-accent)"
                   : "#999",
@@ -128,7 +128,7 @@ export function SettingsForm({ initial, siteUrl }: Props) {
             />
             <span>
               {resendStatus.domain ? `${resendStatus.domain} — ` : ""}
-              <strong>{resendStatus.status.replace(/_/g, " ")}</strong>
+              <strong>{resendStatus.status === "verified_dns" ? "verified (via DNS)" : resendStatus.status.replace(/_/g, " ")}</strong>
             </span>
           </p>
         ) : (
