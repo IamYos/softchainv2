@@ -22,6 +22,12 @@ type Props = {
   ownerTimezone: string;
 };
 
+const linkStyle: React.CSSProperties = {
+  color: "inherit",
+  textDecoration: "underline",
+  textUnderlineOffset: "3px",
+};
+
 export function BookingConfirmationCard({ data, result, ownerTimezone }: Props) {
   const contactCopy =
     data.contactMethod === "whatsapp"
@@ -29,16 +35,16 @@ export function BookingConfirmationCard({ data, result, ownerTimezone }: Props) 
       : `You'll receive a meeting link by email.`;
 
   return (
-    <div className={`${styles.formSuccess} ${styles.formSuccessVisible} ${styles.formSuccessInline}`}>
-      <p className={`${styles.successMessage} ${styles.p2}`}>
-        You&apos;re booked.
+    <div style={{ textAlign: "center" }}>
+      <p className={styles.p2} style={{ margin: "0 0 1rem" }}>
+        Thank you — you&apos;re booked.
       </p>
       <p className={styles.p} style={{ opacity: 0.8, margin: "0.5rem 0" }}>
         {fmtDate(result.startUtc, data.visitorTimezone)}
         {data.visitorTimezone !== ownerTimezone && (
           <>
             <br />
-            <span style={{ opacity: 0.6 }}>
+            <span style={{ opacity: 0.7 }}>
               = {fmtDate(result.startUtc, ownerTimezone)} (Dubai)
             </span>
           </>
@@ -47,25 +53,20 @@ export function BookingConfirmationCard({ data, result, ownerTimezone }: Props) 
       <p className={styles.p} style={{ opacity: 0.8, margin: "0.5rem 0" }}>
         {contactCopy}
       </p>
-      <p className={styles.successClosing + " " + styles.p}>
+      <p className={styles.p} style={{ opacity: 0.8, margin: "0.5rem 0 1.25rem" }}>
         Check your inbox for the calendar invite.
       </p>
-      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "1rem" }}>
-        <a
-          href={result.rescheduleUrl}
-          className={`${styles.monoPillWide} ${styles.p}`}
-          style={{ textDecoration: "none" }}
-        >
+      <p className={styles.p} style={{ margin: 0 }}>
+        <a href={result.rescheduleUrl} style={linkStyle}>
           Reschedule
         </a>
-        <a
-          href={result.cancelUrl}
-          className={`${styles.monoPillWide} ${styles.monoPillOrange} ${styles.p}`}
-          style={{ textDecoration: "none" }}
-        >
+        <span aria-hidden="true" style={{ opacity: 0.5, padding: "0 0.75rem" }}>
+          /
+        </span>
+        <a href={result.cancelUrl} style={linkStyle}>
           Cancel
         </a>
-      </div>
+      </p>
     </div>
   );
 }
